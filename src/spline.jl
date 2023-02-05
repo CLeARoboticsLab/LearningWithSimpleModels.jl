@@ -1,33 +1,48 @@
 struct Spline
-    times
-    coeffs_x
-    coeffs_y
-    init_x
-    init_y
+    ts::Vector{Float64}
+    coeffs_x::Vector{Float64}
+    coeffs_y::Vector{Float64}
+    x0::Float64
+    y0::Float64
 end
 
+"""
+Generate a cubic spine
+# Arguments
+- `xs`, `ys`: x- and y-coordinates
+- `ts`: arrival time at each coordinate (first point must be >= 0.0)
+- `xdot_0`, `ydot_0`: x and y initial velocities
+- `xdot_f`, `ydot_f`: x and y final velocities; if nothing, caluclates from last two points
+"""
 function Spline(;
-    x_coord,
-    y_coord,
-    xd_0 = 0.,
-    yd_0 = 0.,
-    xd_f = nothing,
-    yd_f = nothing,
-    times = nothing,
+    xs::Vector{Float64},
+    ys::Vector{Float64},
+    ts::Vector{Float64},
+    xdot_0::Float64 = 0.,
+    ydot_0::Float64 = 0.,
+    xdot_f = nothing,
+    ydot_f = nothing,
 )
-    n = length(times)
+    if isnothing(xdot_f)
+        xdot_f = (xs[end] - xs[end-1]) / (ts[end] - ts[end-1])
+    end
+    if isnothing(ydot_f)
+        ydot_f = (ys[end] - ys[end-1]) / (ts[end] - ts[end-1])
+    end
+
+    n = length(ts)
     row_length = 4*(n-1)
     A = zeros(0)
     b_x = zeros(4*(n-1))
     b_y = zeros(4*(n-1))
-    init_x = x_coord[1]
-    init_y = y_coord[2]
+    x0 = xs[1]
+    y0 = ys[1]
 
     j = 1
     for i in 0:n-1
-        t = times[i+1]
-        x = x_coord[i+1]
-        y = y_coord[i+1]
+        t = ts[i+1]
+        x = xs[i+1]
+        y = ys[i+1]
 
         f′ = zeros(row_length)
 
@@ -38,8 +53,8 @@ function Spline(;
             append!(A, f)
             f′[idx:idx+2] = [3*t^2, 2*t, 1]
         else
-            b_x[j:j+1] = [x, -xd_0]
-            b_y[j:j+1] = [y, -yd_0]
+            b_x[j:j+1] = [x, -xdot_0]
+            b_y[j:j+1] = [y, -ydot_0]
             j += 2
         end
 
@@ -50,8 +65,8 @@ function Spline(;
             append!(A, f)
             f′[idx:idx+2] = [-3*t^2, -2*t, -1]
         else
-            b_x[j:j+1] = [x, xd_f]
-            b_y[j:j+1] = [y, yd_f]
+            b_x[j:j+1] = [x, xdot_f]
+            b_y[j:j+1] = [y, ydot_f]
             j += 2
         end
 
@@ -75,9 +90,31 @@ function Spline(;
     end
 
     A = reshape(A, (row_length, row_length))'
-
     coeffs_x = inv(A)*b_x
     coeffs_y = inv(A)*b_y
 
-    return Spline(times, coeffs_x, coeffs_y, init_x, init_y)
+    return Spline(ts, coeffs_x, coeffs_y, x0, y0)
+end
+
+function time_segment(t::Float64, ts::Vector{Float64})
+    if t == ts[1]
+        return 1
+    end
+    return findall(ts .- t .< 0.0)[end]
+end
+
+function evaluate(spl::Spline, t::Real)
+    seg = time_segment(t, spl.ts)
+
+    idx = 4*(seg-1) + 1
+    coeffs_x = spl.coeffs_x[idx:idx+3]
+    coeffs_y = spl.coeffs_y[idx:idx+3]
+
+    x = coeffs_x[1]*t^3 + coeffs_x[2]*t^2 + coeffs_x[3]*t + coeffs_x[4]
+    y = coeffs_y[1]*t^3 + coeffs_y[2]*t^2 + coeffs_y[3]*t + coeffs_y[4]
+
+    xdot = 3*coeffs_x[1]*t^2 + 2*coeffs_x[2]*t + coeffs_x[3]
+    ydot = 3*coeffs_y[1]*t^2 + 2*coeffs_y[2]*t + coeffs_y[3]
+
+    return x, y, xdot, ydot
 end

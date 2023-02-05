@@ -17,26 +17,48 @@ using Test
             xs = fx.(times)
             ys = fy.(times)
 
-            spl = LearningWithSimpleModels.Spline(;
-                x_coord = xs,
-                y_coord = ys,
-                xd_0 = fx_dot(times[1]),
-                yd_0 = fy_dot(times[1]),
-                xd_f = fx_dot(times[end]),
-                yd_f = fy_dot(times[end]),
-                times = times
+            spl = Spline(;
+                xs = xs,
+                ys = ys,
+                ts = times,
+                xdot_0 = fx_dot(times[1]),
+                ydot_0 = fy_dot(times[1]),
+                xdot_f = fx_dot(times[end]),
+                ydot_f = fy_dot(times[end]),
             )
             @test all(spl.coeffs_x[1:4] .≈ coeffs_x)
             @test all(spl.coeffs_y[1:4] .≈ coeffs_y)
+
+            test_ts = 0.0:.1:4.0
+            xs_spline = zeros(length(test_ts))
+            ys_spline = zeros(length(test_ts))
+            xdots_spline = zeros(length(test_ts))
+            ydots_spline = zeros(length(test_ts))
+            for (i,t) in enumerate(test_ts)
+                xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i] = evaluate(spl, t)
+            end
+            @test all(xs_spline .≈ fx.(test_ts))
+            @test all(ys_spline .≈ fy.(test_ts))
+            @test all(xdots_spline .≈ fx_dot.(test_ts))
+            @test all(ydots_spline .≈ fy_dot.(test_ts))
         end
         
+        let ts = [0.0, .7, 1.5, 2.5, 3.0, 4.5]
+            t = 0.0
+            @test LearningWithSimpleModels.time_segment(t, ts) == 1
+            t = 2.6
+            @test LearningWithSimpleModels.time_segment(t, ts) == 4
+            t = 4.5
+            @test LearningWithSimpleModels.time_segment(t, ts) == 5
+        end
+
         #TODO test w/ figure 8
-        spl = LearningWithSimpleModels.Spline(;
-            x_coord = [0., 3, 6, 3, 0, -3, -6, -3, 0],
-            y_coord = [0., 3, 0, -3, 0, 3, 0, -3, 0],
-            xd_f = 2.4,
-            yd_f = 2.4,
-            times = [ 0., 1.25, 2.5, 3.75, 5. , 6.25, 7.5 , 8.75, 10.]
+        spl = Spline(;
+            xs = [0., 3, 6, 3, 0, -3, -6, -3, 0],
+            ys = [0., 3, 0, -3, 0, 3, 0, -3, 0],
+            ts = [ 0., 1.25, 2.5, 3.75, 5. , 6.25, 7.5 , 8.75, 10.] #,
+            # xdot_f = 2.4,
+            # ydot_f = 2.4,
         )
     end
 end
