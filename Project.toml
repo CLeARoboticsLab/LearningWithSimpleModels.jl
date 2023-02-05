@@ -1,0 +1,13 @@
+name = "LearningWithSimpleModels"
+uuid = "50f1fcde-fbed-4ab2-866a-fe2e6235a732"
+authors = ["Jacob Levy"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
