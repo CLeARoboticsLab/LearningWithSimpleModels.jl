@@ -14,7 +14,6 @@ function Spline(;
     xd_f = nothing,
     yd_f = nothing,
     times = nothing,
-    init_pos = [0., 0.]
 )
     n = length(times)
     row_length = 4*(n-1)
@@ -22,19 +21,14 @@ function Spline(;
     A_y = zeros(0)
     b_x = zeros(4*(n-1))
     b_y = zeros(4*(n-1))
-    init_x = init_pos[1]
-    init_y = init_pos[2]
+    init_x = x_coord[1]
+    init_y = y_coord[2]
 
     j = 1
     for i in 0:n-1
         t = times[i+1]
-        if i == 0
-            x = init_x
-            y = init_y
-        else
-            x = x_coord[i] #TODO incorp init x,y into x_coord and y_coord?
-            y = y_coord[i]
-        end
+        x = x_coord[i+1]
+        y = y_coord[i+1]
 
         f_x_prime = zeros(row_length)
         f_y_prime = zeros(row_length)

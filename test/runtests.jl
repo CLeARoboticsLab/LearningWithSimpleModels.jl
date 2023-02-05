@@ -18,14 +18,13 @@ using Test
             ys = fy.(times)
 
             spl = LearningWithSimpleModels.Spline(;
-                x_coord = xs[2:end],
-                y_coord = ys[2:end],
+                x_coord = xs,
+                y_coord = ys,
                 xd_0 = fx_dot(times[1]),
                 yd_0 = fy_dot(times[1]),
                 xd_f = fx_dot(times[end]),
                 yd_f = fy_dot(times[end]),
-                times = times,
-                init_pos = [fx(times[1]), fy(times[1])]
+                times = times
             )
             @test all(spl.coeffs_x[1:4] .≈ coeffs_x)
             @test all(spl.coeffs_y[1:4] .≈ coeffs_y)
@@ -33,12 +32,11 @@ using Test
         
         #TODO test w/ figure 8
         spl = LearningWithSimpleModels.Spline(;
-            x_coord = [3, 6, 3, 0, -3, -6, -3, 0],
-            y_coord = [3, 0, -3, 0, 3, 0, -3, 0],
+            x_coord = [0., 3, 6, 3, 0, -3, -6, -3, 0],
+            y_coord = [0., 3, 0, -3, 0, 3, 0, -3, 0],
             xd_f = 2.4,
             yd_f = 2.4,
-            times = [ 0., 1.25, 2.5, 3.75, 5. , 6.25, 7.5 , 8.75, 10.],
-            init_pos = [0., 0.]
+            times = [ 0., 1.25, 2.5, 3.75, 5. , 6.25, 7.5 , 8.75, 10.]
         )
     end
 end

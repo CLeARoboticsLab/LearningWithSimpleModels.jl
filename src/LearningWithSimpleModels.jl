@@ -1,6 +1,6 @@
 module LearningWithSimpleModels
 
 include("spline.jl")
-#TODO export needed funcs
+#TODO export needed funcs; update tests
 
 end
