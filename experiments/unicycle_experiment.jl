@@ -1,5 +1,5 @@
 using LearningWithSimpleModels
-using GLMakie
+using GLMakie, LinearAlgebra
 
 include("unicycle_controller.jl")
 
@@ -45,6 +45,15 @@ unicycle_actual_dynamics() = ActualDynamics(;
     end
 )
 
+unicycle_cost() = quadratic_cost(;
+    Q=diagm(ones(4)),
+    R=diagm(ones(2))
+)
+
 function run()
-    train(unicycle_simple_dynamics(), unicycle_actual_dynamics())
+    train(
+        unicycle_simple_dynamics(), 
+        unicycle_actual_dynamics(), 
+        unicycle_cost()
+    )
 end
