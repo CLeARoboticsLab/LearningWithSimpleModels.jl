@@ -1,4 +1,5 @@
 using LearningWithSimpleModels
+using GLMakie
 
 include("unicycle_controller.jl")
 
