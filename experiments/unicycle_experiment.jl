@@ -1,5 +1,7 @@
 using LearningWithSimpleModels
 
+include("unicycle_controller.jl")
+
 struct UnicycleSimpleParameters <: SystemParameters end
 
 unicycle_simple_dynamics() = SimpleDynamics(;
@@ -45,4 +47,3 @@ unicycle_actual_dynamics() = ActualDynamics(;
 function run()
     train(unicycle_simple_dynamics(), unicycle_actual_dynamics())
 end
-run()
