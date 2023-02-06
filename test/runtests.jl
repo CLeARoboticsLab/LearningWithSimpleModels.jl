@@ -75,7 +75,7 @@ using Test
             atol = r/10
             test_ts = 0:time/16:time
             xs_spline, ys_spline, xdots_spline, ydots_spline = eval_all(spl, test_ts)
-            println("$(xs_spline[4]) ; $(x0+r+r*cos(π/4))")
+
             @test all([
                 isapprox(xs_spline[4], x0+r+r*cos(π/4); atol=atol),
                 isapprox(xs_spline[6], x0+r+r*cos(π/4); atol=atol),
@@ -88,6 +88,15 @@ using Test
                 isapprox(ys_spline[12], y0+r*sin(π/4); atol=atol),
                 isapprox(ys_spline[14], y0-r*sin(π/4); atol=atol)
             ])
+        end
+    end
+
+    @testset "Model" begin
+        let in_size = 10, out_size = 4
+            layer_sizes = [in_size, 8, 6, out_size]
+            m = LearningWithSimpleModels.make_model(layer_sizes)
+            out = @test_nowarn m(ones(in_size))
+            @test length(out) == out_size
         end
     end
 end
