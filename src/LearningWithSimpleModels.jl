@@ -1,6 +1,6 @@
 module LearningWithSimpleModels
 
 include("spline.jl")
-export Spline, evaluate
+export Spline, evaluate, figure_eight
 
 end

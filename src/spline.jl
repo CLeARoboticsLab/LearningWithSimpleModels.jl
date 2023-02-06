@@ -7,7 +7,7 @@ struct Spline
 end
 
 """
-Generate a cubic spine
+Generate a cubic spline
 # Arguments
 - `xs`, `ys`: x- and y-coordinates
 - `ts`: arrival time at each coordinate (first point must be >= 0.0)
@@ -103,6 +103,9 @@ function time_segment(t::Float64, ts::Vector{Float64})
     return findall(ts .- t .< 0.0)[end]
 end
 
+"""
+Returns x, y, xdot, ydot for the Spline at time t.
+"""
 function evaluate(spl::Spline, t::Real)
     seg = time_segment(t, spl.ts)
 
@@ -117,4 +120,43 @@ function evaluate(spl::Spline, t::Real)
     ydot = 3*coeffs_y[1]*t^2 + 2*coeffs_y[2]*t + coeffs_y[3]
 
     return x, y, xdot, ydot
+end
+
+"""
+Returns a cubic spline in the shape of a sideways figure eight
+# Arguments
+- `x0`, `y0`: center of the figure eight
+- `xdot_0`, `ydot_0`: x and y initial velocities
+- `xdot_f`, `ydot_f`: x and y final velocities
+- `radius`: approximate radius of the two loops
+- `time`: time to complete the figure eight
+"""
+function figure_eight(;
+    x0::Float64 = 0.0,
+    y0::Float64 = 0.0,
+    xdot_0::Float64 = 0.,
+    ydot_0::Float64 = 0.,
+    xdot_f = nothing,
+    ydot_f = nothing,
+    radius::Float64 = 1.0,
+    time::Float64 = 8.0
+)
+    xs = [0, radius, 2*radius, radius, 0, -radius, -2*radius, -radius, 0]
+    ys = [0, radius, 0, -radius, 0, radius, 0, -radius, 0]
+
+    xs = xs .+ x0
+    ys = ys .+ y0
+
+    interval = time/8
+    ts = collect(0.0:interval:time)
+
+    return Spline(;
+        xs = xs,
+        ys = ys,
+        ts = ts,
+        xdot_0 = xdot_0,
+        ydot_0 = ydot_0,
+        xdot_f = xdot_f,
+        ydot_f = ydot_f,
+    )
 end
