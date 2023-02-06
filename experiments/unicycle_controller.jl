@@ -83,16 +83,23 @@ function test_controller()
     vdes = sqrt.(xdot_des.^2 .+ ydot_des.^2)
 
     fig = Figure(; resolution=(1000,800))
-    lines(fig[1:2,1:2], xs, ys, label ="actual"#=, xlabel="x", ylabel="y"=#)
-    lines!(fig[1:2,1:2], xdes, ydes, label ="desired"#=, xlabel="x", ylabel="y"=#)
-    lines(fig[3,1], ts, xs, label ="actual"#=, xlabel="t", ylabel="x"=#)
-    lines!(fig[3,1], ts, xdes, label ="desired"#=, xlabel="t", ylabel="x"=#)
-    lines(fig[3,2], ts, ys, label ="actual"#=, xlabel="t", ylabel="y"=#)
-    lines!(fig[3,2], ts, ydes, label ="desired"#=, xlabel="t", ylabel="y"=#)
-    lines(fig[4,1], ts, vs, label ="actual"#=, xlabel="t", ylabel="v"=#)
-    lines!(fig[4,1], ts, vdes, label ="desired"#=, xlabel="t", ylabel="v"=#)
-    # lines(fig[4,2], ts, ϕs, label ="actual"#=, xlabel="t", ylabel="ϕ"=#)
-    # lines!(fig[4,2], ts, ϕdes, label ="desired"#=, xlabel="t", ylabel="ϕ"=#)
+
+    ax_xy = Axis(fig[1:2,1:2], xlabel="x", ylabel="y")
+    lines!(ax_xy, xs, ys, label ="actual")
+    lines!(ax_xy, xdes, ydes, label ="desired")
+
+    ax_x = Axis(fig[3,1], xlabel="t", ylabel="x")
+    lines!(ax_x, ts, xs, label ="actual")
+    lines!(ax_x, ts, xdes, label ="desired")
+
+    ax_y = Axis(fig[3,2], xlabel="t", ylabel="y")
+    lines!(ax_y, ts, ys, label ="actual")
+    lines!(ax_y, ts, ydes, label ="desired")
+
+    ax_v = Axis(fig[4,1:2], xlabel="t", ylabel="v")
+    lines!(ax_v, ts, vs, label ="actual")
+    lines!(ax_v, ts, vdes, label ="desired")
+
     display(GLMakie.Screen(), fig)
 
     #TODO: add types to func sigs for f and policy funcs?
