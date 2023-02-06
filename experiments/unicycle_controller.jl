@@ -5,7 +5,7 @@ Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
     kϕ::Float64
 end
 
-function unicycle_policy(controller::Controller, state, setpoints)
+function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoints::Vector{Float64})
     x = state[1]
     y = state[2]
     v = state[3]
@@ -101,6 +101,4 @@ function test_controller()
     lines!(ax_v, ts, vdes, label ="desired")
 
     display(GLMakie.Screen(), fig)
-
-    #TODO: add types to func sigs for f and policy funcs?
 end

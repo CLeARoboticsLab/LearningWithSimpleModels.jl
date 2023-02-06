@@ -8,7 +8,7 @@ struct UnicycleSimpleParameters <: SystemParameters end
 unicycle_simple_dynamics() = SimpleDynamics(;
     params = UnicycleSimpleParameters(),
     dt = 0.01,
-    f = (dyn::SimpleDynamics, t, x, u) -> begin
+    f = (dyn::SimpleDynamics, t::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         dt = dyn.dt
         x_next = similar(x)
         x_next[1] = x[1] + x[3]*cos(x[4])*dt
@@ -34,7 +34,7 @@ unicycle_actual_dynamics() = ActualDynamics(;
         turn_rate_scale = 0.95
     ),
     dt = 0.01,
-    f = (dyn::ActualDynamics, t, x, u) -> begin
+    f = (dyn::ActualDynamics, t::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         dt = dyn.dt
         x_next = similar(x)
         x_next[1] = x[1] + x[3]*cos(x[4])*dt

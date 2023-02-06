@@ -14,5 +14,5 @@ Base.@kwdef struct ActualDynamics <: Dyanmics
     f::Function
 end
 
-f_simple(dyn::SimpleDynamics, t, x, u) = dyn.f(dyn,t,x,u)
-f_actual(dyn::ActualDynamics, t, x, u) = dyn.f(dyn,t,x,u)
+f_simple(dyn::SimpleDynamics, t::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,x,u)
+f_actual(dyn::ActualDynamics, t::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,x,u)
