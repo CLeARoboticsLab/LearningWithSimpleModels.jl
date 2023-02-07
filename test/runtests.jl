@@ -1,6 +1,8 @@
 using LearningWithSimpleModels
 using Test
 
+include("../experiments/unicycle_experiment.jl")
+
 @testset verbose = true "LearningWithSimpleModels.jl" begin
     
     @testset "Spline" begin
@@ -98,5 +100,9 @@ using Test
             out = @test_nowarn m(ones(in_size))
             @test length(out) == out_size
         end
+    end
+
+    @testset "Unicycle Controller" begin
+        @test_nowarn test_unicycle_controller(; plot=false)
     end
 end

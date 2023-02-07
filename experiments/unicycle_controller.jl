@@ -52,52 +52,55 @@ unicycle_controller() = Controller(;
     policy = unicycle_policy
 )
 
-function test_controller()
+function test_unicycle_controller(; plot=true)
     dynamics = unicycle_simple_dynamics()
     controller = unicycle_controller()
-    time = 8.0
-    task = LearningWithSimpleModels.figure_eight(;xdot_f=0.0, ydot_f=0.0, time=time)
+    task = unicycle_figure_eight_task()
+    task_time = LearningWithSimpleModels.end_time(task)
     state0 = zeros(4)
 
-    ts = 0.0:0.01:time
+    dt = 0.01
+    ts = 0.0:dt:task_time
     state = state0
     states = zeros(length(state0), length(ts))
     setpoints = zeros(4, length(ts))
     for (i,t) in enumerate(ts)
         setpoint = evaluate(task, t)
         u = LearningWithSimpleModels.next_command(controller, state, setpoint)
-        state = LearningWithSimpleModels.f_simple(dynamics, t, state, u)
+        state = LearningWithSimpleModels.f_simple(dynamics, t, dt, state, u)
         states[:,i] = state
         setpoints[:,i] = setpoint
     end
     
-    xs = states[1,:]
-    ys = states[2,:]
-    vs = states[3,:]
-    ϕs = states[4,:]
-    xdes = setpoints[1,:]
-    ydes = setpoints[2,:]
-    xdot_des = setpoints[3,:]
-    ydot_des = setpoints[4,:]
-    vdes = sqrt.(xdot_des.^2 .+ ydot_des.^2)
+    if plot
+        xs = states[1,:]
+        ys = states[2,:]
+        vs = states[3,:]
+        ϕs = states[4,:]
+        xdes = setpoints[1,:]
+        ydes = setpoints[2,:]
+        xdot_des = setpoints[3,:]
+        ydot_des = setpoints[4,:]
+        vdes = sqrt.(xdot_des.^2 .+ ydot_des.^2)
 
-    fig = Figure(; resolution=(1000,800))
+        fig = Figure(; resolution=(1000,800))
 
-    ax_xy = Axis(fig[1:2,1:2], xlabel="x", ylabel="y")
-    lines!(ax_xy, xs, ys, label ="actual")
-    lines!(ax_xy, xdes, ydes, label ="desired")
+        ax_xy = Axis(fig[1:2,1:2], xlabel="x", ylabel="y")
+        lines!(ax_xy, xs, ys, label ="actual")
+        lines!(ax_xy, xdes, ydes, label ="desired")
 
-    ax_x = Axis(fig[3,1], xlabel="t", ylabel="x")
-    lines!(ax_x, ts, xs, label ="actual")
-    lines!(ax_x, ts, xdes, label ="desired")
+        ax_x = Axis(fig[3,1], xlabel="t", ylabel="x")
+        lines!(ax_x, ts, xs, label ="actual")
+        lines!(ax_x, ts, xdes, label ="desired")
 
-    ax_y = Axis(fig[3,2], xlabel="t", ylabel="y")
-    lines!(ax_y, ts, ys, label ="actual")
-    lines!(ax_y, ts, ydes, label ="desired")
+        ax_y = Axis(fig[3,2], xlabel="t", ylabel="y")
+        lines!(ax_y, ts, ys, label ="actual")
+        lines!(ax_y, ts, ydes, label ="desired")
 
-    ax_v = Axis(fig[4,1:2], xlabel="t", ylabel="v")
-    lines!(ax_v, ts, vs, label ="actual")
-    lines!(ax_v, ts, vdes, label ="desired")
+        ax_v = Axis(fig[4,1:2], xlabel="t", ylabel="v")
+        lines!(ax_v, ts, vs, label ="actual")
+        lines!(ax_v, ts, vdes, label ="desired")
 
-    display(GLMakie.Screen(), fig)
+        display(GLMakie.Screen(), fig)
+    end
 end

@@ -5,6 +5,7 @@ function train(;
     cost::Cost,
     task::Spline,
     n_states::Integer,
+    dt = 0.01,
     hidden_layer_sizes::Vector{<:Integer},
     learning_rate = 1e-3,
     iters = 50    
@@ -19,8 +20,8 @@ function train(;
     end
 
     #TODO this is temp code
-    println(f_simple(simple_dynamics,1.0,ones(4),ones(2)))
-    println(f_actual(actual_dynamics,1.0,ones(4),ones(2)))
+    println(f_simple(simple_dynamics,1.0,dt,ones(4),ones(2)))
+    println(f_actual(actual_dynamics,1.0,dt,ones(4),ones(2)))
     println(stage_cost(cost,ones(4),ones(2)))
 end
 

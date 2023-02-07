@@ -122,6 +122,8 @@ function evaluate(spl::Spline, t::Real)
     return [x, y, xdot, ydot]
 end
 
+end_time(spl::Spline) = last(spl.ts)
+
 """
 Returns a cubic spline in the shape of a sideways figure eight
 # Arguments
