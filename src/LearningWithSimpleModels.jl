@@ -8,21 +8,25 @@ using Flux:
     Adam
 import ProgressMeter
 
+include("types.jl")
+export Spline, 
+    SystemParameters, SimpleDynamics, ActualDynamics,
+    ControllerParameters, Controller,
+    CostParameters, QuadraticCostParameters, Cost,
+    TrainingParameters
+
 include("spline.jl")
-export Spline, evaluate, figure_eight
+export evaluate, figure_eight
 
 include("dynamics.jl")
-export SystemParameters, SimpleDynamics, ActualDynamics
-
-include("controller.jl")
-export ControllerParameters, Controller
+include("controller.jl") 
 
 include("cost.jl")
-export CostParameters, QuadraticCostParameters, Cost, quadratic_cost
+export quadratic_cost
 
 include("model.jl")
 
 include("train.jl")
-export TrainingParameters, train
+export train
 
 end

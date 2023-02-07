@@ -1,10 +1,3 @@
-abstract type ControllerParameters end
-
-Base.@kwdef struct Controller
-    params::ControllerParameters
-    policy::Function
-end
-
 next_command(
     controller::Controller, 
     x::Vector{Float64}, 

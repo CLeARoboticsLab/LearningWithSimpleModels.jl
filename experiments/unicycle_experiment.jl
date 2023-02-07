@@ -67,6 +67,7 @@ function run()
         params = TrainingParameters(;
             n_states = 4,
             dt = 0.01,
+            model_dt = 0.5,
             hidden_layer_sizes = [64, 64],
             learning_rate = 1e-3,
             iters = 50

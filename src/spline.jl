@@ -1,11 +1,3 @@
-struct Spline
-    ts::Vector{Float64}
-    coeffs_x::Vector{Float64}
-    coeffs_y::Vector{Float64}
-    x0::Float64
-    y0::Float64
-end
-
 """
 Generate a cubic spline
 # Arguments
