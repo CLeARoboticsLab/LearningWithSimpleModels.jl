@@ -104,7 +104,7 @@ function time_segment(t::Float64, ts::Vector{Float64})
 end
 
 """
-Returns x, y, xdot, ydot for the Spline at time t.
+Returns a vector of x, y, xdot, ydot for the Spline at time t.
 """
 function evaluate(spl::Spline, t::Real)
     seg = time_segment(t, spl.ts)
@@ -119,7 +119,7 @@ function evaluate(spl::Spline, t::Real)
     xdot = 3*coeffs_x[1]*t^2 + 2*coeffs_x[2]*t + coeffs_x[3]
     ydot = 3*coeffs_y[1]*t^2 + 2*coeffs_y[2]*t + coeffs_y[3]
 
-    return x, y, xdot, ydot
+    return [x, y, xdot, ydot]
 end
 
 """

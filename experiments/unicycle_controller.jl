@@ -52,7 +52,6 @@ unicycle_controller() = Controller(;
     policy = unicycle_policy
 )
 
-
 function test_controller()
     dynamics = unicycle_simple_dynamics()
     controller = unicycle_controller()
@@ -65,7 +64,7 @@ function test_controller()
     states = zeros(length(state0), length(ts))
     setpoints = zeros(4, length(ts))
     for (i,t) in enumerate(ts)
-        setpoint = collect(evaluate(task, t))
+        setpoint = evaluate(task, t)
         u = LearningWithSimpleModels.next_command(controller, state, setpoint)
         state = LearningWithSimpleModels.f_simple(dynamics, t, state, u)
         states[:,i] = state
