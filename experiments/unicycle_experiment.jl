@@ -57,7 +57,7 @@ unicycle_figure_eight_task() = figure_eight(;
     time = 10.0
 )
 
-function run()
+function run_experiment()
     train(;
         simple_dynamics = unicycle_simple_dynamics(), 
         actual_dynamics = unicycle_actual_dynamics(),
@@ -65,7 +65,7 @@ function run()
         cost = unicycle_cost(),
         task = unicycle_figure_eight_task(),
         params = TrainingParameters(;
-            n_states = 4,
+            x0 = zeros(4),
             dt = 0.01,
             model_dt = 0.5,
             hidden_layer_sizes = [64, 64],
@@ -74,3 +74,5 @@ function run()
         )
     )
 end
+
+run_experiment()

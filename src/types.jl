@@ -7,13 +7,13 @@ struct Spline
 end
 
 abstract type SystemParameters end
-abstract type Dyanmics end
+abstract type Dynamics end
 
-Base.@kwdef struct SimpleDynamics <: Dyanmics
+Base.@kwdef struct SimpleDynamics <: Dynamics
     params::SystemParameters
     f::Function
 end
-Base.@kwdef struct ActualDynamics <: Dyanmics
+Base.@kwdef struct ActualDynamics <: Dynamics
     params::SystemParameters
     f::Function
 end
@@ -38,7 +38,7 @@ Base.@kwdef struct Cost
 end
 
 Base.@kwdef struct TrainingParameters
-    n_states::Integer
+    x0::Vector{Float64}
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]

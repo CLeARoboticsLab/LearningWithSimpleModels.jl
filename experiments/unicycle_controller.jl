@@ -64,12 +64,14 @@ function test_unicycle_controller(; plot=true)
     state = state0
     states = zeros(length(state0), length(ts))
     setpoints = zeros(4, length(ts))
+    us = zeros(2, length(ts))
     for (i,t) in enumerate(ts)
         setpoint = evaluate(task, t)
         u = LearningWithSimpleModels.next_command(controller, state, setpoint)
         state = LearningWithSimpleModels.f_simple(dynamics, t, dt, state, u)
         states[:,i] = state
         setpoints[:,i] = setpoint
+        us[:,i] = u
     end
     
     if plot
@@ -82,6 +84,8 @@ function test_unicycle_controller(; plot=true)
         xdot_des = setpoints[3,:]
         ydot_des = setpoints[4,:]
         vdes = sqrt.(xdot_des.^2 .+ ydot_des.^2)
+        as = us[1,:]
+        ωs = us[2,:]
 
         fig = Figure(; resolution=(1000,800))
 
@@ -100,6 +104,12 @@ function test_unicycle_controller(; plot=true)
         ax_v = Axis(fig[4,1:2], xlabel="t", ylabel="v")
         lines!(ax_v, ts, vs, label ="actual")
         lines!(ax_v, ts, vdes, label ="desired")
+
+        ax_a = Axis(fig[5,1], xlabel="t", ylabel="a")
+        lines!(ax_a, ts, as)
+
+        ax_ω = Axis(fig[5,2], xlabel="t", ylabel="ω")
+        lines!(ax_ω, ts, ωs)
 
         display(GLMakie.Screen(), fig)
     end

@@ -7,7 +7,7 @@ function train(;
     params::TrainingParameters  
 )
     p = ProgressMeter.Progress(params.iters)
-    model = make_model(params.n_states, params.hidden_layer_sizes)
+    model = make_model(length(params.x0), params.hidden_layer_sizes)
     optimizer = setup(Adam(params.learning_rate), model)
 
     for i in 1:params.iters
@@ -16,7 +16,7 @@ function train(;
     end
 
     #TODO this is temp code
-    rollout_actual_dynamics(task, params)
+    rollout_actual_dynamics(task, model, actual_dynamics, controller, params)
 end
 
 function policy_update!()
