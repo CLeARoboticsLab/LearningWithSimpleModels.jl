@@ -134,8 +134,8 @@ Returns a cubic spline in the shape of a sideways figure eight
 function figure_eight(;
     x0::Float64 = 0.0,
     y0::Float64 = 0.0,
-    xdot_0::Float64 = 0.,
-    ydot_0::Float64 = 0.,
+    xdot_0::Float64 = 0.0,
+    ydot_0::Float64 = 0.0,
     xdot_f = nothing,
     ydot_f = nothing,
     radius::Float64 = 1.0,

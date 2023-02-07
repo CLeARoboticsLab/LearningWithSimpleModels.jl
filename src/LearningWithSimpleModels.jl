@@ -3,7 +3,10 @@ module LearningWithSimpleModels
 using Flux:
     Dense,
     Chain,
-    zeros32
+    zeros32,
+    setup,
+    Adam
+import ProgressMeter
 
 include("spline.jl")
 export Spline, evaluate, figure_eight

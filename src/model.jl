@@ -13,6 +13,11 @@ function make_model(layer_sizes::Vector{<:Integer})
     return Chain(layers...,)
 end
 
+function make_model(n_states::Integer, hidden_layer_sizes::Vector{<:Integer})
+    layer_sizes = vcat(n_states+2, hidden_layer_sizes, 4)
+    return make_model(layer_sizes)
+end
+
 function new_setpoint_from_model(
     setpoint::Vector{Float64}, 
     model::Chain, 

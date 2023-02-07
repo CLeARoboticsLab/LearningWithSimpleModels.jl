@@ -50,10 +50,27 @@ unicycle_cost() = quadratic_cost(;
     R=diagm(ones(2))
 )
 
+task() = figure_eight(;
+    x0 = 0.0,
+    y0 = 0.0,
+    xdot_0 = 0.0,
+    ydot_0 = 0.0,
+    xdot_f = nothing,
+    ydot_f = nothing,
+    radius = 3.0,
+    time = 10.0
+)
+
 function run()
-    train(
-        unicycle_simple_dynamics(), 
-        unicycle_actual_dynamics(), 
-        unicycle_cost()
+    train(;
+        simple_dynamics = unicycle_simple_dynamics(), 
+        actual_dynamics = unicycle_actual_dynamics(),
+        controller = unicycle_controller(), 
+        cost = unicycle_cost(),
+        task = task(),
+        n_states = 4,
+        hidden_layer_sizes = [64, 64],
+        learning_rate = 1e-3,
+        iters = 50
     )
 end
