@@ -23,6 +23,6 @@ export CostParameters, QuadraticCostParameters, Cost, quadratic_cost
 include("model.jl")
 
 include("train.jl")
-export train
+export TrainingParameters, train
 
 end

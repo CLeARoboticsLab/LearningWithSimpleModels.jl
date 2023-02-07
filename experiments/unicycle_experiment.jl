@@ -64,10 +64,12 @@ function run()
         controller = unicycle_controller(), 
         cost = unicycle_cost(),
         task = unicycle_figure_eight_task(),
-        n_states = 4,
-        dt = 0.01,
-        hidden_layer_sizes = [64, 64],
-        learning_rate = 1e-3,
-        iters = 50
+        params = TrainingParameters(;
+            n_states = 4,
+            dt = 0.01,
+            hidden_layer_sizes = [64, 64],
+            learning_rate = 1e-3,
+            iters = 50
+        )
     )
 end
