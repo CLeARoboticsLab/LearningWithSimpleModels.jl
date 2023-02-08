@@ -47,3 +47,13 @@ Base.@kwdef struct SimulationParameters
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
 end
+
+Base.@kwdef struct EvaluationData
+    ts::Vector{Float64}
+    xs::Matrix{Float64}
+    us::Matrix{Float64}
+    t0_segs::Vector{Float64}
+    x0_segs::Matrix{Float64}
+    xs_task::Vector{Float64}
+    ys_task::Vector{Float64}
+end

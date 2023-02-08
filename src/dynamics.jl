@@ -15,8 +15,10 @@ function rollout_actual_dynamics(
     n_states = length(sim_params.x0)
     x0_segs = zeros(n_states, n_segments)
 
-    xs_actual = zeros(n_states, Integer(round(task_time/sim_params.dt)))
-    us_actual = zeros(sim_params.n_inputs, Integer(round(task_time/sim_params.dt)))
+    total_timesteps = Integer(round(task_time/sim_params.dt))
+    ts_actual = zeros(total_timesteps)
+    xs_actual = zeros(n_states, total_timesteps)
+    us_actual = zeros(sim_params.n_inputs, total_timesteps)
 
     x = sim_params.x0
     for j in 1:n_segments
@@ -35,6 +37,7 @@ function rollout_actual_dynamics(
         ts = t0_seg:sim_params.dt:tf_seg
         for (i,t) in enumerate(ts)
             overall_idx = (j-1)*segment_length + i
+            ts_actual[overall_idx] = overall_idx * sim_params.dt
             xs_actual[:,overall_idx] = x
             u = next_command(controller, x, new_setpoint)
             us_actual[:,overall_idx] = u
@@ -42,5 +45,5 @@ function rollout_actual_dynamics(
         end
     end
     xf = x
-    return t0_segs, x0_segs, xs_actual, us_actual, xf
+    return ts_actual, xs_actual, us_actual, t0_segs, x0_segs, xf
 end

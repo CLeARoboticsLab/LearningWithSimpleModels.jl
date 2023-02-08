@@ -9,7 +9,7 @@ using Flux:
     Adam,
     withgradient,
     update!
-using BSON: @save
+using BSON: @save, @load
 using GLMakie
 import ProgressMeter
 
@@ -18,7 +18,8 @@ export Spline,
     DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
-    TrainingParameters, SimulationParameters
+    TrainingParameters, SimulationParameters,
+    EvaluationData
 
 include("spline.jl")
 export evaluate, figure_eight
@@ -35,6 +36,9 @@ include("train.jl")
 export train
 
 include("plot_utils.jl")
-export plot_losses
+export plot_losses, plot_evaluation
+
+include("evaluate.jl")
+export evaluate_model
 
 end

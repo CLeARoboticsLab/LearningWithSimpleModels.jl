@@ -63,18 +63,20 @@ unicycle_figure_eight_task() = figure_eight(;
     time = 10.0
 )
 
-function run_experiment()
+unicycle_simulation_parameters() = SimulationParameters(;
+    x0 = zeros(4),
+    n_inputs = 2,
+    dt = 0.01,
+    model_dt = 0.5
+)
+
+function train_unicycle_experiment()
     simple_dynamics = unicycle_simple_dynamics()
     actual_dynamics = unicycle_actual_dynamics()
     controller = unicycle_controller()
     cost = unicycle_cost()
     task = unicycle_figure_eight_task()
-    sim_params = SimulationParameters(;
-        x0 = zeros(4),
-        n_inputs = 2,
-        dt = 0.01,
-        model_dt = 0.5
-    )
+    sim_params = unicycle_simulation_parameters()
 
     model, losses = train(;
         simple_dynamics = simple_dynamics, 
@@ -91,8 +93,19 @@ function run_experiment()
         ),
         sim_params = sim_params
     )
-
     plot_losses(losses)
+end
+
+function evaluate_unicycle_experiment()
+    eval_data = evaluate_model(;
+        actual_dynamics = unicycle_simple_dynamics(),
+        controller = unicycle_controller(), 
+        task = unicycle_figure_eight_task(), 
+        sim_params = unicycle_simulation_parameters(),
+        model = nothing, 
+        load_path = ".data/trained_unicycle_model.bson"
+    )
+    plot_evaluation(eval_data)
 end
 
 # run_experiment()

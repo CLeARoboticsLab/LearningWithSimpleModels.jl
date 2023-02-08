@@ -39,7 +39,7 @@ function policy_update!(
     training_params::TrainingParameters,
     sim_params::SimulationParameters
 )
-    t0_segs, x0_segs, xs_actual, us_actual, xf = rollout_actual_dynamics(
+    _, xs_actual, us_actual, t0_segs, x0_segs, xf = rollout_actual_dynamics(
         task, model, actual_dynamics, controller, sim_params
     )
     task_time, n_segments, segment_length = properties(task, sim_params)
