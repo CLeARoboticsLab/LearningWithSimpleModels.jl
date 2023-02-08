@@ -116,10 +116,10 @@ end
 
 end_time(spl::Spline) = last(spl.ts)
 
-function properties(task::Spline, params::TrainingParameters)
+function properties(task::Spline, sim_params::SimulationParameters)
     task_time = end_time(task)
-    n_segments = Integer(round(task_time/params.model_dt))
-    segment_length = Integer(round(params.model_dt / params.dt))
+    n_segments = Integer(round(task_time/sim_params.model_dt))
+    segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
     return task_time, n_segments, segment_length
 end
 

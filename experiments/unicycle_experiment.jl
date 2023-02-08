@@ -64,29 +64,35 @@ unicycle_figure_eight_task() = figure_eight(;
 )
 
 function run_experiment()
+    simple_dynamics = unicycle_simple_dynamics()
+    actual_dynamics = unicycle_actual_dynamics()
+    controller = unicycle_controller()
+    cost = unicycle_cost()
+    task = unicycle_figure_eight_task()
+    sim_params = SimulationParameters(;
+        x0 = zeros(4),
+        n_inputs = 2,
+        dt = 0.01,
+        model_dt = 0.5
+    )
+
     model, losses = train(;
-        simple_dynamics = unicycle_simple_dynamics(), 
-        actual_dynamics = unicycle_actual_dynamics(),
-        controller = unicycle_controller(), 
-        cost = unicycle_cost(),
-        task = unicycle_figure_eight_task(),
-        params = TrainingParameters(;
-            x0 = zeros(4),
-            n_inputs = 2,
-            dt = 0.01,
-            model_dt = 0.5,
+        simple_dynamics = simple_dynamics, 
+        actual_dynamics = actual_dynamics,
+        controller = controller, 
+        cost = cost,
+        task = task,
+        training_params = TrainingParameters(;
             hidden_layer_sizes = [64, 64],
             learning_rate = 1e-3,
             iters = 50,
             segs_in_window = 5,
             save_path = ".data/trained_unicycle_model.bson"
-        )
+        ),
+        sim_params = sim_params
     )
 
-    fig = Figure()
-    ax = Axis(fig[1,1])
-    lines!(ax, losses)
-    display(GLMakie.Screen(), fig)
+    plot_losses(losses)
 end
 
 # run_experiment()
