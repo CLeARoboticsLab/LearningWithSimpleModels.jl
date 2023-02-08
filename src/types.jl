@@ -39,9 +39,11 @@ end
 
 Base.@kwdef struct TrainingParameters
     x0::Vector{Float64}
+    n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
+    segs_in_window::Integer = 5
 end

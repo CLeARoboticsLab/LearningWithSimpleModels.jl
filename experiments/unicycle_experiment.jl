@@ -66,13 +66,13 @@ function run_experiment()
         task = unicycle_figure_eight_task(),
         params = TrainingParameters(;
             x0 = zeros(4),
+            n_inputs = 2,
             dt = 0.01,
             model_dt = 0.5,
             hidden_layer_sizes = [64, 64],
             learning_rate = 1e-3,
-            iters = 50
+            iters = 50,
+            segs_in_window = 5
         )
     )
 end
-
-run_experiment()
