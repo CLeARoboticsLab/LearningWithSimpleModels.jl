@@ -5,12 +5,12 @@ include("unicycle_controller.jl")
 
 unicycle_simple_dynamics() = Dynamics(;
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
-        x_next = similar(x)
-        x_next[1] = x[1] + x[3]*cos(x[4])*dt
-        x_next[2] = x[2] + x[3]*sin(x[4])*dt
-        x_next[3] = x[3] + u[1]*dt
-        x_next[4] = x[4] + u[2]*dt
-        return x_next
+        return [
+            x[1] + x[3]*cos(x[4])*dt,
+            x[2] + x[3]*sin(x[4])*dt,
+            x[3] + u[1]*dt,
+            x[4] + u[2]*dt
+        ]
     end
 )
 
@@ -29,12 +29,12 @@ unicycle_actual_dynamics() = Dynamics(;
         turn_rate_scale = 0.95
     ),
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
-        x_next = similar(x)
-        x_next[1] = x[1] + x[3]*cos(x[4])*dt
-        x_next[2] = x[2] + x[3]*sin(x[4])*dt
-        x_next[3] = x[3] + (dyn.params.accel_scale*u[1] - dyn.params.vel_drag*x[3])*dt
-        x_next[4] = x[4] + (dyn.params.turn_rate_scale*u[2] - dyn.params.turn_drag*x[4])*dt
-        return x_next
+        return [
+            x[1] + x[3]*cos(x[4])*dt,
+            x[2] + x[3]*sin(x[4])*dt,
+            x[3] + (dyn.params.accel_scale*u[1] - dyn.params.vel_drag*x[3])*dt,
+            x[4] + (dyn.params.turn_rate_scale*u[2] - dyn.params.turn_drag*x[4])*dt
+        ]
     end
 )
 
@@ -64,7 +64,7 @@ unicycle_figure_eight_task() = figure_eight(;
 )
 
 function run_experiment()
-    train(;
+    losses = train(;
         simple_dynamics = unicycle_simple_dynamics(), 
         actual_dynamics = unicycle_actual_dynamics(),
         controller = unicycle_controller(), 
@@ -81,6 +81,11 @@ function run_experiment()
             segs_in_window = 5
         )
     )
+
+    fig = Figure()
+    ax = Axis(fig[1,1])
+    lines!(ax, losses)
+    display(GLMakie.Screen(), fig)
 end
 
-run_experiment()
+# run_experiment()

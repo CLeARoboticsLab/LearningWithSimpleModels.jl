@@ -5,7 +5,9 @@ using Flux:
     Chain,
     zeros32,
     setup,
-    Adam
+    Adam,
+    withgradient,
+    update!
 import ProgressMeter
 
 include("types.jl")

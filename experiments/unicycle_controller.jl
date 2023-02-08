@@ -18,7 +18,7 @@ function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoin
 
     xdot_tilde_des = xdot_des + controller.params.kx*(x_des - x)
     ydot_tilde_des = ydot_des + controller.params.ky*(y_des - y)
-    v_des = sqrt(xdot_des^2 + ydot_des^2)
+    v_des = sqrt(xdot_tilde_des^2 + ydot_tilde_des^2)
 
     if xdot_tilde_des == 0
         ϕ_des = sign(ydot_tilde_des)*π/2

@@ -5,8 +5,7 @@ function make_model(layer_sizes::Vector{<:Integer})
             layers,
             Dense(
                 layer_sizes[i] => layer_sizes[i+1], 
-                tanh;
-                init = zeros32
+                tanh #TODO need to match initilization?
             )
         )
     end
