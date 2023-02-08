@@ -79,7 +79,7 @@ function run_experiment()
             learning_rate = 1e-3,
             iters = 50,
             segs_in_window = 5,
-            save_path = ".data/trained_unicycle_model_all_NN_random_init.bson"
+            save_path = ".data/trained_unicycle_model.bson"
         )
     )
 

@@ -3,6 +3,7 @@ module LearningWithSimpleModels
 using Flux:
     Dense,
     Chain,
+    glorot_uniform,
     zeros32,
     setup,
     Adam,

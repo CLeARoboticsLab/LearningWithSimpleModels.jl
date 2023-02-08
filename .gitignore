@@ -28,3 +28,6 @@ Manifest.toml
 
 # Data from experiments
 .data
+
+# External utils
+.utils

@@ -1,11 +1,13 @@
 function make_model(layer_sizes::Vector{<:Integer})
     layers = []
     for i in 1:length(layer_sizes)-1
+        layer_init = i != length(layer_sizes)-1 ? glorot_uniform : zeros32
         push!(
             layers,
             Dense(
-                layer_sizes[i] => layer_sizes[i+1], 
-                tanh #TODO need to match initilization?
+                layer_sizes[i] => layer_sizes[i+1],
+                tanh;
+                init = layer_init
             )
         )
     end
