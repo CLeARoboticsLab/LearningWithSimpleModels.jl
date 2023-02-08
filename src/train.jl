@@ -1,6 +1,6 @@
 function train(;
-    simple_dynamics::SimpleDynamics, #TODO: can probably combine these two types
-    actual_dynamics::ActualDynamics,
+    simple_dynamics::Dynamics, #TODO: can probably combine these two types
+    actual_dynamics::Dynamics,
     controller::Controller,
     cost::Cost,
     task::Spline,

@@ -10,7 +10,7 @@ import ProgressMeter
 
 include("types.jl")
 export Spline, 
-    SystemParameters, SimpleDynamics, ActualDynamics,
+    DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
     TrainingParameters

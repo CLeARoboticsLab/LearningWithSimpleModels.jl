@@ -6,15 +6,11 @@ struct Spline
     y0::Float64
 end
 
-abstract type SystemParameters end
-abstract type Dynamics end
+abstract type DyanmicsParameters end
+struct NoDyanmicsParameters <: DyanmicsParameters end
 
-Base.@kwdef struct SimpleDynamics <: Dynamics
-    params::SystemParameters
-    f::Function
-end
-Base.@kwdef struct ActualDynamics <: Dynamics
-    params::SystemParameters
+Base.@kwdef struct Dynamics
+    params::DyanmicsParameters = NoDyanmicsParameters()
     f::Function
 end
 

@@ -1,10 +1,10 @@
-f_simple(dyn::SimpleDynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
-f_actual(dyn::ActualDynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
+f_simple(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
+f_actual(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
 
 function rollout_actual_dynamics(
     task::Spline, 
     model::Chain,
-    dynamics::Dynamics, 
+    actual_dynamics::Dynamics, 
     controller::Controller, 
     params::TrainingParameters
 )
@@ -35,7 +35,7 @@ function rollout_actual_dynamics(
             xs_actual[:,i] = x
             u = next_command(controller, x, new_setpoint)
             us_actual[:,i] = u
-            x = f_actual(dynamics, t, params.dt, x, u)
+            x = f_actual(actual_dynamics, t, params.dt, x, u)
         end
     end
     return x0_segs, xs_actual, us_actual

@@ -3,11 +3,8 @@ using GLMakie, LinearAlgebra
 
 include("unicycle_controller.jl")
 
-struct UnicycleSimpleParameters <: SystemParameters end
-
-unicycle_simple_dynamics() = SimpleDynamics(;
-    params = UnicycleSimpleParameters(),
-    f = (dyn::SimpleDynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
+unicycle_simple_dynamics() = Dynamics(;
+    f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         x_next = similar(x)
         x_next[1] = x[1] + x[3]*cos(x[4])*dt
         x_next[2] = x[2] + x[3]*sin(x[4])*dt
@@ -17,21 +14,21 @@ unicycle_simple_dynamics() = SimpleDynamics(;
     end
 )
 
-Base.@kwdef struct UnicycleActualParameters <: SystemParameters 
+Base.@kwdef struct UnicycleActualParameters <: DyanmicsParameters 
     vel_drag::Float64
     turn_drag::Float64
     accel_scale::Float64
     turn_rate_scale::Float64
 end
 
-unicycle_actual_dynamics() = ActualDynamics(;
+unicycle_actual_dynamics() = Dynamics(;
     params = UnicycleActualParameters(;
         vel_drag = 0.5,
         turn_drag = 0.25,
         accel_scale = 0.95,
         turn_rate_scale = 0.95
     ),
-    f = (dyn::ActualDynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
+    f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         x_next = similar(x)
         x_next[1] = x[1] + x[3]*cos(x[4])*dt
         x_next[2] = x[2] + x[3]*sin(x[4])*dt
