@@ -116,6 +116,13 @@ end
 
 end_time(spl::Spline) = last(spl.ts)
 
+function properties(task::Spline, params::TrainingParameters)
+    task_time = end_time(task)
+    n_segments = Integer(round(task_time/params.model_dt))
+    segment_length = Integer(round(params.model_dt / params.dt))
+    return task_time, n_segments, segment_length
+end
+
 """
 Returns a cubic spline in the shape of a sideways figure eight
 # Arguments

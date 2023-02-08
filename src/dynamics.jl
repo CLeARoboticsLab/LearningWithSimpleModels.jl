@@ -7,10 +7,11 @@ function rollout_actual_dynamics(
     actual_dynamics::Dynamics, 
     controller::Controller, 
     params::TrainingParameters
-)
-    task_time = end_time(task)
-    n_segments = Integer(round(task_time/params.model_dt))
-    
+)  
+    task_time, n_segments, segment_length = properties(task, params)
+
+    t0_segs = zeros(n_segments)
+
     n_states = length(params.x0)
     x0_segs = zeros(n_states, n_segments)
 
@@ -21,8 +22,9 @@ function rollout_actual_dynamics(
     for j in 1:n_segments
         # start and end time of this segment
         t0_seg = (j-1)*params.model_dt
+        t0_segs[j] = t0_seg
         tf_seg = t0_seg + params.model_dt - params.dt
-        
+
         x0_segs[:,j] = x
 
         # setpoint is task evaluated at next model call time (segment end time)
@@ -32,11 +34,13 @@ function rollout_actual_dynamics(
         # rollout on this segment
         ts = t0_seg:params.dt:tf_seg
         for (i,t) in enumerate(ts)
-            xs_actual[:,i] = x
+            overall_idx = (j-1)*segment_length + i
+            xs_actual[:,overall_idx] = x
             u = next_command(controller, x, new_setpoint)
-            us_actual[:,i] = u
+            us_actual[:,overall_idx] = u
             x = f_actual(actual_dynamics, t, params.dt, x, u)
         end
     end
-    return x0_segs, xs_actual, us_actual
+    xf = x
+    return t0_segs, x0_segs, xs_actual, us_actual, xf
 end

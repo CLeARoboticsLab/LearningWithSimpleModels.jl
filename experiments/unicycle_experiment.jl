@@ -73,3 +73,5 @@ function run_experiment()
         )
     )
 end
+
+run_experiment()
