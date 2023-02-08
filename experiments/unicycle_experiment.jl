@@ -38,9 +38,18 @@ unicycle_actual_dynamics() = Dynamics(;
     end
 )
 
-unicycle_cost() = quadratic_cost(;
-    Q=diagm(ones(4)),
-    R=diagm(ones(2))
+Base.@kwdef struct UnicycleCostParameters <: CostParameters
+    input_weight::Float64 = 0.0
+end
+
+unicycle_cost() = Cost(;
+    params = UnicycleCostParameters(; input_weight = 0.0),
+    g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
+        return (
+            (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
+            + cost.params.input_weight*(sum(u.^2))
+        )
+    end
 )
 
 unicycle_figure_eight_task() = figure_eight(;
