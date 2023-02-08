@@ -8,6 +8,7 @@ using Flux:
     Adam,
     withgradient,
     update!
+using BSON: @save
 import ProgressMeter
 
 include("types.jl")

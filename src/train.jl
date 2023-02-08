@@ -16,7 +16,12 @@ function train(;
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
         losses[i] = loss
     end
-    return losses
+
+    if !isnothing(params.save_path)
+        @save params.save_path model
+    end
+    
+    return model, losses
 end
 
 function policy_update!(
@@ -62,7 +67,7 @@ function policy_update!(
                         + x_actual_next
                     )
                 end
-                loss = loss + stage_cost(cost, x, setpoint, u)
+                loss = loss + stage_cost(cost, x, setpoint, u) #TODO: compute this at every dt instead?
             end
             window_start_idx += 1
             window_end_idx += 1

@@ -64,7 +64,7 @@ unicycle_figure_eight_task() = figure_eight(;
 )
 
 function run_experiment()
-    losses = train(;
+    model, losses = train(;
         simple_dynamics = unicycle_simple_dynamics(), 
         actual_dynamics = unicycle_actual_dynamics(),
         controller = unicycle_controller(), 
@@ -78,7 +78,8 @@ function run_experiment()
             hidden_layer_sizes = [64, 64],
             learning_rate = 1e-3,
             iters = 50,
-            segs_in_window = 5
+            segs_in_window = 5,
+            save_path = ".data/trained_unicycle_model_all_NN_random_init.bson"
         )
     )
 

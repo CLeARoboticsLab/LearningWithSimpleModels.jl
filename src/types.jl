@@ -42,4 +42,5 @@ Base.@kwdef struct TrainingParameters
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
     segs_in_window::Integer = 5
+    save_path = nothing
 end
