@@ -11,5 +11,6 @@ function plot_evaluation(eval_data::EvaluationData)
     lines!(ax, eval_data.xs[1,:], eval_data.xs[2,:], label="Trajectory")
     lines!(ax, eval_data.xs_no_model[1,:], eval_data.xs_no_model[2,:], label="Trajectory w/o model")
     lines!(ax, eval_data.xs_task, eval_data.ys_task, label="Task", linestyle=:dash, color=:black)
+    Legend(fig[1,2], ax)
     display(GLMakie.Screen(), fig)
 end

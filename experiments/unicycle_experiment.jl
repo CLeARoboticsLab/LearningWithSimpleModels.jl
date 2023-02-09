@@ -98,7 +98,7 @@ end
 
 function evaluate_unicycle_experiment()
     eval_data = evaluate_model(;
-        actual_dynamics = unicycle_simple_dynamics(),
+        actual_dynamics = unicycle_actual_dynamics(),
         controller = unicycle_controller(), 
         task = unicycle_figure_eight_task(), 
         sim_params = unicycle_simulation_parameters(),
