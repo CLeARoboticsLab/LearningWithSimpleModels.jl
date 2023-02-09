@@ -7,6 +7,7 @@ function rollout_actual_dynamics(
     actual_dynamics::Dynamics, 
     controller::Controller, 
     sim_params::SimulationParameters
+    ; use_model = true
 )  
     task_time, n_segments, segment_length = properties(task, sim_params)
 
@@ -32,6 +33,11 @@ function rollout_actual_dynamics(
         # setpoint is task evaluated at next model call time (segment end time)
         setpoint = evaluate(task, tf_seg)
         new_setpoint = new_setpoint_from_model(setpoint, model, t0_seg, x, task_time)
+        
+        # Discard the new_setpoint if not using the model
+        if !use_model
+            new_setpoint = setpoint
+        end 
 
         # rollout on this segment
         ts = t0_seg:sim_params.dt:tf_seg

@@ -15,6 +15,11 @@ function evaluate_model(;
         task, model, actual_dynamics, controller, sim_params
     )
 
+    _, xs_no_model, us_no_model, _, _, _ = rollout_actual_dynamics(
+        task, model, actual_dynamics, controller, sim_params
+        ; use_model = false
+    )
+
     xs_task, ys_task, _, _ = eval_all(task, ts)
 
     return EvaluationData(;
@@ -24,6 +29,8 @@ function evaluate_model(;
         t0_segs = t0_segs,
         x0_segs = x0_segs,
         xs_task = xs_task,
-        ys_task = ys_task
+        ys_task = ys_task,
+        xs_no_model = xs_no_model,
+        us_no_model = us_no_model
     )
 end
