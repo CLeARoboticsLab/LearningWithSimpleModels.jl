@@ -41,12 +41,27 @@ Base.@kwdef struct TrainingParameters
     save_path = nothing
 end
 
+Base.show(io::IO, p::TrainingParameters) = print(io,
+    "Training Parameters: 
+    Hidden layer sizes: $(p.hidden_layer_sizes) 
+    Learning rate: $(p.learning_rate) 
+    Iterations: $(p.iters) 
+    Segments per window: $(p.segs_in_window)"
+)
+
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
 end
+
+Base.show(io::IO, p::SimulationParameters) = print(io,
+    "Simulation Parameters: 
+    Initial state: $(p.x0) 
+    Simulation dt: $(p.dt) 
+    Time between model calls: $(p.model_dt)"
+)
 
 Base.@kwdef struct EvaluationData
     ts::Vector{Float64}

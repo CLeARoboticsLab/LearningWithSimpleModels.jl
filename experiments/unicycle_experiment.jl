@@ -1,5 +1,5 @@
 using LearningWithSimpleModels
-using GLMakie, LinearAlgebra
+using LinearAlgebra
 
 include("unicycle_controller.jl")
 
@@ -64,34 +64,29 @@ unicycle_figure_eight_task() = figure_eight(;
 )
 
 unicycle_simulation_parameters() = SimulationParameters(;
-    x0 = zeros(4),
+    x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
     dt = 0.01,
     model_dt = 0.5
 )
 
-function train_unicycle_experiment()
-    simple_dynamics = unicycle_simple_dynamics()
-    actual_dynamics = unicycle_actual_dynamics()
-    controller = unicycle_controller()
-    cost = unicycle_cost()
-    task = unicycle_figure_eight_task()
-    sim_params = unicycle_simulation_parameters()
+unicycle_training_parameters() = TrainingParameters(;
+    hidden_layer_sizes = [64, 64],
+    learning_rate = 1e-3,
+    iters = 50,
+    segs_in_window = 5,
+    save_path = ".data/trained_unicycle_model_on_track.bson"
+)
 
+function train_unicycle_experiment()
     model, losses = train(;
-        simple_dynamics = simple_dynamics, 
-        actual_dynamics = actual_dynamics,
-        controller = controller, 
-        cost = cost,
-        task = task,
-        training_params = TrainingParameters(;
-            hidden_layer_sizes = [64, 64],
-            learning_rate = 1e-3,
-            iters = 50,
-            segs_in_window = 5,
-            save_path = ".data/trained_unicycle_model.bson"
-        ),
-        sim_params = sim_params
+        simple_dynamics = unicycle_simple_dynamics(), 
+        actual_dynamics = unicycle_actual_dynamics(),
+        controller = unicycle_controller(), 
+        cost = unicycle_cost(),
+        task = unicycle_figure_eight_task(),
+        training_params = unicycle_training_parameters(),
+        sim_params = unicycle_simulation_parameters()
     )
     plot_losses(losses)
 end
@@ -103,9 +98,12 @@ function evaluate_unicycle_experiment()
         task = unicycle_figure_eight_task(), 
         sim_params = unicycle_simulation_parameters(),
         model = nothing, 
-        load_path = ".data/trained_unicycle_model.bson"
+        load_path = ".data/trained_unicycle_model_on_track.bson"
     )
-    plot_evaluation(eval_data)
+    plot_evaluation(
+        eval_data
+        ; training_params = unicycle_training_parameters(),
+        sim_params = unicycle_simulation_parameters(),
+        save_path = ".data/eval_plot_on_track.png"
+    )
 end
-
-# run_experiment()
