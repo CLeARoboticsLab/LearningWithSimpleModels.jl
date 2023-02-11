@@ -152,16 +152,28 @@ function figure_eight(;
     xdot_f = nothing,
     ydot_f = nothing,
     radius::Float64 = 1.0,
-    time::Float64 = 8.0
+    time::Float64 = 8.0,
+    laps::Integer = 1
 )
-    xs = [0, radius, 2*radius, radius, 0, -radius, -2*radius, -radius, 0]
-    ys = [0, radius, 0, -radius, 0, radius, 0, -radius, 0]
+    xs_fig_eight = [0, radius, 2*radius, radius, 0, -radius, -2*radius, -radius]
+    ys_fig_eight = [0, radius, 0, -radius, 0, radius, 0, -radius]
+    n_pts = length(xs_fig_eight)
+
+    xs = zeros(laps*8 + 1)
+    ys = zeros(laps*8 + 1)
+
+    for i in 1:laps
+        start_idx = (i-1)*n_pts + 1
+        end_idx = (i-1)*n_pts + n_pts
+        xs[start_idx:end_idx] = xs_fig_eight
+        ys[start_idx:end_idx] = ys_fig_eight
+    end
 
     xs = xs .+ x0
     ys = ys .+ y0
 
     interval = time/8
-    ts = collect(0.0:interval:time)
+    ts = collect(0.0:interval:time*laps)
 
     return Spline(;
         xs = xs,

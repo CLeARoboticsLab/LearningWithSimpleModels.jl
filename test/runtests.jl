@@ -47,7 +47,9 @@ include("../experiments/unicycle_experiment.jl")
             t = 4.5
             @test LearningWithSimpleModels.time_segment(t, ts) == 5
         end
+    end
 
+    @testset "Figure Eight" begin
         let time = 10.0 + 5.0*(rand()-.5)
             r = 2.0 + .5*(rand()-.5)
             x0 = 10.0*(rand()-.5)
@@ -77,6 +79,30 @@ include("../experiments/unicycle_experiment.jl")
                 isapprox(ys_spline[6], y0-r*sin(π/4); atol=atol),
                 isapprox(ys_spline[12], y0+r*sin(π/4); atol=atol),
                 isapprox(ys_spline[14], y0-r*sin(π/4); atol=atol)
+            ])
+        end
+
+        let time = 10.0, laps = 3
+            r = 2.0
+            atol = r/100
+            spl = figure_eight(;
+                xdot_0 = 1.0,
+                ydot_0 = 1.0,
+                xdot_f = 1.0,
+                ydot_f = 1.0,
+                radius = r,
+                time = time,
+                laps = laps
+            )
+            test_ts = 0:time/4:time*laps
+            xs_spline, ys_spline, xdots_spline, ydots_spline = LearningWithSimpleModels.eval_all(spl, test_ts)
+            @test all([
+                isapprox(xs_spline[i+1], xs_spline[i+5]; atol=atol) &&
+                isapprox(xs_spline[i+1], xs_spline[i+9]; atol=atol) for i in 0:3
+            ])
+            @test all([
+                isapprox(ys_spline[i+1], ys_spline[i+5]; atol=atol) &&
+                isapprox(ys_spline[i+1], ys_spline[i+9]; atol=atol) for i in 0:3
             ])
         end
     end
