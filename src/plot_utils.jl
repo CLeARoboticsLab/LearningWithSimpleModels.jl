@@ -29,3 +29,14 @@ function plot_evaluation(
     save(save_path, fig)
     display(GLMakie.Screen(), fig)
 end
+
+function plot_task(task::Spline, sim_params::SimulationParameters)
+    task_time, _, _ = properties(task, sim_params)
+    ts = 0.0:sim_params.dt:task_time
+    xs_task, ys_task, _, _ = eval_all(task, ts)
+    
+    fig = Figure()
+    ax = Axis(fig[1,1], xlabel="x", ylabel="y")
+    lines!(ax, xs_task, ys_task, label="Task")
+    display(GLMakie.Screen(), fig)
+end
