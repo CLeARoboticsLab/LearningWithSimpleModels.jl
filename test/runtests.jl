@@ -86,10 +86,10 @@ include("../experiments/unicycle_experiment.jl")
             r = 2.0
             atol = r/100
             spl = figure_eight(;
-                xdot_0 = 1.0,
-                ydot_0 = 1.0,
-                xdot_f = 1.0,
-                ydot_f = 1.0,
+                xdot_0 = nothing,
+                ydot_0 = nothing,
+                xdot_f = nothing,
+                ydot_f = nothing,
                 radius = r,
                 time = time,
                 laps = laps

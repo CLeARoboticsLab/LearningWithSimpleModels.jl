@@ -55,12 +55,13 @@ unicycle_cost() = Cost(;
 unicycle_figure_eight_task() = figure_eight(;
     x0 = 0.0,
     y0 = 0.0,
-    xdot_0 = 0.0,
-    ydot_0 = 0.0,
+    xdot_0 = nothing,
+    ydot_0 = nothing,
     xdot_f = nothing,
     ydot_f = nothing,
     radius = 3.0,
-    time = 10.0
+    time = 10.0,
+    laps = 3
 )
 
 unicycle_simulation_parameters() = SimulationParameters(;
@@ -75,7 +76,7 @@ unicycle_training_parameters() = TrainingParameters(;
     learning_rate = 1e-3,
     iters = 50,
     segs_in_window = 5,
-    save_path = ".data/trained_unicycle_model_on_track.bson"
+    save_path = ".data/trained_unicycle_model.bson"
 )
 
 function train_unicycle_experiment()
@@ -98,7 +99,7 @@ function evaluate_unicycle_experiment()
         task = unicycle_figure_eight_task(), 
         sim_params = unicycle_simulation_parameters(),
         model = nothing, 
-        load_path = ".data/trained_unicycle_model_on_track.bson"
+        load_path = ".data/trained_unicycle_model.bson"
     )
     plot_evaluation(
         eval_data

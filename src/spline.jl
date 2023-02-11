@@ -10,11 +10,17 @@ function Spline(;
     xs::Vector{Float64},
     ys::Vector{Float64},
     ts::Vector{Float64},
-    xdot_0::Float64 = 0.,
-    ydot_0::Float64 = 0.,
+    xdot_0 = nothing,
+    ydot_0 = nothing,
     xdot_f = nothing,
     ydot_f = nothing,
 )
+    if isnothing(xdot_0)
+        xdot_0 = (xs[2] - xs[1]) / (ts[2] - ts[1])
+    end
+    if isnothing(ydot_0)
+        ydot_0 = (ys[2] - ys[1]) / (ts[2] - ts[1])
+    end
     if isnothing(xdot_f)
         xdot_f = (xs[end] - xs[end-1]) / (ts[end] - ts[end-1])
     end
@@ -147,8 +153,8 @@ Returns a cubic spline in the shape of a sideways figure eight
 function figure_eight(;
     x0::Float64 = 0.0,
     y0::Float64 = 0.0,
-    xdot_0::Float64 = 0.0,
-    ydot_0::Float64 = 0.0,
+    xdot_0 = nothing,
+    ydot_0 = nothing,
     xdot_f = nothing,
     ydot_f = nothing,
     radius::Float64 = 1.0,
