@@ -1,7 +1,8 @@
 f_simple(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
 f_actual(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
 
-# Rollout from the x0 given in sim_params, for the entire task, including task repeats
+# Rollout from the x0 given in sim_params, for the entire task from the
+# beginning, including task repeats
 function rollout_actual_dynamics(
     task::Spline, 
     model::Chain,
@@ -11,21 +12,23 @@ function rollout_actual_dynamics(
     ; use_model = true
 )  
     _, n_segments, _, _ = properties(task, sim_params)
+    t0 = 0.0
     x0 = sim_params.x0
 
     return rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, sim_params, x0, n_segments
+        task, model, actual_dynamics, controller, sim_params, t0, x0, n_segments
         ; use_model
     )  
 end
 
-# Rollout from the specified x0, for only n_segments model calls 
+# Rollout from the specified t0, x0, for only n_segments model calls 
 function rollout_actual_dynamics(
     task::Spline, 
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller, 
     sim_params::SimulationParameters,
+    t0::Float64,
     x0::Vector{Float64},
     n_segments::Integer
     ; use_model = true
@@ -44,7 +47,7 @@ function rollout_actual_dynamics(
     x = x0
     for j in 1:n_segments
         # start and end time of this segment
-        t0_seg = (j-1)*sim_params.model_dt
+        t0_seg = t0 + (j-1)*sim_params.model_dt
         t0_segs[j] = t0_seg
         tf_seg = t0_seg + sim_params.model_dt - sim_params.dt
 

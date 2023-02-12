@@ -27,13 +27,17 @@ end
 
 abstract type TrainingAlgorithm end
 struct WalkingWindowAlgorithm <:TrainingAlgorithm end
+Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
+    to_state::Function
+end
 
 abstract type LossAggregationStyle end
 struct AtModelCall <: LossAggregationStyle end
 struct AtSimulationTimestep <: LossAggregationStyle end
 
 LossAggregationStyle(::TrainingAlgorithm) = AtModelCall()
-LossAggregationStyle(::WalkingWindowAlgorithm) = AtSimulationTimestep()
+LossAggregationStyle(::WalkingWindowAlgorithm) = AtModelCall()
+LossAggregationStyle(::RandomInitialAlgorithm) = AtSimulationTimestep()
 
 Base.@kwdef struct TrainingParameters
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]

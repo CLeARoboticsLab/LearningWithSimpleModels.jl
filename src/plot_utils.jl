@@ -12,6 +12,7 @@ function plot_losses(training_params::TrainingParameters, losses)
     if !isnothing(path)
         save(path, fig)
     end
+    display(GLMakie.Screen(), fig)
 end
 
 function plot_evaluation(

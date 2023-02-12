@@ -9,6 +9,7 @@ using Flux:
     Adam,
     withgradient,
     update!
+using Distributions: Uniform
 using BSON: @save, @load
 using GLMakie
 import ProgressMeter
@@ -17,12 +18,12 @@ include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
-    WalkingWindowAlgorithm,
+    WalkingWindowAlgorithm, RandomInitialAlgorithm,
     TrainingParameters, SimulationParameters,
     Spline, EvaluationData
 
 include("spline.jl")
-export evaluate, figure_eight
+export evaluate, to_velocity_and_heading_angle, figure_eight
 
 include("dynamics.jl")
 include("controller.jl") 

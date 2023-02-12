@@ -13,13 +13,12 @@ function gradient_estimate(
     n_segments = length(r.t0_segs)
 
     window_start_idx = 1
-    window_end_idx = window_start_idx + training_params.segs_in_window
+    window_end_idx = window_start_idx + training_params.segs_in_window - 1
     
     loss, grads = withgradient(model) do model
         loss = 0.0
         while window_end_idx <= n_segments
-            window = window_start_idx:window_end_idx-1
-    
+            window = window_start_idx:window_end_idx
             for j in window
                 # Here we are repeating the process found in rollout_actual_dynamics
                 # so that we can take derivatives through the simple_dynamics

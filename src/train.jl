@@ -50,3 +50,30 @@ function policy_update!(
     update!(optimizer,model,grads[1])
     return loss
 end
+
+function policy_update!(
+    algo::RandomInitialAlgorithm,
+    task::Spline, 
+    model::Chain,
+    optimizer,
+    simple_dynamics::Dynamics,
+    actual_dynamics::Dynamics, 
+    controller::Controller,
+    cost::Cost,
+    training_params::TrainingParameters,
+    sim_params::SimulationParameters
+)
+    t0 = rand(Uniform(0.0, end_time(task)))
+    x0 = algo.to_state(evaluate(task,t0))
+
+    r = rollout_actual_dynamics(
+        task, model, actual_dynamics, controller, sim_params, t0, x0, training_params.segs_in_window
+    )
+
+    loss, grads = gradient_estimate(
+        r, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
+    )
+    update!(optimizer,model,grads[1])
+
+    return loss
+end
