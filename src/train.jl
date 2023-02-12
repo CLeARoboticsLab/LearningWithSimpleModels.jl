@@ -4,6 +4,7 @@ function train(;
     controller::Controller,
     cost::Cost,
     task::Spline,
+    algo::TrainingAlgorithm,
     training_params::TrainingParameters,
     sim_params::SimulationParameters  
 )
@@ -14,7 +15,7 @@ function train(;
     losses = zeros(training_params.iters)
     for i in 1:training_params.iters
         loss = policy_update!(
-            task, model, optimizer, simple_dynamics, actual_dynamics,
+            algo, task, model, optimizer, simple_dynamics, actual_dynamics,
             controller, cost, training_params, sim_params
         )
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
@@ -31,6 +32,7 @@ function train(;
 end
 
 function policy_update!(
+    ::WalkingWindowAlgorithm,
     task::Spline, 
     model::Chain,
     optimizer,

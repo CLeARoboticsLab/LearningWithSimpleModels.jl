@@ -64,14 +64,7 @@ unicycle_figure_eight_task() = figure_eight(;
     laps = 1
 )
 
-unicycle_simulation_parameters() = SimulationParameters(;
-    x0 = [0.0, 0.0, 0.0, 0.0],
-    n_inputs = 2,
-    n_task_executions = 1,
-    dt = 0.01,
-    model_dt = 0.5,
-    model_scale = 1.0
-)
+unicycle_training_algorithm() = WalkingWindowAlgorithm()
 
 unicycle_training_parameters() = TrainingParameters(;
     hidden_layer_sizes = [64, 64],
@@ -82,6 +75,15 @@ unicycle_training_parameters() = TrainingParameters(;
     plot_save_path = ".data/training_plot.png"
 )
 
+unicycle_simulation_parameters() = SimulationParameters(;
+    x0 = [0.0, 0.0, 0.0, 0.0],
+    n_inputs = 2,
+    n_task_executions = 1,
+    dt = 0.01,
+    model_dt = 0.5,
+    model_scale = 1.0
+)
+
 function train_unicycle_experiment()
     model, losses = train(;
         simple_dynamics = unicycle_simple_dynamics(), 
@@ -89,6 +91,7 @@ function train_unicycle_experiment()
         controller = unicycle_controller(), 
         cost = unicycle_cost(),
         task = unicycle_figure_eight_task(),
+        algo = unicycle_training_algorithm(),
         training_params = unicycle_training_parameters(),
         sim_params = unicycle_simulation_parameters()
     )

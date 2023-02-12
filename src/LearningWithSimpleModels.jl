@@ -17,6 +17,7 @@ include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
+    WalkingWindowAlgorithm,
     TrainingParameters, SimulationParameters,
     Spline, EvaluationData
 

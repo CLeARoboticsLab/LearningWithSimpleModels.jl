@@ -25,6 +25,9 @@ Base.@kwdef struct Cost
     g::Function
 end
 
+abstract type TrainingAlgorithm end
+struct WalkingWindowAlgorithm <:TrainingAlgorithm end
+
 Base.@kwdef struct TrainingParameters
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
