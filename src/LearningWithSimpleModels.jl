@@ -31,6 +31,7 @@ include("cost.jl")
 export quadratic_cost
 
 include("model.jl")
+include("gradient_estimate.jl")
 
 include("train.jl")
 export train
