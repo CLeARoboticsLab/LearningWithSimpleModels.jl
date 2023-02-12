@@ -61,14 +61,16 @@ unicycle_figure_eight_task() = figure_eight(;
     ydot_f = nothing,
     radius = 3.0,
     time = 10.0,
-    laps = 3
+    laps = 1
 )
 
 unicycle_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
+    task_repeats = 3,
     dt = 0.01,
-    model_dt = 0.5
+    model_dt = 0.5,
+    model_scale = 5.0
 )
 
 unicycle_training_parameters() = TrainingParameters(;

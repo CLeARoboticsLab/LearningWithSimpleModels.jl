@@ -42,7 +42,7 @@ function policy_update!(
     _, xs_actual, us_actual, t0_segs, x0_segs, xf = rollout_actual_dynamics(
         task, model, actual_dynamics, controller, sim_params
     )
-    task_time, n_segments, segment_length = properties(task, sim_params)
+    task_time, n_segments, segment_length, _ = properties(task, sim_params)
 
     window_start_idx = 1
     window_end_idx = window_start_idx + training_params.segs_in_window
@@ -59,7 +59,7 @@ function policy_update!(
                 u = 0.0
                 tf_seg = t0_segs[j] + sim_params.model_dt - sim_params.dt
                 setpoint = evaluate(task, tf_seg)
-                new_setpoint = new_setpoint_from_model(setpoint, model, t0_segs[j], x0_segs[:,j], task_time)
+                new_setpoint = new_setpoint_from_model(sim_params, setpoint, model, t0_segs[j], x0_segs[:,j], task_time)
 
                 ts = t0_segs[j]:sim_params.dt:tf_seg
                 for (i,t) in enumerate(ts)

@@ -39,6 +39,7 @@ Base.@kwdef struct TrainingParameters
     iters::Integer = 50
     segs_in_window::Integer = 5
     save_path = nothing
+    plot_save_path = nothing
 end
 
 Base.show(io::IO, p::TrainingParameters) = print(io,
@@ -52,15 +53,19 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
+    task_repeats::Integer = 1
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
+    model_scale::Float64 = 1.0
 end
 
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 
-    Initial state: $(p.x0) 
+    Initial state: $(p.x0)
+    Task repeats: $(p.task_repeats)
     Simulation dt: $(p.dt) 
-    Time between model calls: $(p.model_dt)"
+    Time between model calls: $(p.model_dt)
+    Model scale: $(p.model_scale)"
 )
 
 Base.@kwdef struct EvaluationData

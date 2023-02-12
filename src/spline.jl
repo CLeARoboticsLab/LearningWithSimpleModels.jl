@@ -102,9 +102,16 @@ function time_segment(t::Float64, ts::Vector{Float64})
 end
 
 """
-Returns a vector of x, y, xdot, ydot for the Spline at time t.
+Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
-function evaluate(spl::Spline, t::Real)
+function evaluate(spl::Spline, time::Real)
+    # wrap time in the case of repeated tasks
+    t = time
+    task_time = end_time(spl)
+    if time > task_time
+        t = time - (time ÷ task_time)*task_time
+    end
+
     seg = time_segment(t, spl.ts)
 
     idx = 4*(seg-1) + 1
@@ -136,9 +143,10 @@ end_time(spl::Spline) = last(spl.ts)
 
 function properties(task::Spline, sim_params::SimulationParameters)
     task_time = end_time(task)
-    n_segments = Integer(round(task_time/sim_params.model_dt))
+    n_segments = sim_params.task_repeats * Integer(round(task_time/sim_params.model_dt))
     segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
-    return task_time, n_segments, segment_length
+    total_timesteps = sim_params.task_repeats * Integer(round(task_time/sim_params.dt))
+    return task_time, n_segments, segment_length, total_timesteps
 end
 
 """

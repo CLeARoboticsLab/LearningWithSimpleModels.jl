@@ -105,6 +105,23 @@ include("../experiments/unicycle_experiment.jl")
                 isapprox(ys_spline[i+1], ys_spline[i+9]; atol=atol) for i in 0:3
             ])
         end
+
+        let task_time = 10.0
+            spl = figure_eight(;
+                xdot_0 = nothing,
+                ydot_0 = nothing,
+                xdot_f = nothing,
+                ydot_f = nothing,
+                radius = 1.0,
+                time = task_time,
+                laps = 1
+            )
+            @test all([
+                evaluate(spl, 1.0) == evaluate(spl, 1.0+task_time) == evaluate(spl, 1.0+5*task_time),
+                evaluate(spl, 3.5) == evaluate(spl, 3.5+task_time) == evaluate(spl, 3.5+5*task_time)
+            ])
+        end
+
     end
 
     @testset "Model" begin
