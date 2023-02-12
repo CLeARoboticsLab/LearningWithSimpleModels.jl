@@ -139,13 +139,30 @@ function eval_all(spl, test_ts)
     return xs_spline, ys_spline, xdots_spline, ydots_spline
 end
 
+# tasks in a point evaluated from a task in the form [x, y, xdot, ydot] and
+# replaces xdot and ydot with velocity and heading angle, respectively
+function to_velocity_and_heading_angle(task_point::Vector{Float64})
+    xdot = task_point[3]
+    ydot = task_point[4]
+    
+    v = sqrt(xdot^2 + ydot^2)
+
+    if xdot == 0
+        ϕ = sign(ydot)*π/2
+    else
+        ϕ = atan(ydot,xdot)
+    end
+
+    return [task_point[1], task_point[2], v, ϕ]
+end
+
 end_time(spl::Spline) = last(spl.ts)
 
 function properties(task::Spline, sim_params::SimulationParameters)
     task_time = end_time(task)
-    n_segments = sim_params.task_repeats * Integer(round(task_time/sim_params.model_dt))
+    n_segments = sim_params.n_task_executions * Integer(round(task_time/sim_params.model_dt))
     segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
-    total_timesteps = sim_params.task_repeats * Integer(round(task_time/sim_params.dt))
+    total_timesteps = sim_params.n_task_executions * Integer(round(task_time/sim_params.dt))
     return task_time, n_segments, segment_length, total_timesteps
 end
 

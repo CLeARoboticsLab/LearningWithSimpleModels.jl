@@ -12,27 +12,36 @@ function plot_losses(training_params::TrainingParameters, losses)
     if !isnothing(path)
         save(path, fig)
     end
+    display(GLMakie.Screen(), fig)
 end
 
 function plot_evaluation(
     eval_data::EvaluationData;
+    algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
     save_path = nothing
 )
-    fig = Figure()
+    fig = Figure(resolution=(850,600))
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
-    lines!(ax, eval_data.xs[1,:], eval_data.xs[2,:], label="Trajectory")
-    lines!(ax, eval_data.xs_no_model[1,:], eval_data.xs_no_model[2,:], label="Trajectory w/o model")
+    lines!(ax, eval_data.r.xs[1,:], eval_data.r.xs[2,:], label="Trajectory")
+    lines!(ax, eval_data.r_no_model.xs[1,:], eval_data.r_no_model.xs[2,:], label="Trajectory w/o model")
     lines!(ax, eval_data.xs_task, eval_data.ys_task, label="Task", linestyle=:dash, color=:black)
     Legend(fig[1,3], ax)
     
+    label = string(algo) * "
+    
+    Loss: $(round(eval_data.r.loss; digits=3))"
+    if !isnothing(algo)
+        Label(fig[2,1], label)
+    end
+
     if !isnothing(training_params)
-        Label(fig[2,1], string(training_params))
+        Label(fig[2,2], string(training_params))
     end
 
     if !isnothing(sim_params)
-        Label(fig[2,2], string(sim_params))
+        Label(fig[2,3], string(sim_params))
     end
 
     save(save_path, fig)

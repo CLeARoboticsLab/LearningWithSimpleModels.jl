@@ -9,20 +9,22 @@ using Flux:
     Adam,
     withgradient,
     update!
+using Distributions: Uniform, MvNormal
 using BSON: @save, @load
+using LinearAlgebra: diagm
 using GLMakie
 import ProgressMeter
 
 include("types.jl")
-export Spline, 
-    DyanmicsParameters, NoDyanmicsParameters, Dynamics,
+export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
+    WalkingWindowAlgorithm, RandomInitialAlgorithm,
     TrainingParameters, SimulationParameters,
-    EvaluationData
+    Spline, EvaluationData
 
 include("spline.jl")
-export evaluate, figure_eight
+export evaluate, to_velocity_and_heading_angle, figure_eight
 
 include("dynamics.jl")
 include("controller.jl") 
@@ -31,6 +33,7 @@ include("cost.jl")
 export quadratic_cost
 
 include("model.jl")
+include("gradient_estimate.jl")
 
 include("train.jl")
 export train

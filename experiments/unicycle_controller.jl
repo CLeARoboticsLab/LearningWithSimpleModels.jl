@@ -34,11 +34,13 @@ function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoin
 
     if abs(ϕ_des - ϕ) > abs(ϕ_des - 2*π - ϕ)
         ϕ_des -= 2*π
+    elseif abs(ϕ_des - ϕ) > abs(ϕ_des + 2*π - ϕ)
+        ϕ_des += 2*π
     end
 
     a = controller.params.kv*(v_des - v)
     ω = controller.params.kϕ*(ϕ_des - ϕ)
-
+    
     return [a, ω]
 end
 
