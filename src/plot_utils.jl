@@ -22,8 +22,8 @@ function plot_evaluation(
 )
     fig = Figure()
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
-    lines!(ax, eval_data.xs[1,:], eval_data.xs[2,:], label="Trajectory")
-    lines!(ax, eval_data.xs_no_model[1,:], eval_data.xs_no_model[2,:], label="Trajectory w/o model")
+    lines!(ax, eval_data.r.xs[1,:], eval_data.r.xs[2,:], label="Trajectory")
+    lines!(ax, eval_data.r_no_model.xs[1,:], eval_data.r_no_model.xs[2,:], label="Trajectory w/o model")
     lines!(ax, eval_data.xs_task, eval_data.ys_task, label="Task", linestyle=:dash, color=:black)
     Legend(fig[1,3], ax)
     

@@ -49,5 +49,12 @@ function rollout_actual_dynamics(
         end
     end
     xf = x
-    return ts_actual, xs_actual, us_actual, t0_segs, x0_segs, xf
+    return RolloutData(;
+        ts = ts_actual,
+        xs = xs_actual,
+        us = us_actual,
+        t0_segs = t0_segs,
+        x0_segs = x0_segs,
+        xf = xf
+    )
 end

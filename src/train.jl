@@ -41,9 +41,7 @@ function policy_update!(
     training_params::TrainingParameters,
     sim_params::SimulationParameters
 )
-    _, xs_actual, us_actual, t0_segs, x0_segs, xf = rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, sim_params
-    )
+    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, sim_params)
     task_time, n_segments, segment_length, _ = properties(task, sim_params)
 
     window_start_idx = 1
@@ -57,20 +55,20 @@ function policy_update!(
             for j in window
                 # Here we are repeating the process found in rollout_actual_dynamics
                 # so that we can take derivatives through the simple_dynamics
-                x = x0_segs[:,j]
+                x = r.x0_segs[:,j]
                 u = 0.0
-                tf_seg = t0_segs[j] + sim_params.model_dt - sim_params.dt
+                tf_seg = r.t0_segs[j] + sim_params.model_dt - sim_params.dt
                 setpoint = evaluate(task, tf_seg)
-                new_setpoint = new_setpoint_from_model(sim_params, setpoint, model, t0_segs[j], x0_segs[:,j], task_time)
+                new_setpoint = new_setpoint_from_model(sim_params, setpoint, model, r.t0_segs[j], r.x0_segs[:,j], task_time)
 
-                ts = t0_segs[j]:sim_params.dt:tf_seg
+                ts = r.t0_segs[j]:sim_params.dt:tf_seg
                 for (i,t) in enumerate(ts)
                     overall_idx = (j-1)*segment_length + i
                     u = next_command(controller, x, new_setpoint)
-                    x_actual_next = overall_idx+1 < size(xs_actual,2) ? xs_actual[:,overall_idx+1] : xf
+                    x_actual_next = overall_idx+1 < size(r.xs,2) ? r.xs[:,overall_idx+1] : r.xf
                     x = (
                         f_simple(simple_dynamics, t, sim_params.dt, x, u)
-                        - f_simple(simple_dynamics, t, sim_params.dt, xs_actual[:,overall_idx], us_actual[:,overall_idx])
+                        - f_simple(simple_dynamics, t, sim_params.dt, r.xs[:,overall_idx], r.us[:,overall_idx])
                         + x_actual_next
                     )
                 end

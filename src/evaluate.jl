@@ -11,26 +11,19 @@ function evaluate_model(;
         @load load_path model
     end
 
-    ts, xs, us, t0_segs, x0_segs, _ = rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, sim_params
-    )
+    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, sim_params)
 
-    _, xs_no_model, us_no_model, _, _, _ = rollout_actual_dynamics(
+    r_no_model = rollout_actual_dynamics(
         task, model, actual_dynamics, controller, sim_params
         ; use_model = false
     )
 
-    xs_task, ys_task, _, _ = eval_all(task, ts)
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
 
     return EvaluationData(;
-        ts = ts,
-        xs = xs,
-        us = us, 
-        t0_segs = t0_segs,
-        x0_segs = x0_segs,
+        r = r,
+        r_no_model = r_no_model,
         xs_task = xs_task,
         ys_task = ys_task,
-        xs_no_model = xs_no_model,
-        us_no_model = us_no_model
     )
 end

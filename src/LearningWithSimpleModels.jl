@@ -14,12 +14,11 @@ using GLMakie
 import ProgressMeter
 
 include("types.jl")
-export Spline, 
-    DyanmicsParameters, NoDyanmicsParameters, Dynamics,
+export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
     TrainingParameters, SimulationParameters,
-    EvaluationData
+    Spline, EvaluationData
 
 include("spline.jl")
 export evaluate, figure_eight
