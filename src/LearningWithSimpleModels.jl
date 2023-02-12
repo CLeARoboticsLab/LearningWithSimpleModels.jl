@@ -12,7 +12,7 @@ using Flux:
 using Distributions: Uniform, MvNormal
 using BSON: @save, @load
 using LinearAlgebra: diagm
-using GLMakie, Printf
+using GLMakie
 import ProgressMeter
 
 include("types.jl")
