@@ -70,7 +70,7 @@ unicycle_simulation_parameters() = SimulationParameters(;
     task_repeats = 3,
     dt = 0.01,
     model_dt = 0.5,
-    model_scale = 5.0
+    model_scale = 1.0
 )
 
 unicycle_training_parameters() = TrainingParameters(;
@@ -78,7 +78,8 @@ unicycle_training_parameters() = TrainingParameters(;
     learning_rate = 1e-3,
     iters = 50,
     segs_in_window = 5,
-    save_path = ".data/trained_unicycle_model.bson"
+    save_path = ".data/trained_unicycle_model.bson",
+    plot_save_path = ".data/training_plot.png"
 )
 
 function train_unicycle_experiment()
@@ -107,6 +108,6 @@ function evaluate_unicycle_experiment()
         eval_data
         ; training_params = unicycle_training_parameters(),
         sim_params = unicycle_simulation_parameters(),
-        save_path = ".data/eval_plot_on_track.png"
+        save_path = ".data/eval_plot.png"
     )
 end

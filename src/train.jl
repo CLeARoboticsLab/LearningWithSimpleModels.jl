@@ -25,6 +25,8 @@ function train(;
         @save training_params.save_path model
     end
     
+    plot_losses(training_params, losses)
+
     return model, losses
 end
 

@@ -3,6 +3,15 @@ function plot_losses(losses)
     ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Loss")
     lines!(ax, losses)
     display(GLMakie.Screen(), fig)
+    return fig
+end
+
+function plot_losses(training_params::TrainingParameters, losses)
+    fig = plot_losses(losses)
+    path = training_params.plot_save_path
+    if !isnothing(path)
+        save(path, fig)
+    end
 end
 
 function plot_evaluation(
