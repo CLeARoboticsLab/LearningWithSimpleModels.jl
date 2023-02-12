@@ -1,5 +1,4 @@
 using LearningWithSimpleModels
-using LinearAlgebra
 
 include("unicycle_controller.jl")
 
@@ -67,6 +66,7 @@ unicycle_figure_eight_task() = figure_eight(;
 # unicycle_training_algorithm() = WalkingWindowAlgorithm()
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
+    variances = [.7^2, .7^2, .5^2, .5^2],
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
@@ -112,7 +112,8 @@ function evaluate_unicycle_experiment()
     )
     plot_evaluation(
         eval_data
-        ; training_params = unicycle_training_parameters(),
+        ; algo = unicycle_training_algorithm(),
+        training_params = unicycle_training_parameters(),
         sim_params = unicycle_simulation_parameters(),
         save_path = ".data/eval_plot.png"
     )

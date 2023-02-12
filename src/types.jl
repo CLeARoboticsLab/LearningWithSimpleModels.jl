@@ -27,9 +27,16 @@ end
 
 abstract type TrainingAlgorithm end
 struct WalkingWindowAlgorithm <:TrainingAlgorithm end
+
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
+    variances::Vector{Float64}
     to_state::Function
 end
+Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
+    "Random Initial Algorithm: 
+    Variances:
+    $(round.(p.variances; digits=4))"
+)
 
 abstract type LossAggregationStyle end
 struct AtModelCall <: LossAggregationStyle end
@@ -47,7 +54,6 @@ Base.@kwdef struct TrainingParameters
     save_path = nothing
     plot_save_path = nothing
 end
-
 Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
     Hidden layer sizes: $(p.hidden_layer_sizes) 
@@ -64,7 +70,6 @@ Base.@kwdef struct SimulationParameters
     model_dt::Float64 = 0.5
     model_scale::Float64 = 1.0
 end
-
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 
     Initial state: $(p.x0)

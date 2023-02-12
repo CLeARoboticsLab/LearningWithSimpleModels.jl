@@ -17,6 +17,7 @@ end
 
 function plot_evaluation(
     eval_data::EvaluationData;
+    algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
     save_path = nothing
@@ -28,12 +29,16 @@ function plot_evaluation(
     lines!(ax, eval_data.xs_task, eval_data.ys_task, label="Task", linestyle=:dash, color=:black)
     Legend(fig[1,3], ax)
     
+    if !isnothing(algo)
+        Label(fig[2,1], string(algo))
+    end
+
     if !isnothing(training_params)
-        Label(fig[2,1], string(training_params))
+        Label(fig[2,2], string(training_params))
     end
 
     if !isnothing(sim_params)
-        Label(fig[2,2], string(sim_params))
+        Label(fig[2,3], string(sim_params))
     end
 
     save(save_path, fig)

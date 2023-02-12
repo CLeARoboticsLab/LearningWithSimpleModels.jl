@@ -9,9 +9,10 @@ using Flux:
     Adam,
     withgradient,
     update!
-using Distributions: Uniform
+using Distributions: Uniform, MvNormal
 using BSON: @save, @load
-using GLMakie
+using LinearAlgebra: diagm
+using GLMakie, Printf
 import ProgressMeter
 
 include("types.jl")
