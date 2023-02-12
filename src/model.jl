@@ -20,6 +20,7 @@ function make_model(n_states::Integer, hidden_layer_sizes::Vector{<:Integer})
 end
 
 function new_setpoint_from_model(
+    sim_params::SimulationParameters,
     setpoint::Vector{Float64}, 
     model::Chain, 
     t::Float64, 
@@ -27,6 +28,6 @@ function new_setpoint_from_model(
     task_time::Float64
 )
     t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
-    setpoint_correction = model(vcat(x, t_transformed))
+    setpoint_correction = model(vcat(x, t_transformed)) * sim_params.model_scale
     return setpoint + setpoint_correction
 end

@@ -10,11 +10,17 @@ function Spline(;
     xs::Vector{Float64},
     ys::Vector{Float64},
     ts::Vector{Float64},
-    xdot_0::Float64 = 0.,
-    ydot_0::Float64 = 0.,
+    xdot_0 = nothing,
+    ydot_0 = nothing,
     xdot_f = nothing,
     ydot_f = nothing,
 )
+    if isnothing(xdot_0)
+        xdot_0 = (xs[2] - xs[1]) / (ts[2] - ts[1])
+    end
+    if isnothing(ydot_0)
+        ydot_0 = (ys[2] - ys[1]) / (ts[2] - ts[1])
+    end
     if isnothing(xdot_f)
         xdot_f = (xs[end] - xs[end-1]) / (ts[end] - ts[end-1])
     end
@@ -96,9 +102,16 @@ function time_segment(t::Float64, ts::Vector{Float64})
 end
 
 """
-Returns a vector of x, y, xdot, ydot for the Spline at time t.
+Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
-function evaluate(spl::Spline, t::Real)
+function evaluate(spl::Spline, time::Real)
+    # wrap time in the case of repeated tasks
+    t = time
+    task_time = end_time(spl)
+    if time > task_time
+        t = time - (time ÷ task_time)*task_time
+    end
+
     seg = time_segment(t, spl.ts)
 
     idx = 4*(seg-1) + 1
@@ -130,9 +143,10 @@ end_time(spl::Spline) = last(spl.ts)
 
 function properties(task::Spline, sim_params::SimulationParameters)
     task_time = end_time(task)
-    n_segments = Integer(round(task_time/sim_params.model_dt))
+    n_segments = sim_params.task_repeats * Integer(round(task_time/sim_params.model_dt))
     segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
-    return task_time, n_segments, segment_length
+    total_timesteps = sim_params.task_repeats * Integer(round(task_time/sim_params.dt))
+    return task_time, n_segments, segment_length, total_timesteps
 end
 
 """
@@ -147,21 +161,33 @@ Returns a cubic spline in the shape of a sideways figure eight
 function figure_eight(;
     x0::Float64 = 0.0,
     y0::Float64 = 0.0,
-    xdot_0::Float64 = 0.0,
-    ydot_0::Float64 = 0.0,
+    xdot_0 = nothing,
+    ydot_0 = nothing,
     xdot_f = nothing,
     ydot_f = nothing,
     radius::Float64 = 1.0,
-    time::Float64 = 8.0
+    time::Float64 = 8.0,
+    laps::Integer = 1
 )
-    xs = [0, radius, 2*radius, radius, 0, -radius, -2*radius, -radius, 0]
-    ys = [0, radius, 0, -radius, 0, radius, 0, -radius, 0]
+    xs_fig_eight = [0, radius, 2*radius, radius, 0, -radius, -2*radius, -radius]
+    ys_fig_eight = [0, radius, 0, -radius, 0, radius, 0, -radius]
+    n_pts = length(xs_fig_eight)
+
+    xs = zeros(laps*8 + 1)
+    ys = zeros(laps*8 + 1)
+
+    for i in 1:laps
+        start_idx = (i-1)*n_pts + 1
+        end_idx = (i-1)*n_pts + n_pts
+        xs[start_idx:end_idx] = xs_fig_eight
+        ys[start_idx:end_idx] = ys_fig_eight
+    end
 
     xs = xs .+ x0
     ys = ys .+ y0
 
     interval = time/8
-    ts = collect(0.0:interval:time)
+    ts = collect(0.0:interval:time*laps)
 
     return Spline(;
         xs = xs,
