@@ -32,15 +32,15 @@ function gradient_estimate(
                 for (i,t) in enumerate(ts)
                     overall_idx = (j-1)*segment_length + i
                     u = next_command(controller, x, new_setpoint)
+                    if typeof(LossAggregationStyle(algo)) == AtSimulationTimestep
+                        loss = loss + stage_cost(cost, x, evaluate(task, t), u)
+                    end
                     x_actual_next = overall_idx+1 < size(r.xs,2) ? r.xs[:,overall_idx+1] : r.xf
                     x = (
                         f_simple(simple_dynamics, t, sim_params.dt, x, u)
                         - f_simple(simple_dynamics, t, sim_params.dt, r.xs[:,overall_idx], r.us[:,overall_idx])
                         + x_actual_next
                     )
-                    if typeof(LossAggregationStyle(algo)) == AtSimulationTimestep
-                        loss = loss + stage_cost(cost, x, evaluate(task, t), u)
-                    end
                 end
                 if typeof(LossAggregationStyle(algo)) == AtModelCall
                     loss = loss + stage_cost(cost, x, setpoint, u)

@@ -7,7 +7,8 @@ function rollout_actual_dynamics(
     task::Spline, 
     model::Chain,
     actual_dynamics::Dynamics, 
-    controller::Controller, 
+    controller::Controller,
+    cost::Cost,
     sim_params::SimulationParameters
     ; use_model = true
 )  
@@ -16,7 +17,7 @@ function rollout_actual_dynamics(
     x0 = sim_params.x0
 
     return rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, sim_params, t0, x0, n_segments
+        task, model, actual_dynamics, controller, cost, sim_params, t0, x0, n_segments
         ; use_model
     )  
 end
@@ -26,7 +27,8 @@ function rollout_actual_dynamics(
     task::Spline, 
     model::Chain,
     actual_dynamics::Dynamics, 
-    controller::Controller, 
+    controller::Controller,
+    cost::Cost, 
     sim_params::SimulationParameters,
     t0::Float64,
     x0::Vector{Float64},
@@ -45,6 +47,7 @@ function rollout_actual_dynamics(
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
 
     x = x0
+    loss = 0.0 
     for j in 1:n_segments
         # start and end time of this segment
         t0_seg = t0 + (j-1)*sim_params.model_dt
@@ -70,6 +73,7 @@ function rollout_actual_dynamics(
             xs_actual[:,overall_idx] = x
             u = next_command(controller, x, new_setpoint)
             us_actual[:,overall_idx] = u
+            loss = loss + stage_cost(cost, x, evaluate(task, t), u)
             x = f_actual(actual_dynamics, t, sim_params.dt, x, u)
         end
     end
@@ -80,6 +84,7 @@ function rollout_actual_dynamics(
         us = us_actual,
         t0_segs = t0_segs,
         x0_segs = x0_segs,
-        xf = xf
+        xf = xf,
+        loss = loss
     )
 end

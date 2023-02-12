@@ -66,14 +66,14 @@ unicycle_figure_eight_task() = figure_eight(;
 # unicycle_training_algorithm() = WalkingWindowAlgorithm()
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.7^2, .7^2, .5^2, .5^2],
+    variances = [.1^2, .1^2, .1^2, .1^2],
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
 unicycle_training_parameters() = TrainingParameters(;
     hidden_layer_sizes = [64, 64],
     learning_rate = 1e-3,
-    iters = 300,
+    iters = 400,
     segs_in_window = 5,
     save_path = ".data/trained_unicycle_model.bson",
     plot_save_path = ".data/training_plot.png"
@@ -104,7 +104,8 @@ end
 function evaluate_unicycle_experiment()
     eval_data = evaluate_model(;
         actual_dynamics = unicycle_actual_dynamics(),
-        controller = unicycle_controller(), 
+        controller = unicycle_controller(),
+        cost = unicycle_cost(),
         task = unicycle_figure_eight_task(), 
         sim_params = unicycle_simulation_parameters(),
         model = nothing, 

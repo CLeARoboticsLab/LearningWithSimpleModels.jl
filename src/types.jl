@@ -26,7 +26,11 @@ Base.@kwdef struct Cost
 end
 
 abstract type TrainingAlgorithm end
+
 struct WalkingWindowAlgorithm <:TrainingAlgorithm end
+Base.show(io::IO, ::WalkingWindowAlgorithm) = print(io,
+    "Walking Window Algorithm"
+)
 
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
     variances::Vector{Float64}
@@ -94,6 +98,7 @@ Base.@kwdef struct RolloutData
     t0_segs::Vector{Float64}        # time at each model call 
     x0_segs::Matrix{Float64}        # state at each model call
     xf::Vector{Float64}             # final state, at T+1
+    loss::Float64
 end
 
 Base.@kwdef struct EvaluationData
