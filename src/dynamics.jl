@@ -22,6 +22,27 @@ function rollout_actual_dynamics(
     )  
 end
 
+# Rollout from the specified t0, x0, for the entire task from the
+# beginning, including task repeats
+function rollout_actual_dynamics(
+    task::Spline, 
+    model::Chain,
+    actual_dynamics::Dynamics, 
+    controller::Controller,
+    cost::Cost, 
+    sim_params::SimulationParameters,
+    t0::Float64,
+    x0::Vector{Float64},
+    ; use_model = true
+)  
+    _, n_segments, _, _ = properties(task, sim_params)
+
+    return rollout_actual_dynamics(
+        task, model, actual_dynamics, controller, cost, sim_params, t0, x0, n_segments
+        ; use_model
+    )  
+end
+
 # Rollout from the specified t0, x0, for only n_segments model calls 
 function rollout_actual_dynamics(
     task::Spline, 
