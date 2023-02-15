@@ -42,19 +42,17 @@ Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     $(round.(p.variances; digits=4))"
 )
 
+#TODO: make LossAggregationStyle an enum?
 abstract type LossAggregationStyle end
 struct AtModelCall <: LossAggregationStyle end
 struct AtSimulationTimestep <: LossAggregationStyle end
-
-LossAggregationStyle(::TrainingAlgorithm) = AtModelCall()
-LossAggregationStyle(::WalkingWindowAlgorithm) = AtModelCall()
-LossAggregationStyle(::RandomInitialAlgorithm) = AtSimulationTimestep()
 
 Base.@kwdef struct TrainingParameters
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
     segs_in_window::Integer = 5
+    loss_aggregation::LossAggregationStyle = AtSimulationTimestep()
     save_path = nothing
     plot_save_path = nothing
 end
@@ -63,7 +61,8 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
     Hidden layer sizes: $(p.hidden_layer_sizes) 
     Learning rate: $(p.learning_rate) 
     Iterations: $(p.iters) 
-    Segments per window: $(p.segs_in_window)"
+    Segments per window: $(p.segs_in_window)
+    Loss Aggregation: $(p.loss_aggregation)"
 )
 
 Base.@kwdef struct SimulationParameters

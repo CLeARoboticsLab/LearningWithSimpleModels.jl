@@ -63,18 +63,19 @@ unicycle_figure_eight_task() = figure_eight(;
     laps = 1
 )
 
-# unicycle_training_algorithm() = WalkingWindowAlgorithm()
+unicycle_training_algorithm() = WalkingWindowAlgorithm()
 
-unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.1^2, .1^2, .1^2, .1^2],
-    to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
-)
+# unicycle_training_algorithm() = RandomInitialAlgorithm(;
+#     variances = [.1^2, .1^2, .1^2, .1^2],
+#     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
+# )
 
 unicycle_training_parameters() = TrainingParameters(;
     hidden_layer_sizes = [64, 64],
     learning_rate = 1e-3,
-    iters = 400,
+    iters = 50,
     segs_in_window = 5,
+    loss_aggregation = AtModelCall(),
     save_path = ".data/trained_unicycle_model.bson",
     plot_save_path = ".data/training_plot.png"
 )

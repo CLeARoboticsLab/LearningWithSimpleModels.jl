@@ -20,6 +20,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
     WalkingWindowAlgorithm, RandomInitialAlgorithm,
+    AtModelCall, AtSimulationTimestep,
     TrainingParameters, SimulationParameters,
     Spline, EvaluationData
 
