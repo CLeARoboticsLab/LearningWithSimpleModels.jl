@@ -58,3 +58,27 @@ function plot_task(task::Spline, sim_params::SimulationParameters)
     lines!(ax, xs_task, ys_task, label="Task")
     display(GLMakie.Screen(), fig)
 end
+
+#TODO: clean this up
+function animate_training(rollouts::Vector{RolloutData}, task::Spline)
+    xs_task, ys_task, _, _ = eval_all(task, rollouts[1].ts)
+    len = length(xs_task)
+
+    iter = Observable(0)
+    cost = Observable(0.0)
+
+    fig = Figure()
+    ax = Axis(fig[1,1], xlabel="x", ylabel="y", title=@lift("Iteration: $($iter); Cost: $(round($cost))"))
+    l = lines!(ax, xs_task, ys_task, label="Task", linestyle=:dash, color=:black)
+    l = scatter!(ax, rollouts[1].xs[1,:], rollouts[1].xs[2,:], color = range(0, 1, length=len), colormap=:thermal, markersize=5)
+    sc = scatter!(ax, rollouts[1].xs[1,1], rollouts[1].xs[2,1], color=:red, markersize=20)
+
+    record(fig, ".data/training_animation.mp4", 1:length(rollouts); framerate = 1) do i
+        l[1] = rollouts[i].xs[1,:]
+        l[2] = rollouts[i].xs[2,:]
+        sc[1] = rollouts[i].xs[1,1]
+        sc[2] = rollouts[i].xs[2,1]
+        iter[] = i
+        cost[] = rollouts[i].loss
+    end
+end

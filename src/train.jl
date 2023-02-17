@@ -13,13 +13,15 @@ function train(;
     optimizer = setup(Adam(training_params.learning_rate), model)
 
     losses = zeros(training_params.iters)
+    rollouts = Vector{RolloutData}(undef,training_params.iters)
     for i in 1:training_params.iters
-        loss = policy_update!(
+        loss, r = policy_update!(
             algo, task, model, optimizer, simple_dynamics, actual_dynamics,
             controller, cost, training_params, sim_params
         )
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
         losses[i] = loss
+        rollouts[i] = r
     end
 
     if !isnothing(training_params.save_path)
@@ -27,6 +29,7 @@ function train(;
     end
     
     plot_losses(training_params, losses)
+    animate_training(rollouts, task)
 
     return model, losses
 end
@@ -48,7 +51,7 @@ function policy_update!(
         r, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
     )
     update!(optimizer,model,grads[1])
-    return loss
+    return loss, r
 end
 
 function policy_update!(
@@ -72,6 +75,5 @@ function policy_update!(
         r, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
     )
     update!(optimizer,model,grads[1])
-
-    return loss
+    return loss, r
 end
