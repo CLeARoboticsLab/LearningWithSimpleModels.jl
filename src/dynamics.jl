@@ -62,24 +62,28 @@ function rollout_actual_dynamics(
     t0_segs = zeros(n_segments)
 
     n_states = length(sim_params.x0)
+    idx_segs = zeros(Int64, n_segments)
     x0_segs = zeros(n_states, n_segments)
     ts_actual = zeros(total_timesteps)
     xs_actual = zeros(n_states, total_timesteps)
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
 
+    overall_idx = 1
+    t = t0
     x = x0
-    loss = 0.0 
+    loss = 0.0
     for j in 1:n_segments
+        idx_segs[j] = overall_idx
+
         # start and end time of this segment
-        t0_seg = t0 + (j-1)*sim_params.model_dt
-        t0_segs[j] = t0_seg
-        tf_seg = t0_seg + sim_params.model_dt - sim_params.dt
+        t0_segs[j] = t
+        tf_seg = t + sim_params.model_dt - sim_params.dt
 
         x0_segs[:,j] = x
 
         # setpoint is task evaluated at next model call time (segment end time)
         setpoint = evaluate(task, tf_seg)
-        new_setpoint = new_setpoint_from_model(sim_params, setpoint, model, t0_seg, x, task_time)
+        new_setpoint = new_setpoint_from_model(sim_params, setpoint, model, t, x, task_time)
         
         # Discard the new_setpoint if not using the model
         if !use_model
@@ -87,14 +91,15 @@ function rollout_actual_dynamics(
         end 
 
         # rollout on this segment
-        ts = t0_seg:sim_params.dt:tf_seg
-        for (i,t) in enumerate(ts)
-            overall_idx = (j-1)*segment_length + i
-            ts_actual[overall_idx] = overall_idx * sim_params.dt
+        for _ in 1:segment_length
+            ts_actual[overall_idx] = t
             xs_actual[:,overall_idx] = x
             u = next_command(controller, x, new_setpoint)
             us_actual[:,overall_idx] = u
             loss = loss + stage_cost(cost, x, evaluate(task, t), u)
+
+            overall_idx += 1
+            t += sim_params.dt
             x = f_actual(actual_dynamics, t, sim_params.dt, x, u)
         end
     end
@@ -103,6 +108,7 @@ function rollout_actual_dynamics(
         ts = ts_actual,
         xs = xs_actual,
         us = us_actual,
+        idx_segs = idx_segs,
         t0_segs = t0_segs,
         x0_segs = x0_segs,
         xf = xf,

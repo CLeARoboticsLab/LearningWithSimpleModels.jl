@@ -94,6 +94,7 @@ Base.@kwdef struct RolloutData
     ts::Vector{Float64}
     xs::Matrix{Float64}
     us::Matrix{Float64}
+    idx_segs::Vector{<:Integer}     # overall index at each model call
     t0_segs::Vector{Float64}        # time at each model call 
     x0_segs::Matrix{Float64}        # state at each model call
     xf::Vector{Float64}             # final state, at T+1
