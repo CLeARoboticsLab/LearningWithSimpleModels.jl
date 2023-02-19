@@ -10,8 +10,13 @@ function train(;
 )
     p = ProgressMeter.Progress(training_params.iters)
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
-    optimizer = setup(Adam(training_params.learning_rate), model)
-    # optimizer = setup(Descent(training_params.learning_rate), model)
+    
+    #TODO make enum
+    if training_params.optim == "Adam"
+        optimizer = setup(Adam(training_params.learning_rate), model)
+    elseif training_params.optim == "Gradient Descent"
+        optimizer = setup(Descent(training_params.learning_rate), model)
+    end
 
     losses = zeros(training_params.iters)
     rollouts = Vector{RolloutData}(undef,training_params.iters)
@@ -68,10 +73,11 @@ function policy_update!(
     sim_params::SimulationParameters
 )
     t0 = rand(Uniform(0.0, end_time(task)))
-    # x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
+    x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
 
-    x = algo.to_state(evaluate(task,t0))
-    x0 = [x[i] + rand(Uniform(-algo.variances[i], algo.variances[i])) for i in 1:length(x)]
+    #TODO: this is code to sample from uniform distribution; remove if needed
+    # x = algo.to_state(evaluate(task,t0))
+    # x0 = [x[i] + rand(Uniform(-algo.variances[i], algo.variances[i])) for i in 1:length(x)]
 
     r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, sim_params, t0, x0)
 

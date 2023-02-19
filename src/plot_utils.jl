@@ -70,7 +70,7 @@ function animate_training(rollouts::Vector{RolloutData}, task::Spline)
     fig = Figure()
     ax = Axis(fig[1,1], xlabel="x", ylabel="y", title=@lift("Iteration: $($iter); Cost: $(round($cost))"))
     l = lines!(ax, xs_task, ys_task, label="Task", linestyle=:dash, color=:black)
-    l = scatter!(ax, rollouts[1].xs[1,:], rollouts[1].xs[2,:], color = range(0, 1, length=len), colormap=:thermal, markersize=10)
+    l = scatter!(ax, rollouts[1].xs[1,:], rollouts[1].xs[2,:], color = range(0, 1, length=len), colormap=:thermal, markersize=5)
     sc = scatter!(ax, rollouts[1].xs[1,1], rollouts[1].xs[2,1], color=:red, markersize=20)
 
     record(fig, ".data/training_animation.mp4", 1:length(rollouts); framerate = 2) do i

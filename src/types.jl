@@ -38,8 +38,8 @@ Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm
 end
 Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     "Random Initial Algorithm: 
-    Variances:
-    $(round.(p.variances; digits=4))"
+    Standard Deviations:
+    $(round.(sqrt.(p.variances); digits=4))"
 )
 
 #TODO: make LossAggregationStyle an enum?
@@ -51,6 +51,7 @@ Base.@kwdef struct TrainingParameters
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
+    optim::String = "Adam"
     segs_in_window::Integer = 5
     loss_aggregation::LossAggregationStyle = AtSimulationTimestep()
     save_path = nothing
@@ -60,7 +61,8 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
     Hidden layer sizes: $(p.hidden_layer_sizes) 
     Learning rate: $(p.learning_rate) 
-    Iterations: $(p.iters) 
+    Iterations: $(p.iters)
+    Optimizer: $(p.optim)
     Segments per window: $(p.segs_in_window)
     Loss Aggregation: $(p.loss_aggregation)"
 )
