@@ -23,9 +23,9 @@ end
 unicycle_actual_dynamics() = Dynamics(;
     params = UnicycleActualParameters(;
         vel_drag = 0.5,
-        turn_drag = 0.25,
-        accel_scale = 0.95,
-        turn_rate_scale = 0.95
+        turn_drag = 0.0,
+        accel_scale = 0.75,
+        turn_rate_scale = 0.75
     ),
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         return [
@@ -66,7 +66,8 @@ unicycle_figure_eight_task() = figure_eight(;
 # unicycle_training_algorithm() = WalkingWindowAlgorithm()
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.1^2, .1^2, .1^2, .1^2],
+    # variances = [.5^2, .5^2, .1^2, .25^2],
+    variances = [.5, .5, .25, .5],
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
@@ -74,10 +75,10 @@ unicycle_training_parameters() = TrainingParameters(;
     hidden_layer_sizes = [64, 64],
     learning_rate = 1e-3,
     iters = 50,
-    segs_in_window = 5,
-    loss_aggregation = AtModelCall(),
-    save_path = ".data/trained_unicycle_model.bson",
-    plot_save_path = ".data/training_plot.png"
+    segs_in_window = 10,
+    loss_aggregation = AtSimulationTimestep(),
+    save_path = ".data/trained_unicycle_model_large_step.bson",
+    plot_save_path = ".data/training_plot_large_step.png"
 )
 
 unicycle_simulation_parameters() = SimulationParameters(;
@@ -110,13 +111,13 @@ function evaluate_unicycle_experiment()
         task = unicycle_figure_eight_task(), 
         sim_params = unicycle_simulation_parameters(),
         model = nothing, 
-        load_path = ".data/trained_unicycle_model.bson"
+        load_path = ".data/trained_unicycle_model_large_step.bson"
     )
     plot_evaluation(
         eval_data
         ; algo = unicycle_training_algorithm(),
         training_params = unicycle_training_parameters(),
         sim_params = unicycle_simulation_parameters(),
-        save_path = ".data/eval_plot.png"
+        save_path = ".data/eval_plot_large_step.png"
     )
 end

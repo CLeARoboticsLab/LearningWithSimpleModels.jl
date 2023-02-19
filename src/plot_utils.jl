@@ -73,7 +73,7 @@ function animate_training(rollouts::Vector{RolloutData}, task::Spline)
     l = scatter!(ax, rollouts[1].xs[1,:], rollouts[1].xs[2,:], color = range(0, 1, length=len), colormap=:thermal, markersize=10)
     sc = scatter!(ax, rollouts[1].xs[1,1], rollouts[1].xs[2,1], color=:red, markersize=20)
 
-    record(fig, ".data/training_animation.mp4", 1:length(rollouts); framerate = 1) do i
+    record(fig, ".data/training_animation.mp4", 1:length(rollouts); framerate = 2) do i
         l[1] = rollouts[i].xs[1,:]
         l[2] = rollouts[i].xs[2,:]
         sc[1] = rollouts[i].xs[1,1]

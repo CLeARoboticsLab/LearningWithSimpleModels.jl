@@ -8,7 +8,8 @@ using Flux:
     setup,
     Adam,
     withgradient,
-    update!
+    update!,
+    Descent
 using Distributions: Uniform, MvNormal
 using BSON: @save, @load
 using LinearAlgebra: diagm
