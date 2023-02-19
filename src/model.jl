@@ -28,6 +28,12 @@ function new_setpoint_from_model(
     task_time::Float64
 )
     t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
-    setpoint_correction = model(vcat(x, t_transformed)) * sim_params.model_scale
+    x_transformed = [
+        x[1],
+        x[2],
+        x[3]*cos(x[4]),
+        x[3]*sin(x[4])
+    ] #TODO make this more robust to arbitrary state definitions
+    setpoint_correction = model(vcat(x_transformed, t_transformed)) * sim_params.model_scale
     return setpoint + setpoint_correction
 end
