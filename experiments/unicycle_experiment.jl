@@ -66,8 +66,8 @@ unicycle_figure_eight_task() = figure_eight(;
 # unicycle_training_algorithm() = WalkingWindowAlgorithm()
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.25^2, .25^2, .25^2, .25^2],
-    # variances = [.0000005^2, .0000005^2, .00000025^2, .0000005^2],
+    # variances = [.25^2, .25^2, .25^2, .25^2],
+    variances = [.0000005^2, .0000005^2, .00000025^2, .0000005^2],
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
