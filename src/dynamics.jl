@@ -1,41 +1,23 @@
 f_simple(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
 f_actual(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) = dyn.f(dyn,t,dt,x,u)
 
-# Rollout from the x0 given in sim_params, for the entire task from the
-# beginning, including task repeats
+# Rollout from the x0 given in sim_params, for the entire task specified by
+# eval_params, from the beginning
 function rollout_actual_dynamics(
     task::Spline, 
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller,
     cost::Cost,
-    sim_params::SimulationParameters
+    sim_params::SimulationParameters,
+    eval_params::EvaluationParameters,
     ; use_model = true
 )  
-    _, n_segments, _, _ = properties(task, sim_params)
+    #TODO clean this up
+    task_time, _ = properties(task, sim_params)
+    n_segments = eval_params.n_task_executions * Integer(round(task_time/sim_params.model_dt))
     t0 = 0.0
     x0 = sim_params.x0
-
-    return rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, cost, sim_params, t0, x0, n_segments
-        ; use_model
-    )  
-end
-
-# Rollout from the specified t0, x0, for the entire task from the
-# beginning, including task repeats
-function rollout_actual_dynamics(
-    task::Spline, 
-    model::Chain,
-    actual_dynamics::Dynamics, 
-    controller::Controller,
-    cost::Cost, 
-    sim_params::SimulationParameters,
-    t0::Float64,
-    x0::Vector{Float64},
-    ; use_model = true
-)  
-    _, n_segments, _, _ = properties(task, sim_params)
 
     return rollout_actual_dynamics(
         task, model, actual_dynamics, controller, cost, sim_params, t0, x0, n_segments
@@ -56,7 +38,7 @@ function rollout_actual_dynamics(
     n_segments::Integer
     ; use_model = true
 )  
-    task_time, _, segment_length, _ = properties(task, sim_params)
+    task_time, segment_length = properties(task, sim_params)
     total_timesteps = n_segments * segment_length
      
     t0_segs = zeros(n_segments)

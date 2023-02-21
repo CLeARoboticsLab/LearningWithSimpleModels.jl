@@ -27,17 +27,28 @@ end
 
 abstract type TrainingAlgorithm end
 
-struct WalkingWindowAlgorithm <:TrainingAlgorithm end
+Base.@kwdef struct WalkingWindowAlgorithm <:TrainingAlgorithm
+    segs_per_rollout = 60
+    segs_in_window::Integer = 5
+end
 Base.show(io::IO, ::WalkingWindowAlgorithm) = print(io,
-    "Walking Window Algorithm"
+    "Walking Window Algorithm
+    Segments per rollout: $(p.segs_per_rollout)
+    Segments in window: $(p.segs_in_window)"
 )
 
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
     variances::Vector{Float64}
+    n_rollouts_per_update::Integer = 1
+    segs_per_rollout::Integer = 20
+    segs_in_window::Integer = 5
     to_state::Function
 end
 Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
-    "Random Initial Algorithm: 
+    "Random Initial Algorithm:
+    Num of rollouts per update: $(p.n_rollouts_per_update)
+    Num segments per rollout: $(p.segs_per_rollout)
+    Segments in window: $(p.segs_in_window)
     Standard Deviations:
     $(round.(sqrt.(p.variances); digits=4))"
 )
@@ -52,7 +63,6 @@ Base.@kwdef struct TrainingParameters
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
     optim::String = "Adam"
-    segs_in_window::Integer = 5
     loss_aggregation::LossAggregationStyle = AtSimulationTimestep()
     save_path = nothing
     plot_save_path = nothing
@@ -63,14 +73,12 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
     Learning rate: $(p.learning_rate) 
     Iterations: $(p.iters)
     Optimizer: $(p.optim)
-    Segments per window: $(p.segs_in_window)
     Loss Aggregation: $(p.loss_aggregation)"
 )
 
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
-    n_task_executions::Integer = 1
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     model_scale::Float64 = 1.0
@@ -78,11 +86,14 @@ end
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 
     Initial state: $(p.x0)
-    Task repeats: $(p.n_task_executions)
     Simulation dt: $(p.dt) 
     Time between model calls: $(p.model_dt)
     Model scale: $(p.model_scale)"
 )
+
+Base.@kwdef struct EvaluationParameters
+    n_task_executions::Integer = 1
+end
 
 struct Spline
     ts::Vector{Float64}

@@ -63,11 +63,17 @@ unicycle_figure_eight_task() = figure_eight(;
     laps = 1
 )
 
-# unicycle_training_algorithm() = WalkingWindowAlgorithm()
+unicycle_training_algorithm() = WalkingWindowAlgorithm(;
+    segs_per_rollout = 60,    
+    segs_in_window = 5
+)
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    # variances = [.25^2, .25^2, .25^2, .25^2],
-    variances = [.0000005^2, .0000005^2, .00000025^2, .0000005^2],
+    variances = [.25^2, .25^2, .25^2, .25^2],
+    # variances = [.0000005^2, .0000005^2, .00000025^2, .0000005^2],
+    n_rollouts_per_update = 3,
+    segs_per_rollout = 20,
+    segs_in_window = 20,
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
@@ -76,7 +82,6 @@ unicycle_training_parameters() = TrainingParameters(;
     learning_rate = 2.5e-4,
     iters = 10,
     optim = "Gradient Descent",
-    segs_in_window = 60,
     loss_aggregation = AtSimulationTimestep(),
     save_path = ".data/trained_unicycle_model.bson",
     plot_save_path = ".data/t-baseline.png"
@@ -85,10 +90,13 @@ unicycle_training_parameters() = TrainingParameters(;
 unicycle_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
-    n_task_executions = 3,
     dt = 0.01,
     model_dt = 0.5,
     model_scale = 1.0
+)
+
+unicycle_evaluation_parameters() = EvaluationParameters(;
+    n_task_executions = 3
 )
 
 function train_unicycle_experiment()
@@ -111,6 +119,7 @@ function evaluate_unicycle_experiment()
         cost = unicycle_cost(),
         task = unicycle_figure_eight_task(), 
         sim_params = unicycle_simulation_parameters(),
+        eval_params = unicycle_evaluation_parameters(),
         model = nothing, 
         load_path = ".data/trained_unicycle_model.bson"
     )

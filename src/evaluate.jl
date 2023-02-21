@@ -4,6 +4,7 @@ function evaluate_model(;
     cost::Cost,
     task::Spline, 
     sim_params::SimulationParameters,
+    eval_params::EvaluationParameters,
     model = nothing, 
     load_path = nothing
 )
@@ -12,10 +13,10 @@ function evaluate_model(;
         @load load_path model
     end
 
-    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, sim_params)
+    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, sim_params, eval_params)
 
     r_no_model = rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, cost, sim_params
+        task, model, actual_dynamics, controller, cost, sim_params, eval_params
         ; use_model = false
     )
 

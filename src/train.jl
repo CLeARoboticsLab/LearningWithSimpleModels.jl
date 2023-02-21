@@ -19,15 +19,15 @@ function train(;
     end
 
     losses = zeros(training_params.iters)
-    rollouts = Vector{RolloutData}(undef,training_params.iters)
+    rollouts = Vector{RolloutData}(undef,0)
     for i in 1:training_params.iters
-        loss, r = policy_update!(
+        loss, rs = policy_update!(
             algo, task, model, optimizer, simple_dynamics, actual_dynamics,
             controller, cost, training_params, sim_params
         )
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
         losses[i] = loss
-        rollouts[i] = r
+        append!(rollouts, rs)
     end
 
     if !isnothing(training_params.save_path)
@@ -52,12 +52,16 @@ function policy_update!(
     training_params::TrainingParameters,
     sim_params::SimulationParameters
 )
-    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, sim_params)
+    t0 = 0.0
+    x0 = sim_params.x0
+    r = rollout_actual_dynamics(
+        task, model, actual_dynamics, controller, cost, sim_params, t0, x0, algo.segs_per_rollout
+    )
     loss, grads = gradient_estimate(
         r, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
     )
     update!(optimizer,model,grads[1])
-    return loss, r
+    return loss, [r]
 end
 
 function policy_update!(
@@ -72,18 +76,24 @@ function policy_update!(
     training_params::TrainingParameters,
     sim_params::SimulationParameters
 )
-    t0 = rand(Uniform(0.0, end_time(task)))
-    x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
 
-    #TODO: this is code to sample from uniform distribution; remove if needed
-    # x = algo.to_state(evaluate(task,t0))
-    # x0 = [x[i] + rand(Uniform(-algo.variances[i], algo.variances[i])) for i in 1:length(x)]
+    rs = Vector{RolloutData}(undef,algo.n_rollouts_per_update)
+    for i in 1:algo.n_rollouts_per_update
+        t0 = rand(Uniform(0.0, end_time(task)))
+        x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
 
-    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, sim_params, t0, x0)
+        #TODO: this is code to sample from uniform distribution; remove if needed
+        # x = algo.to_state(evaluate(task,t0))
+        # x0 = [x[i] + rand(Uniform(-algo.variances[i], algo.variances[i])) for i in 1:length(x)]
+
+        rs[i] = rollout_actual_dynamics(
+            task, model, actual_dynamics, controller, cost, sim_params, t0, x0, algo.segs_per_rollout
+        )
+    end
 
     loss, grads = gradient_estimate(
-        r, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
+        rs, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
     )
     update!(optimizer,model,grads[1])
-    return loss, r
+    return loss, rs
 end

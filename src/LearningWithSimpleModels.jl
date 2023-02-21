@@ -22,7 +22,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     CostParameters, QuadraticCostParameters, Cost,
     WalkingWindowAlgorithm, RandomInitialAlgorithm,
     AtModelCall, AtSimulationTimestep,
-    TrainingParameters, SimulationParameters,
+    TrainingParameters, SimulationParameters, EvaluationParameters
     Spline, EvaluationData
 
 include("spline.jl")

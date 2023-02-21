@@ -49,7 +49,7 @@ function plot_evaluation(
 end
 
 function plot_task(task::Spline, sim_params::SimulationParameters)
-    task_time, _, _ = properties(task, sim_params)
+    task_time, _ = properties(task, sim_params)
     ts = 0.0:sim_params.dt:task_time
     xs_task, ys_task, _, _ = eval_all(task, ts)
     
@@ -60,6 +60,7 @@ function plot_task(task::Spline, sim_params::SimulationParameters)
 end
 
 #TODO: clean this up
+#TODO: separate rollouts by policy update
 function animate_training(rollouts::Vector{RolloutData}, task::Spline)
     xs_task, ys_task, _, _ = eval_all(task, rollouts[1].ts)
     len = length(xs_task)
