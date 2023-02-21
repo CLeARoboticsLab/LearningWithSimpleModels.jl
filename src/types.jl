@@ -110,6 +110,7 @@ Base.@kwdef struct RolloutData
     idx_segs::Vector{<:Integer}     # overall index at each model call
     t0_segs::Vector{Float64}        # time at each model call 
     x0_segs::Matrix{Float64}        # state at each model call
+    setpoints::Matrix{Float64}      # Corrected setpoints, from calling model
     xf::Vector{Float64}             # final state, at T+1
     loss::Float64
 end

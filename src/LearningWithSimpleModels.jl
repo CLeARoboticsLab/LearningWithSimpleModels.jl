@@ -41,7 +41,7 @@ include("train.jl")
 export train
 
 include("plot_utils.jl")
-export plot_losses, plot_evaluation
+export plot_losses, plot_evaluation, animate_evaluation
 
 include("evaluate.jl")
 export evaluate_model

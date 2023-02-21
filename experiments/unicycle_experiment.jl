@@ -80,7 +80,7 @@ unicycle_training_algorithm() = RandomInitialAlgorithm(;
 unicycle_training_parameters() = TrainingParameters(;
     hidden_layer_sizes = [64, 64],
     learning_rate = 2.5e-4,
-    iters = 10,
+    iters = 5,
     optim = "Gradient Descent",
     loss_aggregation = AtSimulationTimestep(),
     save_path = ".data/trained_unicycle_model.bson",
@@ -130,4 +130,6 @@ function evaluate_unicycle_experiment()
         sim_params = unicycle_simulation_parameters(),
         save_path = ".data/e-baseline.png"
     )
+    animate_evaluation(eval_data)
+    return eval_data
 end

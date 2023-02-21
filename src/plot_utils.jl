@@ -46,6 +46,14 @@ function plot_evaluation(
 
     save(save_path, fig)
     display(GLMakie.Screen(), fig)
+
+    #TODO clean this up (control inputs plot) 
+    fig2 = Figure(resolution=(600,600))
+    ax1 = Axis(fig2[1,1], xlabel="t", ylabel="a")
+    ax2 = Axis(fig2[2,1], xlabel="t", ylabel="ω")
+    lines!(ax1, eval_data.r.ts, eval_data.r.us[1,:], label="accel")
+    lines!(ax2, eval_data.r.ts, eval_data.r.us[2,:], label="turn rate")
+    display(GLMakie.Screen(), fig2)
 end
 
 function plot_task(task::Spline, sim_params::SimulationParameters)
@@ -74,6 +82,7 @@ function animate_training(rollouts::Vector{RolloutData}, task::Spline)
     l = scatter!(ax, rollouts[1].xs[1,:], rollouts[1].xs[2,:], color = range(0, 1, length=len), colormap=:thermal, markersize=5)
     sc = scatter!(ax, rollouts[1].xs[1,1], rollouts[1].xs[2,1], color=:red, markersize=20)
 
+    #TODO: non-hardcoded animation path
     record(fig, ".data/training_animation.mp4", 1:length(rollouts); framerate = 2) do i
         l[1] = rollouts[i].xs[1,:]
         l[2] = rollouts[i].xs[2,:]
@@ -81,5 +90,30 @@ function animate_training(rollouts::Vector{RolloutData}, task::Spline)
         sc[2] = rollouts[i].xs[2,1]
         iter[] = i
         cost[] = rollouts[i].loss
+    end
+end
+
+function animate_evaluation(eval_data::EvaluationData)
+    traj_points = Observable(Point2f[(eval_data.r.xs[1,1], eval_data.r.xs[2,1])])
+    set_points = Observable(Point2f[(eval_data.r.setpoints[1,1], eval_data.r.setpoints[2,1])])
+    task_points = Observable(Point2f[(eval_data.xs_task[1], eval_data.ys_task[1])])
+    T = length(eval_data.r.ts)
+
+    fig = Figure(resolution=(850,600))
+    ax = Axis(fig[1,1], xlabel="x", ylabel="y")
+    limits!(ax, -8, 8, -5, 5)
+    lines!(ax, task_points, label="Task", linestyle=:dash, color=:black)
+
+    scatter!(ax, traj_points, color = range(0.5,1.0, length=T), colormap=:thermal, markersize=7)
+    scatter!(ax, set_points, color = range(0.5,1.0, length=T), colormap=:thermal, markersize=20)
+
+    j = 1 #TODO non-hardcoded animation path
+    record(fig, ".data/evaluation animation.mp4", 1:T; framterate = 100) do i
+        traj_points[] = push!(traj_points[], Point2f(eval_data.r.xs[1,i], eval_data.r.xs[2,i]))
+        if j <= length(eval_data.r.idx_segs) && i >= eval_data.r.idx_segs[j]
+            set_points[] = push!(set_points[], Point2f(eval_data.r.setpoints[1,j], eval_data.r.setpoints[2,j]))
+            j += 1
+        end
+        task_points[] = push!(task_points[], Point2f(eval_data.xs_task[i],eval_data.ys_task[i]))
     end
 end

@@ -49,6 +49,7 @@ function rollout_actual_dynamics(
     ts_actual = zeros(total_timesteps)
     xs_actual = zeros(n_states, total_timesteps)
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
+    setpoints = zeros(4, n_segments)
 
     overall_idx = 1
     t = t0
@@ -71,6 +72,8 @@ function rollout_actual_dynamics(
         if !use_model
             new_setpoint = setpoint
         end 
+        
+        setpoints[:,j] = new_setpoint
 
         # rollout on this segment
         for _ in 1:segment_length
@@ -93,6 +96,7 @@ function rollout_actual_dynamics(
         idx_segs = idx_segs,
         t0_segs = t0_segs,
         x0_segs = x0_segs,
+        setpoints = setpoints,
         xf = xf,
         loss = loss
     )
