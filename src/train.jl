@@ -28,13 +28,10 @@ function train(;
         losses[i] = loss
         append!(rollouts, rs)
     end
-
-    if !isnothing(training_params.save_path)
-        @save training_params.save_path model
-    end
     
+    save_model(training_params, model)
     plot_losses(training_params, losses)
-    animate_training(rollouts, task)
+    animate_training(training_params, rollouts, task)
 
     return model, losses
 end
@@ -91,4 +88,14 @@ function policy_update!(
     )
     update!(optimizer,model,grads[1])
     return loss, rs
+end
+
+function save_model(training_params::TrainingParameters, model::Chain)
+    if isnothing(training_params.save_path) || !training_params.save_model
+        return
+    end
+
+    filename = training_params.name * "_train_model.bson"
+    path = joinpath(training_params.save_path, filename)
+    @save path model
 end

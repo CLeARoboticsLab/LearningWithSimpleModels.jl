@@ -13,7 +13,6 @@ function rollout_actual_dynamics(
     eval_params::EvaluationParameters,
     ; use_model = true
 )  
-    #TODO clean this up
     task_time, _ = properties(task, sim_params)
     n_segments = eval_params.n_task_executions * Integer(round(task_time/sim_params.model_dt))
     t0 = 0.0

@@ -77,13 +77,16 @@ unicycle_training_algorithm() = RandomInitialAlgorithm(;
 )
 
 unicycle_training_parameters() = TrainingParameters(;
+    name = "unicycle",
+    save_path = ".data",
     hidden_layer_sizes = [64, 64],
     learning_rate = 2.5e-4,
     iters = 5,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
-    save_path = ".data/trained_unicycle_model.bson",
-    plot_save_path = ".data/t-baseline.png"
+    save_model = true,
+    save_plot = true,
+    save_animation = true
 )
 
 unicycle_simulation_parameters() = SimulationParameters(;
@@ -95,7 +98,11 @@ unicycle_simulation_parameters() = SimulationParameters(;
 )
 
 unicycle_evaluation_parameters() = EvaluationParameters(;
-    n_task_executions = 3
+    name = "unicycle",
+    path = ".data",    
+    n_task_executions = 3,
+    save_plot = true,
+    save_animation = true
 )
 
 function train_unicycle_experiment()
@@ -116,19 +123,11 @@ function evaluate_unicycle_experiment()
         actual_dynamics = unicycle_actual_dynamics(),
         controller = unicycle_controller(),
         cost = unicycle_cost(),
-        task = unicycle_figure_eight_task(), 
-        sim_params = unicycle_simulation_parameters(),
-        eval_params = unicycle_evaluation_parameters(),
-        model = nothing, 
-        load_path = ".data/trained_unicycle_model.bson"
-    )
-    plot_evaluation(
-        eval_data
-        ; algo = unicycle_training_algorithm(),
+        task = unicycle_figure_eight_task(),
+        algo = unicycle_training_algorithm(),
         training_params = unicycle_training_parameters(),
         sim_params = unicycle_simulation_parameters(),
-        save_path = ".data/e-baseline.png"
+        eval_params = unicycle_evaluation_parameters(),
+        model = nothing
     )
-    animate_evaluation(eval_data)
-    return eval_data
 end

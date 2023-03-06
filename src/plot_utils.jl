@@ -1,26 +1,23 @@
-function plot_losses(losses)
+function plot_losses(training_params::TrainingParameters, losses)
     fig = Figure()
     ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Loss")
     lines!(ax, losses)
-    display(GLMakie.Screen(), fig)
-    return fig
-end
 
-function plot_losses(training_params::TrainingParameters, losses)
-    fig = plot_losses(losses)
-    path = training_params.plot_save_path
-    if !isnothing(path)
+    if !isnothing(training_params.save_path) && training_params.save_plot
+        filename = training_params.name * "_train_loss.png"
+        path = joinpath(training_params.save_path, filename)
         save(path, fig)
     end
+
     display(GLMakie.Screen(), fig)
 end
 
-function plot_evaluation(
-    eval_data::EvaluationData;
+function plot_evaluation(;
+    eval_params::EvaluationParameters,
+    eval_data::EvaluationData,
     algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
-    save_path = nothing
 )
     fig = Figure(resolution=(850,600))
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
@@ -32,6 +29,7 @@ function plot_evaluation(
     label = string(algo) * "
     
     Loss: $(round(eval_data.r.loss; digits=3))"
+    
     if !isnothing(algo)
         Label(fig[2,1], label)
     end
@@ -44,15 +42,25 @@ function plot_evaluation(
         Label(fig[2,3], string(sim_params))
     end
 
-    save(save_path, fig)
-    display(GLMakie.Screen(), fig)
-
     #TODO clean this up (control inputs plot) 
     fig2 = Figure(resolution=(600,600))
     ax1 = Axis(fig2[1,1], xlabel="t", ylabel="a")
     ax2 = Axis(fig2[2,1], xlabel="t", ylabel="ω")
     lines!(ax1, eval_data.r.ts, eval_data.r.us[1,:], label="accel")
     lines!(ax2, eval_data.r.ts, eval_data.r.us[2,:], label="turn rate")
+    
+
+    if !isnothing(eval_params.path) && eval_params.save_plot
+        eval_plot_filename = eval_params.name * "_eval_plot.png"
+        eval_plot_path = joinpath(eval_params.path, eval_plot_filename)
+        save(eval_plot_path, fig)
+    
+        inputs_plot_filename = eval_params.name * "_eval_control_inputs.png"
+        inputs_plot_path = joinpath(eval_params.path, inputs_plot_filename)
+        save(inputs_plot_path, fig2)
+    end
+
+    display(GLMakie.Screen(), fig)
     display(GLMakie.Screen(), fig2)
 end
 
@@ -67,9 +75,15 @@ function plot_task(task::Spline, sim_params::SimulationParameters)
     display(GLMakie.Screen(), fig)
 end
 
-#TODO: clean this up
 #TODO: separate rollouts by policy update
-function animate_training(rollouts::Vector{RolloutData}, task::Spline)
+function animate_training(training_params::TrainingParameters, rollouts::Vector{RolloutData}, task::Spline)
+    if isnothing(training_params.save_path) || !training_params.save_animation
+        return
+    end
+
+    filename = training_params.name * "_train_animation.mp4"
+    path = joinpath(training_params.save_path, filename)
+    
     xs_task, ys_task, _, _ = eval_all(task, rollouts[1].ts)
     len = length(xs_task)
 
@@ -77,13 +91,12 @@ function animate_training(rollouts::Vector{RolloutData}, task::Spline)
     cost = Observable(0.0)
 
     fig = Figure()
-    ax = Axis(fig[1,1], xlabel="x", ylabel="y", title=@lift("Iteration: $($iter); Cost: $(round($cost))"))
+    ax = Axis(fig[1,1], xlabel="x", ylabel="y", title=@lift("Rollout: $($iter); Cost: $(round($cost))"))
     l = lines!(ax, xs_task, ys_task, label="Task", linestyle=:dash, color=:black)
     l = scatter!(ax, rollouts[1].xs[1,:], rollouts[1].xs[2,:], color = range(0, 1, length=len), colormap=:thermal, markersize=5)
     sc = scatter!(ax, rollouts[1].xs[1,1], rollouts[1].xs[2,1], color=:red, markersize=20)
 
-    #TODO: non-hardcoded animation path
-    record(fig, ".data/training_animation.mp4", 1:length(rollouts); framerate = 2) do i
+    record(fig, path, 1:length(rollouts); framerate = 2) do i
         l[1] = rollouts[i].xs[1,:]
         l[2] = rollouts[i].xs[2,:]
         sc[1] = rollouts[i].xs[1,1]
@@ -93,7 +106,14 @@ function animate_training(rollouts::Vector{RolloutData}, task::Spline)
     end
 end
 
-function animate_evaluation(eval_data::EvaluationData)
+function animate_evaluation(eval_params::EvaluationParameters, eval_data::EvaluationData)
+    if isnothing(eval_params.path) || !eval_params.save_animation
+        return
+    end
+    
+    filename = eval_params.name * "_eval_animation.mp4"
+    path = joinpath(eval_params.path, filename)
+
     traj_points = Observable(Point2f[(eval_data.r.xs[1,1], eval_data.r.xs[2,1])])
     set_points = Observable(Point2f[(eval_data.r.setpoints[1,1], eval_data.r.setpoints[2,1])])
     task_points = Observable(Point2f[(eval_data.xs_task[1], eval_data.ys_task[1])])
@@ -107,8 +127,8 @@ function animate_evaluation(eval_data::EvaluationData)
     scatter!(ax, traj_points, color = range(0.5,1.0, length=T), colormap=:thermal, markersize=7)
     scatter!(ax, set_points, color = range(0.5,1.0, length=T), colormap=:thermal, markersize=20)
 
-    j = 1 #TODO non-hardcoded animation path
-    record(fig, ".data/evaluation animation.mp4", 1:T; framterate = 100) do i
+    j = 1
+    record(fig, path, 1:T; framterate = 100) do i
         traj_points[] = push!(traj_points[], Point2f(eval_data.r.xs[1,i], eval_data.r.xs[2,i]))
         if j <= length(eval_data.r.idx_segs) && i >= eval_data.r.idx_segs[j]
             set_points[] = push!(set_points[], Point2f(eval_data.r.setpoints[1,j], eval_data.r.setpoints[2,j]))

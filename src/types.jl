@@ -57,13 +57,16 @@ Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
 @enum LossAgg simulation_timestep model_call
 
 Base.@kwdef struct TrainingParameters
+    name::String = "experiment"
+    save_path = ".data"
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
     optim::Optim = adam
     loss_aggregation::LossAgg = simulation_timestep
-    save_path = nothing
-    plot_save_path = nothing
+    save_model::Bool = true
+    save_plot::Bool = true
+    save_animation::Bool = false
 end
 Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
@@ -90,7 +93,11 @@ Base.show(io::IO, p::SimulationParameters) = print(io,
 )
 
 Base.@kwdef struct EvaluationParameters
+    name::String = "experiment"
+    path = ".data"
     n_task_executions::Integer = 1
+    save_plot::Bool = true
+    save_animation::Bool = false
 end
 
 struct Spline
