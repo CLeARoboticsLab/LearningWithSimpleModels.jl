@@ -58,11 +58,13 @@ abstract type LossAggregationStyle end
 struct AtModelCall <: LossAggregationStyle end
 struct AtSimulationTimestep <: LossAggregationStyle end
 
+@enum Optim adam gradient_descent
+
 Base.@kwdef struct TrainingParameters
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
-    optim::String = "Adam"
+    optim::Optim = adam
     loss_aggregation::LossAggregationStyle = AtSimulationTimestep()
     save_path = nothing
     plot_save_path = nothing

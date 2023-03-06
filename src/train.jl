@@ -12,10 +12,10 @@ function train(;
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
     
     #TODO make enum
-    if training_params.optim == "Adam"
-        optimizer = setup(Adam(training_params.learning_rate), model)
-    elseif training_params.optim == "Gradient Descent"
+    if training_params.optim == gradient_descent
         optimizer = setup(Descent(training_params.learning_rate), model)
+    else
+        optimizer = setup(Adam(training_params.learning_rate), model)
     end
 
     losses = zeros(training_params.iters)
@@ -81,10 +81,6 @@ function policy_update!(
     for i in 1:algo.n_rollouts_per_update
         t0 = rand(Uniform(0.0, end_time(task)))
         x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
-
-        #TODO: this is code to sample from uniform distribution; remove if needed
-        # x = algo.to_state(evaluate(task,t0))
-        # x0 = [x[i] + rand(Uniform(-algo.variances[i], algo.variances[i])) for i in 1:length(x)]
 
         rs[i] = rollout_actual_dynamics(
             task, model, actual_dynamics, controller, cost, sim_params, t0, x0, algo.segs_per_rollout
