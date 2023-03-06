@@ -11,7 +11,6 @@ function train(;
     p = ProgressMeter.Progress(training_params.iters)
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
     
-    #TODO make enum
     if training_params.optim == gradient_descent
         optimizer = setup(Descent(training_params.learning_rate), model)
     else

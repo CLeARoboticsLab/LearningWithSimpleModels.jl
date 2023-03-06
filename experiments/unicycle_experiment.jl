@@ -70,7 +70,6 @@ unicycle_training_algorithm() = WalkingWindowAlgorithm(;
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
     variances = [.25^2, .25^2, .25^2, .25^2],
-    # variances = [.0000005^2, .0000005^2, .00000025^2, .0000005^2],
     n_rollouts_per_update = 3,
     segs_per_rollout = 20,
     segs_in_window = 20,
@@ -82,7 +81,7 @@ unicycle_training_parameters() = TrainingParameters(;
     learning_rate = 2.5e-4,
     iters = 5,
     optim = gradient_descent,
-    loss_aggregation = AtSimulationTimestep(),
+    loss_aggregation = simulation_timestep,
     save_path = ".data/trained_unicycle_model.bson",
     plot_save_path = ".data/t-baseline.png"
 )

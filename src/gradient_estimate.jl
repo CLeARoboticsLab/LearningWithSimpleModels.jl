@@ -51,7 +51,7 @@ function gradient_estimate(
                     for i in 0:segment_length-1
                         overall_idx = seg_start_idx + i
                         u = next_command(controller, x, new_setpoint)
-                        if typeof(training_params.loss_aggregation) == AtSimulationTimestep
+                        if training_params.loss_aggregation == simulation_timestep
                             loss = loss + stage_cost(cost, x, evaluate(task, t), u)
                         end
                         t = t + sim_params.dt
@@ -67,7 +67,7 @@ function gradient_estimate(
                             x_actual_next: $(x_actual_next)")
                         end
                     end
-                    if typeof(training_params.loss_aggregation) == AtModelCall
+                    if training_params.loss_aggregation == model_call
                         loss = loss + stage_cost(cost, x, setpoint, u)
                     end
                 end

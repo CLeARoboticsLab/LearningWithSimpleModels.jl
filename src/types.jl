@@ -53,19 +53,15 @@ Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     $(round.(sqrt.(p.variances); digits=4))"
 )
 
-#TODO: make LossAggregationStyle an enum?
-abstract type LossAggregationStyle end
-struct AtModelCall <: LossAggregationStyle end
-struct AtSimulationTimestep <: LossAggregationStyle end
-
 @enum Optim adam gradient_descent
+@enum LossAgg simulation_timestep model_call
 
 Base.@kwdef struct TrainingParameters
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
     optim::Optim = adam
-    loss_aggregation::LossAggregationStyle = AtSimulationTimestep()
+    loss_aggregation::LossAgg = simulation_timestep
     save_path = nothing
     plot_save_path = nothing
 end

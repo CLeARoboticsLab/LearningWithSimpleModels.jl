@@ -21,8 +21,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
     WalkingWindowAlgorithm, RandomInitialAlgorithm,
-    AtModelCall, AtSimulationTimestep,
-    adam, gradient_descent,
+    simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters
     Spline, EvaluationData
 
