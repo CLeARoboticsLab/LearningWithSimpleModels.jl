@@ -8,7 +8,9 @@ using Flux:
     setup,
     Adam,
     withgradient,
-    update!
+    update!,
+    Descent,
+    f64
 using Distributions: Uniform, MvNormal
 using BSON: @save, @load
 using LinearAlgebra: diagm
@@ -20,7 +22,8 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
     WalkingWindowAlgorithm, RandomInitialAlgorithm,
-    TrainingParameters, SimulationParameters,
+    simulation_timestep, model_call, adam, gradient_descent,
+    TrainingParameters, SimulationParameters, EvaluationParameters,
     Spline, EvaluationData
 
 include("spline.jl")
@@ -39,7 +42,6 @@ include("train.jl")
 export train
 
 include("plot_utils.jl")
-export plot_losses, plot_evaluation
 
 include("evaluate.jl")
 export evaluate_model

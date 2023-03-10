@@ -27,49 +27,59 @@ end
 
 abstract type TrainingAlgorithm end
 
-struct WalkingWindowAlgorithm <:TrainingAlgorithm end
+Base.@kwdef struct WalkingWindowAlgorithm <:TrainingAlgorithm
+    segs_per_rollout = 60
+    segs_in_window::Integer = 5
+end
 Base.show(io::IO, ::WalkingWindowAlgorithm) = print(io,
-    "Walking Window Algorithm"
+    "Walking Window Algorithm
+    Segments per rollout: $(p.segs_per_rollout)
+    Segments in window: $(p.segs_in_window)"
 )
 
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
     variances::Vector{Float64}
+    n_rollouts_per_update::Integer = 1
+    segs_per_rollout::Integer = 20
+    segs_in_window::Integer = 5
     to_state::Function
 end
 Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
-    "Random Initial Algorithm: 
-    Variances:
-    $(round.(p.variances; digits=4))"
+    "Random Initial Algorithm:
+    Num of rollouts per update: $(p.n_rollouts_per_update)
+    Num segments per rollout: $(p.segs_per_rollout)
+    Segments in window: $(p.segs_in_window)
+    Standard Deviations:
+    $(round.(sqrt.(p.variances); digits=4))"
 )
 
-abstract type LossAggregationStyle end
-struct AtModelCall <: LossAggregationStyle end
-struct AtSimulationTimestep <: LossAggregationStyle end
-
-LossAggregationStyle(::TrainingAlgorithm) = AtModelCall()
-LossAggregationStyle(::WalkingWindowAlgorithm) = AtModelCall()
-LossAggregationStyle(::RandomInitialAlgorithm) = AtSimulationTimestep()
+@enum Optim adam gradient_descent
+@enum LossAgg simulation_timestep model_call
 
 Base.@kwdef struct TrainingParameters
+    name::String = "experiment"
+    save_path = ".data"
     hidden_layer_sizes::Vector{<:Integer} = [64, 64]
     learning_rate::Float64 = 1e-3
     iters::Integer = 50
-    segs_in_window::Integer = 5
-    save_path = nothing
-    plot_save_path = nothing
+    optim::Optim = adam
+    loss_aggregation::LossAgg = simulation_timestep
+    save_model::Bool = true
+    save_plot::Bool = true
+    save_animation::Bool = false
 end
 Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
     Hidden layer sizes: $(p.hidden_layer_sizes) 
     Learning rate: $(p.learning_rate) 
-    Iterations: $(p.iters) 
-    Segments per window: $(p.segs_in_window)"
+    Iterations: $(p.iters)
+    Optimizer: $(p.optim)
+    Loss Aggregation: $(p.loss_aggregation)"
 )
 
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
-    n_task_executions::Integer = 1
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     model_scale::Float64 = 1.0
@@ -77,11 +87,18 @@ end
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 
     Initial state: $(p.x0)
-    Task repeats: $(p.n_task_executions)
     Simulation dt: $(p.dt) 
     Time between model calls: $(p.model_dt)
     Model scale: $(p.model_scale)"
 )
+
+Base.@kwdef struct EvaluationParameters
+    name::String = "experiment"
+    path = ".data"
+    n_task_executions::Integer = 1
+    save_plot::Bool = true
+    save_animation::Bool = false
+end
 
 struct Spline
     ts::Vector{Float64}
@@ -95,8 +112,10 @@ Base.@kwdef struct RolloutData
     ts::Vector{Float64}
     xs::Matrix{Float64}
     us::Matrix{Float64}
+    idx_segs::Vector{<:Integer}     # overall index at each model call
     t0_segs::Vector{Float64}        # time at each model call 
     x0_segs::Matrix{Float64}        # state at each model call
+    setpoints::Matrix{Float64}      # Corrected setpoints, from calling model
     xf::Vector{Float64}             # final state, at T+1
     loss::Float64
 end

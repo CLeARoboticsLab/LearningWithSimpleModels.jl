@@ -23,9 +23,9 @@ end
 unicycle_actual_dynamics() = Dynamics(;
     params = UnicycleActualParameters(;
         vel_drag = 0.5,
-        turn_drag = 0.25,
-        accel_scale = 0.95,
-        turn_rate_scale = 0.95
+        turn_drag = 0.0,
+        accel_scale = 0.75,
+        turn_rate_scale = 0.75
     ),
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         return [
@@ -63,29 +63,46 @@ unicycle_figure_eight_task() = figure_eight(;
     laps = 1
 )
 
-# unicycle_training_algorithm() = WalkingWindowAlgorithm()
+unicycle_training_algorithm() = WalkingWindowAlgorithm(;
+    segs_per_rollout = 60,    
+    segs_in_window = 5
+)
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.1^2, .1^2, .1^2, .1^2],
+    variances = [.25^2, .25^2, .25^2, .25^2],
+    n_rollouts_per_update = 3,
+    segs_per_rollout = 20,
+    segs_in_window = 20,
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
 unicycle_training_parameters() = TrainingParameters(;
+    name = "unicycle",
+    save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 1e-3,
-    iters = 400,
-    segs_in_window = 5,
-    save_path = ".data/trained_unicycle_model.bson",
-    plot_save_path = ".data/training_plot.png"
+    learning_rate = 2.5e-4,
+    iters = 5,
+    optim = gradient_descent,
+    loss_aggregation = simulation_timestep,
+    save_model = true,
+    save_plot = true,
+    save_animation = true
 )
 
 unicycle_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
-    n_task_executions = 3,
     dt = 0.01,
     model_dt = 0.5,
     model_scale = 1.0
+)
+
+unicycle_evaluation_parameters() = EvaluationParameters(;
+    name = "unicycle",
+    path = ".data",    
+    n_task_executions = 3,
+    save_plot = true,
+    save_animation = true
 )
 
 function train_unicycle_experiment()
@@ -106,16 +123,11 @@ function evaluate_unicycle_experiment()
         actual_dynamics = unicycle_actual_dynamics(),
         controller = unicycle_controller(),
         cost = unicycle_cost(),
-        task = unicycle_figure_eight_task(), 
-        sim_params = unicycle_simulation_parameters(),
-        model = nothing, 
-        load_path = ".data/trained_unicycle_model.bson"
-    )
-    plot_evaluation(
-        eval_data
-        ; algo = unicycle_training_algorithm(),
+        task = unicycle_figure_eight_task(),
+        algo = unicycle_training_algorithm(),
         training_params = unicycle_training_parameters(),
         sim_params = unicycle_simulation_parameters(),
-        save_path = ".data/eval_plot.png"
+        eval_params = unicycle_evaluation_parameters(),
+        model = nothing
     )
 end

@@ -48,8 +48,8 @@ unicycle_controller() = Controller(;
     params = UnicycleControllerParameters(;
         kx = 3.0,
         ky = 3.0,
-        kv = 3.0,
-        kϕ = 3.0
+        kv = 2.0,
+        kϕ = 3.5
     ),
     policy = unicycle_policy
 )
