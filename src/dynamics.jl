@@ -74,11 +74,15 @@ function rollout_actual_dynamics(
         
         setpoints[:,j] = new_setpoint
 
+        # Generate a spline from the current point to the new setpoint that the
+        # low level controller will track 
+        spline_seg = spline_segment(t, tf_seg, x, new_setpoint)
+
         # rollout on this segment
         for _ in 1:segment_length
             ts_actual[overall_idx] = t
             xs_actual[:,overall_idx] = x
-            u = next_command(controller, x, new_setpoint)
+            u = next_command(controller, x, evaluate(spline_seg, t+sim_params.dt; wrap_time=false))
             us_actual[:,overall_idx] = u
             loss = loss + stage_cost(cost, x, evaluate(task, t), u)
 

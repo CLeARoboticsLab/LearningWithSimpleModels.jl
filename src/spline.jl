@@ -95,7 +95,9 @@ function Spline(;
 end
 
 function time_segment(t::Float64, ts::Vector{Float64})
-    if t == ts[1]
+    if length(ts) == 2
+        return 1
+    elseif t == ts[1]
         return 1
     end
     return findall(ts .- t .< 0.0)[end]
@@ -104,12 +106,15 @@ end
 """
 Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
-function evaluate(spl::Spline, time::Real)
-    # wrap time in the case of repeated tasks
+function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
     t = time
-    task_time = end_time(spl)
-    if time > task_time
-        t = time - (time ÷ task_time)*task_time
+
+    # wrap time in the case of repeated tasks
+    if wrap_time
+        task_time = end_time(spl)
+        if time > task_time
+            t = time - (time ÷ task_time)*task_time
+        end
     end
 
     seg = time_segment(t, spl.ts)
@@ -212,5 +217,20 @@ function figure_eight(;
         ydot_0 = ydot_0,
         xdot_f = xdot_f,
         ydot_f = ydot_f,
+    )
+end
+
+function spline_segment(
+    t::Float64, tf_seg::Float64,
+    x::Vector{Float64}, setpoint::Vector{Float64}
+)
+    return Spline(;
+        xs = [x[1], setpoint[1]],
+        ys = [x[2], setpoint[2]],
+        ts = [t, tf_seg],
+        xdot_0 = x[3]*cos(x[4]),
+        ydot_0 = x[3]*sin(x[4]),
+        xdot_f = setpoint[3],
+        ydot_f = setpoint[4],
     )
 end
