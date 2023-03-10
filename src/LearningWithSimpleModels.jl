@@ -9,7 +9,8 @@ using Flux:
     Adam,
     withgradient,
     update!,
-    Descent
+    Descent,
+    f64
 using Distributions: Uniform, MvNormal
 using BSON: @save, @load
 using LinearAlgebra: diagm

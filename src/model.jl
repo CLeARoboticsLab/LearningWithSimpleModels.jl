@@ -11,7 +11,7 @@ function make_model(layer_sizes::Vector{<:Integer})
             )
         )
     end
-    return Chain(layers...,)
+    return Chain(layers...,) |> f64
 end
 
 function make_model(n_states::Integer, hidden_layer_sizes::Vector{<:Integer})
