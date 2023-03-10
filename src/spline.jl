@@ -221,16 +221,34 @@ function figure_eight(;
 end
 
 function spline_segment(
-    t::Float64, tf_seg::Float64,
+    t0::Float64, tf::Float64,
     x::Vector{Float64}, setpoint::Vector{Float64}
 )
-    return Spline(;
-        xs = [x[1], setpoint[1]],
-        ys = [x[2], setpoint[2]],
-        ts = [t, tf_seg],
-        xdot_0 = x[3]*cos(x[4]),
-        ydot_0 = x[3]*sin(x[4]),
-        xdot_f = setpoint[3],
-        ydot_f = setpoint[4],
+    
+    x0 = x[1]
+    xf = setpoint[1]
+    y0 = x[2]
+    yf = setpoint[2]
+    xdot_0 = x[3]*cos(x[4])
+    ydot_0 = x[3]*sin(x[4])
+    xdot_f = setpoint[3]
+    ydot_f = setpoint[4]
+
+    A = [
+            t0^3    t0^2    t0  1
+            tf^3    tf^2    tf  1
+            3*t0^2  2*t0    1   0
+            3*tf^2  2*tf    1   0
+        ]
+
+    coeffs_x = A \ [x0, xf, xdot_0, xdot_f]
+    coeffs_y = A \ [y0, yf, ydot_0, ydot_f]
+
+    return Spline(
+        [t0, tf],
+        coeffs_x,
+        coeffs_y,
+        x0,
+        y0
     )
 end
