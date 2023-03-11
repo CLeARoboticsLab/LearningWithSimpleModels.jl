@@ -95,7 +95,9 @@ function Spline(;
 end
 
 function time_segment(t::Float64, ts::Vector{Float64})
-    if t == ts[1]
+    if length(ts) == 2
+        return 1
+    elseif t == ts[1]
         return 1
     end
     return findall(ts .- t .< 0.0)[end]
@@ -104,12 +106,15 @@ end
 """
 Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
-function evaluate(spl::Spline, time::Real)
-    # wrap time in the case of repeated tasks
+function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
     t = time
-    task_time = end_time(spl)
-    if time > task_time
-        t = time - (time ÷ task_time)*task_time
+
+    # wrap time in the case of repeated tasks
+    if wrap_time
+        task_time = end_time(spl)
+        if time > task_time
+            t = time - (time ÷ task_time)*task_time
+        end
     end
 
     seg = time_segment(t, spl.ts)
@@ -212,5 +217,39 @@ function figure_eight(;
         ydot_0 = ydot_0,
         xdot_f = xdot_f,
         ydot_f = ydot_f,
+    )
+end
+
+function spline_segment(
+    t0::Float64, tf::Float64,
+    prev_setpoint::Vector{Float64}, setpoint::Vector{Float64}
+)
+    
+    x0 = prev_setpoint[1]
+    xf = setpoint[1]
+    xdot_0 = prev_setpoint[3]
+    xdot_f = setpoint[3]
+
+    y0 = prev_setpoint[2]
+    yf = setpoint[2]
+    ydot_0 = prev_setpoint[4]
+    ydot_f = setpoint[4]
+
+    A = [
+            t0^3    t0^2    t0  1
+            tf^3    tf^2    tf  1
+            3*t0^2  2*t0    1   0
+            3*tf^2  2*tf    1   0
+        ]
+
+    coeffs_x = A \ [x0, xf, xdot_0, xdot_f]
+    coeffs_y = A \ [y0, yf, ydot_0, ydot_f]
+
+    return Spline(
+        [t0, tf],
+        coeffs_x,
+        coeffs_y,
+        x0,
+        y0
     )
 end
