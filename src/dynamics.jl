@@ -49,6 +49,7 @@ function rollout_actual_dynamics(
     xs_actual = zeros(n_states, total_timesteps)
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
     setpoints = zeros(4, n_segments)
+    ctrl_setpoints = zeros(4, total_timesteps)
 
     overall_idx = 1
     t = t0
@@ -83,7 +84,8 @@ function rollout_actual_dynamics(
         for _ in 1:segment_length
             ts_actual[overall_idx] = t
             xs_actual[:,overall_idx] = x
-            u = next_command(controller, x, evaluate(spline_seg, t+sim_params.dt; wrap_time=false))
+            ctrl_setpoints[:,overall_idx] = evaluate(spline_seg, t+sim_params.dt; wrap_time=false)
+            u = next_command(controller, x, ctrl_setpoints[:,overall_idx])
             us_actual[:,overall_idx] = u
             loss = loss + stage_cost(cost, x, evaluate(task, t), u)
 
@@ -101,6 +103,7 @@ function rollout_actual_dynamics(
         t0_segs = t0_segs,
         x0_segs = x0_segs,
         setpoints = setpoints,
+        ctrl_setpoints = ctrl_setpoints,
         xf = xf,
         loss = loss
     )
