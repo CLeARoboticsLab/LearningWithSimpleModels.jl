@@ -222,15 +222,15 @@ end
 
 function spline_segment(
     t0::Float64, tf::Float64,
-    x::Vector{Float64}, setpoint::Vector{Float64}
+    prev_setpoint::Vector{Float64}, setpoint::Vector{Float64}
 )
     
-    x0 = x[1]
+    x0 = prev_setpoint[1]
     xf = setpoint[1]
-    y0 = x[2]
+    y0 = prev_setpoint[2]
     yf = setpoint[2]
-    xdot_0 = x[3]*cos(x[4])
-    ydot_0 = x[3]*sin(x[4])
+    xdot_0 = prev_setpoint[3]
+    ydot_0 = prev_setpoint[4]
     xdot_f = setpoint[3]
     ydot_f = setpoint[4]
 
