@@ -227,11 +227,12 @@ function spline_segment(
     
     x0 = prev_setpoint[1]
     xf = setpoint[1]
+    xdot_0 = prev_setpoint[3]
+    xdot_f = setpoint[3]
+
     y0 = prev_setpoint[2]
     yf = setpoint[2]
-    xdot_0 = prev_setpoint[3]
     ydot_0 = prev_setpoint[4]
-    xdot_f = setpoint[3]
     ydot_f = setpoint[4]
 
     A = [

@@ -42,7 +42,7 @@ Base.@kwdef struct UnicycleCostParameters <: CostParameters
 end
 
 unicycle_cost() = Cost(;
-    params = UnicycleCostParameters(; input_weight = 0.0),
+    params = UnicycleCostParameters(; input_weight = 0.01),
     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
         return (
             (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
@@ -80,8 +80,8 @@ unicycle_training_parameters() = TrainingParameters(;
     name = "unicycle",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2e-4,
-    iters = 5,
+    learning_rate = 2.5e-4,
+    iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,

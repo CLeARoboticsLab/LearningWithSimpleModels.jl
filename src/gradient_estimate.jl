@@ -47,7 +47,7 @@ function gradient_estimate(
                     tf_seg = t + sim_params.model_dt - sim_params.dt
                     setpoint = evaluate(task, tf_seg)
                     new_setpoint = new_setpoint_from_model(sim_params, setpoint, model, t, x, task_time)
-                    prev_setpoint = evaluate(task, t)
+                    prev_setpoint = j > 1 ? r.setpoints[:,j-1] : evaluate(task, t)
                     spline_seg = spline_segment(t, tf_seg, prev_setpoint, new_setpoint)
 
                     for i in 0:segment_length-1
