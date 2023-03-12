@@ -27,7 +27,7 @@ class ServoControllerSimulation:
         self.pub.publish(Twist())
 
 if __name__ == '__main__':
-    rospy.init_node('jetracer', anonymous=True)
+    rospy.init_node('servo_controller_sim', anonymous=True)
     s = ServoControllerSimulation()
     rospy.on_shutdown(s.shutdown)
     rospy.spin()

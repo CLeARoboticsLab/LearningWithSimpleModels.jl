@@ -4,34 +4,34 @@ import rospy
 from jetracer.nvidia_racecar import NvidiaRacecar
 from std_msgs.msg import Float32
 
-car = NvidiaRacecar()
-car.steering_gain = 0.65
-car.steering_offset = -0.16
-car.throttle_gain = 1
-car.steering = 0.0
-car.throttle = 0.0
+class ServoController:
 
-def throttle_callback(throt):
-    car.throttle = throt.data
-    rospy.loginfo("Throttle: %s", str(throt.data))
+    def __init__(self):
+        self.car = NvidiaRacecar()
+        self.car.steering_gain = 0.65
+        self.car.steering_offset = -0.16
+        self.car.throttle_gain = 1
+        self.car.steering = 0.0
+        self.car.throttle = 0.0
+        self.throt_sub = rospy.Subscriber("jetracer/throttle", Float32, self.throttle_callback)
+        self.steer_sub = rospy.Subscriber("jetracer/steering", Float32, self.steering_callback)
 
-def steering_callback(steer):
-    car.steering = steer.data
-    rospy.loginfo("Steering: %s", str(steer.data))
+    def throttle_callback(self, throt):
+        self.car.throttle = throt.data
+        rospy.loginfo("Throttle: %s", str(throt.data))
 
-def shutdown_hook():
-    car.throttle = 0.0
-    car.steering = 0.0
-    print("Stopping JetRacer")
+    def steering_callback(self, steer):
+        self.car.steering = steer.data
+        rospy.loginfo("Steering: %s", str(steer.data))
 
-def run():
-    rospy.on_shutdown(shutdown_hook)
-    rospy.init_node('jetracer', anonymous=True)
-    rospy.Subscriber("jetracer/throttle", Float32, throttle_callback)
-    rospy.Subscriber("jetracer/steering", Float32, steering_callback)
-
-    rospy.spin()
+    def shutdown(self):
+        self.car.throttle = 0.0
+        self.car.steering = 0.0
+        print("Stopping JetRacer")
 
 if __name__ == '__main__':
     print("Starting JetRacer servo controller")
-    run()
+    rospy.init_node('servo_controller', anonymous=True)
+    s = ServoController()
+    rospy.on_shutdown(s.shutdown)
+    rospy.spin()
