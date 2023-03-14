@@ -1,5 +1,6 @@
 #include <iostream>
 #include <signal.h>
+#include <cmath>
 
 #include <ros/ros.h>
 #include "std_msgs/Float32.h"
@@ -7,6 +8,7 @@
 #include "std_msgs/Float64MultiArray.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
+#include <tf/transform_datatypes.h>
 
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
@@ -51,6 +53,8 @@ class Controller
     ros::Subscriber pose_sub_;
     ros::Subscriber twist_sub_;
 
+    double x_, y_, v_, phi_;
+
     void start_time_callback(std_msgs::Time time)
     {
       // TODO
@@ -63,12 +67,28 @@ class Controller
 
     void pose_callback(geometry_msgs::PoseStamped pose)
     {
-      // TODO
+      x_ = pose.pose.position.x;
+      y_ = pose.pose.position.y;
+      phi_ = heading_angle(pose);
     }
 
     void twist_callback(geometry_msgs::TwistStamped twist)
     {
-      // TODO
+      double xdot = twist.twist.linear.x;
+      double ydot = twist.twist.linear.y;
+      v_ = sqrt(pow(xdot, 2.0) + pow(ydot, 2.0));
+    }
+
+    double heading_angle(geometry_msgs::PoseStamped pose)
+    {
+      tf::Quaternion q(pose.pose.orientation.x, 
+                       pose.pose.orientation.y, 
+                       pose.pose.orientation.z,
+                       pose.pose.orientation.w);
+      tf::Matrix3x3 m(q);
+      double roll, pitch, yaw;
+      m.getRPY(roll, pitch, yaw);
+      return yaw;
     }
 };
 
@@ -82,7 +102,7 @@ auto main(int argc, char **argv) -> int
 
   while (!g_request_shutdown && ros::ok())
   {
-
+    ros::spinOnce();
   }
 
   // shutdown gracefully if node is interrupted
