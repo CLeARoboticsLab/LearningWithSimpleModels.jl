@@ -49,6 +49,15 @@ function plot_evaluation(;
     lines!(ax1, eval_data.r.ts, eval_data.r.us[1,:], label="accel")
     lines!(ax2, eval_data.r.ts, eval_data.r.us[2,:], label="turn rate")
     
+    fig3 = Figure(resolution=(600,600))
+    ax3_1 = Axis(fig3[1,1], xlabel="t", ylabel="Δkx")
+    ax3_2 = Axis(fig3[2,1], xlabel="t", ylabel="Δky")
+    ax3_3 = Axis(fig3[3,1], xlabel="t", ylabel="Δkv")
+    ax3_4 = Axis(fig3[4,1], xlabel="t", ylabel="Δkϕ")
+    lines!(ax3_1, eval_data.r.t0_segs, eval_data.r.gain_adjs[1,:], label="Δkx")
+    lines!(ax3_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[2,:], label="Δky")
+    lines!(ax3_3, eval_data.r.t0_segs, eval_data.r.gain_adjs[3,:], label="Δkv")
+    lines!(ax3_4, eval_data.r.t0_segs, eval_data.r.gain_adjs[4,:], label="Δkϕ")
 
     if !isnothing(eval_params.path) && eval_params.save_plot
         eval_plot_filename = eval_params.name * "_eval_plot.png"
@@ -58,10 +67,15 @@ function plot_evaluation(;
         inputs_plot_filename = eval_params.name * "_eval_control_inputs.png"
         inputs_plot_path = joinpath(eval_params.path, inputs_plot_filename)
         save(inputs_plot_path, fig2)
+
+        gains_plot_filename = eval_params.name * "_eval_gains.png"
+        gains_plot_path = joinpath(eval_params.path, gains_plot_filename)
+        save(gains_plot_path, fig3)
     end
 
     display(GLMakie.Screen(), fig)
     display(GLMakie.Screen(), fig2)
+    display(GLMakie.Screen(), fig3)
 end
 
 function plot_task(task::Spline, sim_params::SimulationParameters)
