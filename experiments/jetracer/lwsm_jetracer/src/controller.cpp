@@ -29,6 +29,11 @@ class Controller
     {
       ROS_INFO_STREAM("Starting controller");
 
+      nh_.getParam("controller/kx", kx_);
+      nh_.getParam("controller/ky", ky_);
+      nh_.getParam("controller/kv", kv_);
+      nh_.getParam("controller/kphi", kphi_);
+
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
       steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
@@ -56,9 +61,12 @@ class Controller
     ros::Subscriber twist_sub_;
 
     ros::Time start_time_;
+    double kx_, ky_, kv_, kphi_;
     double x_, y_, v_, phi_;
     std::vector<double> spline_coeffs_;
     bool started_;
+
+    static constexpr double PI = 3.14159265358979323846264;
 
     void startTimeCallback(std_msgs::Time time)
     {
@@ -76,6 +84,7 @@ class Controller
     void splineCallback(std_msgs::Float64MultiArray spline)
     {
       spline_coeffs_ = spline.data;
+      ROS_INFO_STREAM("New spline loaded");
     }
 
     void poseCallback(geometry_msgs::PoseStamped pose)
@@ -107,7 +116,59 @@ class Controller
 
     void control()
     {
-      // TODO return if not started 
+      if (!started_)
+        return;
+
+      std::vector<double> setpoint = evaluateSpline();
+      double x_des = setpoint[0];
+      double y_des = setpoint[1];
+      double xdot_des = setpoint[2];
+      double ydot_des = setpoint[3];
+
+      double xdot_tilde_des = xdot_des + kx_*(x_des - x_);
+      double ydot_tilde_des = ydot_des + ky_*(y_des - y_);
+      double v_des = sqrt(pow(xdot_tilde_des,2.0) + pow(ydot_tilde_des,2.0));
+
+      double phi_des;
+      if (xdot_tilde_des == 0)
+        phi_des = copysign(1.0, ydot_tilde_des)*PI/2;
+      else
+        phi_des = atan(ydot_tilde_des/xdot_tilde_des);
+
+      if (xdot_tilde_des < 0.0)
+        phi_des += PI;
+      else if (ydot_tilde_des < 0.0)
+        phi_des += 2*PI;
+      
+      if (abs(phi_des - phi_) > abs(phi_des - 2*PI - phi_))
+        phi_des -= 2*PI;
+      else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
+        phi_des += 2*PI;
+      
+      double throttle = kv_*(v_des - v_);
+      double steering = kphi_*(phi_des - phi_);
+
+      std::vector<double> command{throttle, steering};
+      publishCommand(command);
+      // TODO add sigmoid
+    }
+
+    std::vector<double> evaluateSpline()
+    {
+      ros::Duration d = ros::Time::now() - start_time_;
+      double t = d.toSec();
+
+      double x = spline_coeffs_[0]*pow(t, 3.0) + spline_coeffs_[1]*pow(t, 2.0)
+                  + spline_coeffs_[2]*t + spline_coeffs_[3];
+      double y = spline_coeffs_[4]*pow(t, 3.0) + spline_coeffs_[5]*pow(t, 2.0)
+                  + spline_coeffs_[6]*t + spline_coeffs_[7];
+      double xdot = 3.0*spline_coeffs_[0]*pow(t, 2.0) + 2.0*spline_coeffs_[1]*t
+                  + spline_coeffs_[2];
+      double ydot = 3.0*spline_coeffs_[4]*pow(t, 2.0) + 2.0*spline_coeffs_[5]*t
+                  + spline_coeffs_[6];
+
+      std::vector<double> setpoint{x, y, xdot, ydot};
+      return setpoint;
     }
 
     void publishCommand(std::vector<double> command)
