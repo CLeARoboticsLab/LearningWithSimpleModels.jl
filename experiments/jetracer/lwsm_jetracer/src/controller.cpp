@@ -13,6 +13,9 @@
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
 
+// Stop command
+const std::vector<double> g_stop{0.0, 0.0};
+
 // Handles ctrl+c of the node
 void sigIntHandler(int sig)
 {
@@ -22,8 +25,7 @@ void sigIntHandler(int sig)
 class Controller
 {
   public:
-
-    Controller()
+    Controller() : started_(false)
     {
       ROS_INFO_STREAM("Starting controller");
 
@@ -31,10 +33,10 @@ class Controller
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
       steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
 
-      start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::start_time_callback, this);
-      spline_sub_ = nh_.subscribe("jetracer/spline", queue_size, &Controller::spline_callback, this);
-      pose_sub_ = nh_.subscribe("jetracer/pose", queue_size, &Controller::pose_callback, this);
-      twist_sub_ = nh_.subscribe("jetracer/twist", queue_size, &Controller::twist_callback, this);
+      start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
+      spline_sub_ = nh_.subscribe("jetracer/spline", queue_size, &Controller::splineCallback, this);
+      pose_sub_ = nh_.subscribe("jetracer/pose", queue_size, &Controller::poseCallback, this);
+      twist_sub_ = nh_.subscribe("jetracer/twist", queue_size, &Controller::twistCallback, this);
     }
 
     void shutdown()
@@ -53,33 +55,45 @@ class Controller
     ros::Subscriber pose_sub_;
     ros::Subscriber twist_sub_;
 
+    ros::Time start_time_;
     double x_, y_, v_, phi_;
+    std::vector<double> spline_coeffs_;
+    bool started_;
 
-    void start_time_callback(std_msgs::Time time)
+    void startTimeCallback(std_msgs::Time time)
     {
-      // TODO
+      start_time_ = time.data;
+      started_ = !start_time_.is_zero();
+      if (started_)
+        ROS_INFO_STREAM("Starting control");
+      else
+      {
+        ROS_INFO_STREAM("Stopping robot");
+        publishCommand(g_stop);
+      }
     }
 
-    void spline_callback(std_msgs::Float64MultiArray spline)
+    void splineCallback(std_msgs::Float64MultiArray spline)
     {
-      // TODO
+      spline_coeffs_ = spline.data;
     }
 
-    void pose_callback(geometry_msgs::PoseStamped pose)
+    void poseCallback(geometry_msgs::PoseStamped pose)
     {
       x_ = pose.pose.position.x;
       y_ = pose.pose.position.y;
-      phi_ = heading_angle(pose);
+      phi_ = headingAngle(pose);
+      control();
     }
 
-    void twist_callback(geometry_msgs::TwistStamped twist)
+    void twistCallback(geometry_msgs::TwistStamped twist)
     {
       double xdot = twist.twist.linear.x;
       double ydot = twist.twist.linear.y;
       v_ = sqrt(pow(xdot, 2.0) + pow(ydot, 2.0));
     }
 
-    double heading_angle(geometry_msgs::PoseStamped pose)
+    double headingAngle(geometry_msgs::PoseStamped pose)
     {
       tf::Quaternion q(pose.pose.orientation.x, 
                        pose.pose.orientation.y, 
@@ -89,6 +103,20 @@ class Controller
       double roll, pitch, yaw;
       m.getRPY(roll, pitch, yaw);
       return yaw;
+    }
+
+    void control()
+    {
+      // TODO return if not started 
+    }
+
+    void publishCommand(std::vector<double> command)
+    {
+      std_msgs::Float32 t, s;
+      t.data = command[0];
+      s.data = command[1];
+      throttle_pub_.publish(t);
+      steering_pub_.publish(s);
     }
 };
 
