@@ -1,0 +1,33 @@
+<launch>
+    <!-- Add node name to console output to identify which node is talking -->
+    <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}"/>
+
+    <!-- gazebo motion capture simulation -->
+    <node pkg="ros_sockets" type="gazebo_tracker" name="gazebo_tracker"  output="screen">
+        <param name="tracker_name" value="jetracer" type="str" />
+        <param name="model_name" value="turtlebot3_burger" type="str" />
+        <param name="update_frequency" value="10.0" type="double" />
+    </node>
+
+    <!-- experiment time (for synchronization) -->
+    <node pkg="ros_sockets" type="experiment_time" name="experiment_time" output="screen">
+        <param name="port" value="42423" type="int" />
+    </node>
+
+    <!-- launch spline publisher -->
+    <node pkg="ros_sockets" type="array_publisher" name="array_publisher" output="screen">
+        <param name="port" value="42424" type="int" />
+        <param name="topic_name" value="jetracer/spline" type="str" />
+    </node>
+
+    <!-- Controller -->
+    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen">
+        <param name="kx" value="0.5" type="double" />
+        <param name="ky" value="0.5" type="double" />
+        <param name="kv" value="0.5" type="double" />
+        <param name="kphi" value="0.5" type="double" />
+    </node>
+
+    <!-- Servo Controller (simulated) -->
+    <node pkg="lwsm_jetracer" type="servo_controller_simulation.py" name="servo_controller_simulation"  output="screen" />
+</launch>

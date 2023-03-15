@@ -1,7 +1,7 @@
 using LearningWithSimpleModels
 using Test
 
-include("../experiments/unicycle_experiment.jl")
+include("../experiments/unicycle/unicycle_experiment.jl")
 
 @testset verbose = true "LearningWithSimpleModels.jl" begin
     
