@@ -60,10 +60,10 @@ end
 
 unicycle_controller() = Controller(;
     params = UnicycleControllerParameters(;
-        kx = 2.75,
-        ky = 2.75,
-        kv = 1.75,
-        kϕ = 3.25
+        kx = 2.25,
+        ky = 2.25,
+        kv = 1.25,
+        kϕ = 2.75
     ),
     policy = unicycle_policy
 )

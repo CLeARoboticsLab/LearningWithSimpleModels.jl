@@ -49,6 +49,7 @@ function rollout_actual_dynamics(
     xs_actual = zeros(n_states, total_timesteps)
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
     setpoints = zeros(4, n_segments)
+    gain_adjs = zeros(4, n_segments)
     ctrl_setpoints = zeros(4, total_timesteps)
 
     overall_idx = 1
@@ -68,12 +69,14 @@ function rollout_actual_dynamics(
         setpoint = evaluate(task, tf_seg)
         new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t, x, task_time)
         
-        # Discard the new_setpoint if not using the model
+        # Discard the new_setpoints and gains if not using the model
         if !use_model
             new_setpoint = setpoint
+            gains_adjustment = zeros(4)
         end 
         
         setpoints[:,j] = new_setpoint
+        gain_adjs[:,j] = gains_adjustment
 
         # Generate a spline from the current point to the new setpoint that the
         # low level controller will track
@@ -103,6 +106,7 @@ function rollout_actual_dynamics(
         t0_segs = t0_segs,
         x0_segs = x0_segs,
         setpoints = setpoints,
+        gain_adjs = gain_adjs,
         ctrl_setpoints = ctrl_setpoints,
         xf = xf,
         loss = loss
