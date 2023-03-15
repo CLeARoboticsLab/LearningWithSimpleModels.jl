@@ -15,11 +15,11 @@ function make_model(layer_sizes::Vector{<:Integer})
 end
 
 function make_model(n_states::Integer, hidden_layer_sizes::Vector{<:Integer})
-    layer_sizes = vcat(n_states+2, hidden_layer_sizes, 4)
+    layer_sizes = vcat(n_states+2, hidden_layer_sizes, 4+4)
     return make_model(layer_sizes)
 end
 
-function new_setpoint_from_model(
+function call_model(
     sim_params::SimulationParameters,
     setpoint::Vector{Float64}, 
     model::Chain, 
@@ -34,6 +34,8 @@ function new_setpoint_from_model(
         x[3]*cos(x[4]),
         x[3]*sin(x[4])
     ] #TODO make this more robust to arbitrary state definitions
-    setpoint_correction = model(vcat(x_transformed, t_transformed)) * sim_params.model_scale
-    return setpoint + setpoint_correction
+    model_out = model(vcat(x_transformed, t_transformed)) * sim_params.model_scale
+    setpoint_correction = model_out[1:4]
+    gains_adjustment = model_out[5:8]
+    return setpoint + setpoint_correction, gains_adjustment
 end

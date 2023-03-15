@@ -3,9 +3,21 @@ Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
     ky::Float64
     kv::Float64
     kϕ::Float64
+    limit::Bool
+    a_limit::Float64
+    ω_limit::Float64
 end
 
 function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoints::Vector{Float64})
+    return unicycle_policy(controller, state, setpoints, zeros(4))
+end
+
+function unicycle_policy(
+    controller::Controller, 
+    state::Vector{Float64}, 
+    setpoints::Vector{Float64}, 
+    gains_adjustment::Vector{Float64}
+)
     x = state[1]
     y = state[2]
     v = state[3]
@@ -16,8 +28,13 @@ function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoin
     xdot_des = setpoints[3]
     ydot_des = setpoints[4]
 
-    xdot_tilde_des = xdot_des + controller.params.kx*(x_des - x)
-    ydot_tilde_des = ydot_des + controller.params.ky*(y_des - y)
+    Δkx = gains_adjustment[1]
+    Δky = gains_adjustment[2]
+    Δkv = gains_adjustment[3]
+    Δkϕ = gains_adjustment[4]    
+
+    xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
+    ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
     v_des = sqrt(xdot_tilde_des^2 + ydot_tilde_des^2)
 
     if xdot_tilde_des == 0
@@ -38,18 +55,27 @@ function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoin
         ϕ_des += 2*π
     end
 
-    a = controller.params.kv*(v_des - v)
-    ω = controller.params.kϕ*(ϕ_des - ϕ)
+    a = (controller.params.kv + Δkv)*(v_des - v)
+    ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
-    return [a, ω]
+    if controller.params.limit
+        a_lim = controller.params.a_limit
+        ω_lim = controller.params.ω_limit
+        return [clamp(a,-a_lim,a_lim), clamp(ω,-ω_lim,ω_lim)]
+    else
+        return [a, ω]
+    end
 end
 
 unicycle_controller() = Controller(;
     params = UnicycleControllerParameters(;
-        kx = 2.75,
-        ky = 2.75,
-        kv = 1.75,
-        kϕ = 3.25
+        kx = 2.25,
+        ky = 2.25,
+        kv = 1.25,
+        kϕ = 2.75,
+        limit = true,
+        a_limit = 4.0,
+        ω_limit = 2.5
     ),
     policy = unicycle_policy
 )
