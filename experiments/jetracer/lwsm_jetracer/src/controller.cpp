@@ -145,12 +145,16 @@ class Controller
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
         phi_des += 2*PI;
       
-      double throttle = kv_*(v_des - v_);
-      double steering = kphi_*(phi_des - phi_);
-
+      double throttle = clamp(kv_*(v_des - v_), 0.0, 1.0);
+      double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
       publishCommand(command);
-      // TODO add sigmoid
+      // TODO add sigmoid instead of clamping?
+    }
+
+    template <typename T>
+    T clamp(const T& n, const T& lower, const T& upper) {
+      return std::max(lower, std::min(n, upper));
     }
 
     std::vector<double> evaluateSpline()

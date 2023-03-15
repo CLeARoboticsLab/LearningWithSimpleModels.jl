@@ -6,7 +6,7 @@
     <node pkg="ros_sockets" type="gazebo_tracker" name="gazebo_tracker"  output="screen">
         <param name="tracker_name" value="jetracer" type="str" />
         <param name="model_name" value="turtlebot3_burger" type="str" />
-        <param name="update_frequency" value="2.0" type="double" />
+        <param name="update_frequency" value="10.0" type="double" />
     </node>
 
     <!-- experiment time (for synchronization) -->
