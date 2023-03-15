@@ -10,5 +10,6 @@ using RosSockets #TODO should use a separate Project.toml for these deps
 import JSON
 
 include("experiment.jl")
+include("tests.jl")
 
 end #module
