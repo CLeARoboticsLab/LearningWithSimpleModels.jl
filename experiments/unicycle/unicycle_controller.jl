@@ -6,6 +6,15 @@ Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
 end
 
 function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoints::Vector{Float64})
+    return unicycle_policy(controller, state, setpoints, zeros(4))
+end
+
+function unicycle_policy(
+    controller::Controller, 
+    state::Vector{Float64}, 
+    setpoints::Vector{Float64}, 
+    gains_adjustment::Vector{Float64}
+)
     x = state[1]
     y = state[2]
     v = state[3]
