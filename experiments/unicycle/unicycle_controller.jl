@@ -25,8 +25,13 @@ function unicycle_policy(
     xdot_des = setpoints[3]
     ydot_des = setpoints[4]
 
-    xdot_tilde_des = xdot_des + controller.params.kx*(x_des - x)
-    ydot_tilde_des = ydot_des + controller.params.ky*(y_des - y)
+    Δkx = gains_adjustment[1]
+    Δky = gains_adjustment[2]
+    Δkv = gains_adjustment[3]
+    Δkϕ = gains_adjustment[4]    
+
+    xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
+    ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
     v_des = sqrt(xdot_tilde_des^2 + ydot_tilde_des^2)
 
     if xdot_tilde_des == 0
@@ -47,8 +52,8 @@ function unicycle_policy(
         ϕ_des += 2*π
     end
 
-    a = controller.params.kv*(v_des - v)
-    ω = controller.params.kϕ*(ϕ_des - ϕ)
+    a = (controller.params.kv + Δkv)*(v_des - v)
+    ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     return [a, ω]
 end
