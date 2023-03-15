@@ -3,6 +3,9 @@ Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
     ky::Float64
     kv::Float64
     kϕ::Float64
+    limit::Bool
+    a_limit::Float64
+    ω_limit::Float64
 end
 
 function unicycle_policy(controller::Controller, state::Vector{Float64}, setpoints::Vector{Float64})
@@ -55,7 +58,13 @@ function unicycle_policy(
     a = (controller.params.kv + Δkv)*(v_des - v)
     ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
-    return [a, ω]
+    if controller.params.limit
+        a_lim = controller.params.a_limit
+        ω_lim = controller.params.ω_limit
+        return [clamp(a,-a_lim,a_lim), clamp(ω,-ω_lim,ω_lim)]
+    else
+        return [a, ω]
+    end
 end
 
 unicycle_controller() = Controller(;
@@ -63,7 +72,10 @@ unicycle_controller() = Controller(;
         kx = 2.25,
         ky = 2.25,
         kv = 1.25,
-        kϕ = 2.75
+        kϕ = 2.75,
+        limit = true,
+        a_limit = 4.0,
+        ω_limit = 2.5
     ),
     policy = unicycle_policy
 )
