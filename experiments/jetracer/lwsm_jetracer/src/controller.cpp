@@ -25,21 +25,17 @@ void sigIntHandler(int sig)
 class Controller
 {
   public:
-    Controller() : started_(false)
+    Controller() : started_(false), kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0),
+        spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
-
-      nh_.getParam("controller/kx", kx_);
-      nh_.getParam("controller/ky", ky_);
-      nh_.getParam("controller/kv", kv_);
-      nh_.getParam("controller/kphi", kphi_);
 
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
       steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
 
       start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
-      spline_sub_ = nh_.subscribe("jetracer/spline", queue_size, &Controller::splineCallback, this);
+      spline_gains_sub_ = nh_.subscribe("jetracer/spline_gains", queue_size, &Controller::splineGainsCallback, this);
       pose_sub_ = nh_.subscribe("jetracer/pose", queue_size, &Controller::poseCallback, this);
       twist_sub_ = nh_.subscribe("jetracer/twist", queue_size, &Controller::twistCallback, this);
     }
@@ -56,7 +52,7 @@ class Controller
     ros::Publisher throttle_pub_;
     ros::Publisher steering_pub_;
     ros::Subscriber start_time_sub_;
-    ros::Subscriber spline_sub_;
+    ros::Subscriber spline_gains_sub_;
     ros::Subscriber pose_sub_;
     ros::Subscriber twist_sub_;
 
@@ -81,10 +77,15 @@ class Controller
       }
     }
 
-    void splineCallback(std_msgs::Float64MultiArray spline)
+    void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
     {
-      spline_coeffs_ = spline.data;
-      ROS_INFO_STREAM("New spline loaded");
+      for(int i = 0; i < 8; i++) 
+        spline_coeffs_[i] = spline_gains.data[i];
+      kx_ = spline_gains.data[8];
+      ky_ = spline_gains.data[9];
+      kv_ = spline_gains.data[10];
+      kphi_ = spline_gains.data[11];
+      ROS_INFO_STREAM("New spline and gains loaded");
     }
 
     void poseCallback(geometry_msgs::PoseStamped pose)
