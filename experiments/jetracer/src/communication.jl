@@ -27,6 +27,14 @@ function close_connections(connections::Connections)
     close_connection(connections.timing)
 end
 
+function start_rollout(connections::Connections)
+    send(connections.timing, START_CMD)
+end
+
+function stop_rollout(connections::Connections)
+    send(connections.timing, STOP_CMD)
+end
+
 function time_elapsed(connections::Connections)
     payload = send_receive(connections.timing, GET_TIME_CMD)
     data = JSON.parse(String(payload))
@@ -53,4 +61,22 @@ function state(connections::Connections)
     end
 
     return [x,y,v,θ]
+end
+
+function send_command(
+    connections::Connections, 
+    ctrl_params::ControllerParameters, 
+    spline_seg::Spline, 
+    gains_adjustment::Vector{Float64}
+)
+    
+    payload = spline_seg.coeffs_x
+    append!(payload, spline_seg.coeffs_y)
+    append!(payload, [
+        ctrl_params.kx,
+        ctrl_params.ky,
+        ctrl_params.kv,
+        ctrl_params.kϕ] + gains_adjustment)
+    command = JSON.json(Dict("array" => payload)) * "\n"
+    send(connections.control, command)
 end

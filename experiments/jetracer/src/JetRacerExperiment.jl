@@ -14,6 +14,7 @@ using Rotations
 using LinearAlgebra
 
 include("experiment.jl")
+include("controller.jl")
 include("communication.jl")
 include("dynamics.jl")
 include("tests.jl")
