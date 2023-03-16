@@ -30,3 +30,11 @@ function test_spline_control()
     close_connection(time_connection)
     close_connection(spline_connection)
 end
+
+function do_and_wait()
+    for i in 1:20
+        timed_wait(0.5) do 
+            println(i)
+        end
+    end
+end

@@ -1,4 +1,5 @@
 [deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LearningWithSimpleModels = "50f1fcde-fbed-4ab2-866a-fe2e6235a732"
 RosSockets = "f2b1035b-1fed-4502-a057-be66ed18c291"
