@@ -57,15 +57,25 @@ class Controller
     ros::Subscriber twist_sub_;
 
     ros::Time start_time_;
+    double t_;
     double kx_, ky_, kv_, kphi_;
     double x_, y_, v_, phi_;
     std::vector<double> spline_coeffs_;
     bool started_;
+    std::vector<int> seg_idxs_;
+    std::vector<double> ts_;
+    std::vector<std::vector<double>> xs_;
+    std::vector<std::vector<double>> us_;
 
     static constexpr double PI = 3.14159265358979323846264;
 
     void startTimeCallback(std_msgs::Time time)
     {
+      seg_idxs_.clear();
+      ts_.clear();
+      xs_.clear();
+      us_.clear();
+      
       start_time_ = time.data;
       started_ = !start_time_.is_zero();
       if (started_)
@@ -85,6 +95,7 @@ class Controller
       ky_ = spline_gains.data[9];
       kv_ = spline_gains.data[10];
       kphi_ = spline_gains.data[11];
+      seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
     }
 
@@ -150,7 +161,11 @@ class Controller
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
       publishCommand(command);
-      // TODO add sigmoid instead of clamping?
+
+      std::vector<double> x{x_, y_, v_, phi_};
+      ts_.push_back(t_);
+      xs_.push_back(x);
+      us_.push_back(command);    
     }
 
     template <typename T>
@@ -161,15 +176,15 @@ class Controller
     std::vector<double> evaluateSpline()
     {
       ros::Duration d = ros::Time::now() - start_time_;
-      double t = d.toSec();
+      t_ = d.toSec();
 
-      double x = spline_coeffs_[0]*pow(t, 3.0) + spline_coeffs_[1]*pow(t, 2.0)
-                  + spline_coeffs_[2]*t + spline_coeffs_[3];
-      double y = spline_coeffs_[4]*pow(t, 3.0) + spline_coeffs_[5]*pow(t, 2.0)
-                  + spline_coeffs_[6]*t + spline_coeffs_[7];
-      double xdot = 3.0*spline_coeffs_[0]*pow(t, 2.0) + 2.0*spline_coeffs_[1]*t
+      double x = spline_coeffs_[0]*pow(t_, 3.0) + spline_coeffs_[1]*pow(t_, 2.0)
+                  + spline_coeffs_[2]*t_ + spline_coeffs_[3];
+      double y = spline_coeffs_[4]*pow(t_, 3.0) + spline_coeffs_[5]*pow(t_, 2.0)
+                  + spline_coeffs_[6]*t_ + spline_coeffs_[7];
+      double xdot = 3.0*spline_coeffs_[0]*pow(t_, 2.0) + 2.0*spline_coeffs_[1]*t_
                   + spline_coeffs_[2];
-      double ydot = 3.0*spline_coeffs_[4]*pow(t, 2.0) + 2.0*spline_coeffs_[5]*t
+      double ydot = 3.0*spline_coeffs_[4]*pow(t_, 2.0) + 2.0*spline_coeffs_[5]*t_
                   + spline_coeffs_[6];
 
       std::vector<double> setpoint{x, y, xdot, ydot};
