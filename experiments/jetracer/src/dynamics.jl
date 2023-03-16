@@ -8,7 +8,10 @@ function rollout_actual_dynamics(
 )
 
     task_time = end_time(task)
+    n_states = length(sim_params.x0)
 
+    t0_segs = zeros(n_segments)
+    x0_segs = zeros(n_states, n_segments)
     setpoints = zeros(4, n_segments)
     
     x = state(connections)
@@ -18,11 +21,14 @@ function rollout_actual_dynamics(
     for j in 1:n_segments
         do_and_wait(sim_params.model_dt) do 
             
-            t = time_elapsed(connections) # TODO figure out adding this to t0
+            t = time_elapsed(connections)
             t0_seg = task_t0 + t
             tf_seg = t0_seg + sim_params.model_dt
+            t0_segs[j] = t0_seg
 
             x = state(connections)
+            x0_segs[:,j] = x
+
             setpoint = evaluate(task, tf_seg)
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t0_seg, x, task_time)
             setpoints[:,j] = new_setpoint
