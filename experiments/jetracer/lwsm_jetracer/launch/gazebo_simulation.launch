@@ -9,12 +9,18 @@
         <param name="update_frequency" value="10.0" type="double" />
     </node>
 
+    <!-- state feedback server -->
+    <node pkg="ros_sockets" type="state_feedback" name="state_feedback" output="screen">
+        <param name="tracker_name" value="jetracer" type="str" />
+        <param name="port" value="42422" type="int" />
+    </node>
+
     <!-- experiment time (for synchronization) -->
     <node pkg="ros_sockets" type="experiment_time" name="experiment_time" output="screen">
         <param name="port" value="42423" type="int" />
     </node>
 
-    <!-- launch spline publisher -->
+    <!-- spline and gains publisher -->
     <node pkg="ros_sockets" type="array_publisher" name="array_publisher" output="screen">
         <param name="port" value="42424" type="int" />
         <param name="topic_name" value="jetracer/spline_gains" type="str" />

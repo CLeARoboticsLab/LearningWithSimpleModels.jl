@@ -10,10 +10,13 @@ using LearningWithSimpleModels
 using RosSockets
 import JSON
 using Flux: Chain
+using Rotations
+using LinearAlgebra
 
 include("experiment.jl")
 include("communication.jl")
 include("dynamics.jl")
 include("tests.jl")
+include("run.jl")
 
 end #module

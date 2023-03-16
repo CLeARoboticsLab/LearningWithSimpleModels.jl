@@ -34,3 +34,24 @@ jetracer_figure_eight_task() = figure_eight(;
     time = 10.0,
     laps = 1
 )
+
+jetracer_training_parameters() = TrainingParameters(;
+    name = "jetracer",
+    save_path = ".data",
+    hidden_layer_sizes = [64, 64],
+    learning_rate = 2.5e-4,
+    iters = 10,
+    optim = gradient_descent,
+    loss_aggregation = simulation_timestep,
+    save_model = true,
+    save_plot = true,
+    save_animation = true
+)
+
+jetracer_simulation_parameters() = SimulationParameters(;
+    x0 = [0.0, 0.0, 0.0, 0.0],
+    n_inputs = 2,
+    dt = 0.01, # not used
+    model_dt = 0.5,
+    model_scale = 1.0
+)

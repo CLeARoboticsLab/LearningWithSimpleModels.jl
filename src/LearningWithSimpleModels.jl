@@ -27,7 +27,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     Spline, EvaluationData
 
 include("spline.jl")
-export evaluate, to_velocity_and_heading_angle, figure_eight
+export evaluate, to_velocity_and_heading_angle, figure_eight, properties
 
 include("dynamics.jl")
 include("controller.jl") 
@@ -36,6 +36,8 @@ include("cost.jl")
 export quadratic_cost
 
 include("model.jl")
+export make_model, call_model
+
 include("gradient_estimate.jl")
 
 include("train.jl")
