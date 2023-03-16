@@ -4,9 +4,23 @@ project(lwsm_jetracer)
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	rospy
+	std_msgs
+	message_generation
 )
 
-catkin_package()
+add_message_files(
+  FILES
+  RolloutData.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+catkin_package(
+	CATKIN_DEPENDS message_runtime
+)
 
 include_directories(
 	include

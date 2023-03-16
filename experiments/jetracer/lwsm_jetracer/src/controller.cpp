@@ -10,6 +10,8 @@
 #include "geometry_msgs/TwistStamped.h"
 #include <tf/transform_datatypes.h>
 
+#include "lwsm_jetracer/RolloutData.h"
+
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
 
@@ -33,6 +35,7 @@ class Controller
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
       steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
+      data_pub_ = nh_.advertise<lwsm_jetracer::RolloutData>("jetracer/rollout_data", queue_size);
 
       start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
       spline_gains_sub_ = nh_.subscribe("jetracer/spline_gains", queue_size, &Controller::splineGainsCallback, this);
@@ -51,6 +54,7 @@ class Controller
     ros::NodeHandle nh_;
     ros::Publisher throttle_pub_;
     ros::Publisher steering_pub_;
+    ros::Publisher data_pub_;
     ros::Subscriber start_time_sub_;
     ros::Subscriber spline_gains_sub_;
     ros::Subscriber pose_sub_;
@@ -71,19 +75,21 @@ class Controller
 
     void startTimeCallback(std_msgs::Time time)
     {
-      seg_idxs_.clear();
-      ts_.clear();
-      xs_.clear();
-      us_.clear();
-      
       start_time_ = time.data;
       started_ = !start_time_.is_zero();
       if (started_)
+      {
         ROS_INFO_STREAM("Starting control");
+        seg_idxs_.clear();
+        ts_.clear();
+        xs_.clear();
+        us_.clear();
+      }
       else
       {
         ROS_INFO_STREAM("Stopping robot");
         publishCommand(g_stop);
+        publishRolloutData();
       }
     }
 
@@ -198,6 +204,28 @@ class Controller
       s.data = command[1];
       throttle_pub_.publish(t);
       steering_pub_.publish(s);
+    }
+
+    void publishRolloutData()
+    {
+      lwsm_jetracer::RolloutData msg;
+      msg.seg_idxs = seg_idxs_;
+      msg.ts = ts_;
+      std::vector<std_msgs::Float64MultiArray> xs;
+      std::vector<std_msgs::Float64MultiArray> us;
+      for (int i = 0; i < ts_.size(); i++)
+      {
+        std_msgs::Float64MultiArray x_msg;
+        x_msg.data = xs_[i];
+        xs.push_back(x_msg);
+
+        std_msgs::Float64MultiArray u_msg;
+        u_msg.data = us_[i];
+        us.push_back(u_msg);
+      }
+      msg.xs = xs;
+      msg.us = us;
+      data_pub_.publish(msg);
     }
 };
 
