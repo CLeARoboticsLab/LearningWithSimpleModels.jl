@@ -11,14 +11,17 @@ function test_spline_control()
         ys = [0.0, 2.0],
         ts = [0.0, 10.0]
     )
-    coeffs = spl.coeffs_x
-    append!(coeffs, spl.coeffs_y)
-    spline_coeffs = JSON.json(Dict("array" => coeffs)) * "\n"
+    gains = [0.5,0.5,0.5,0.5]
+    coeffs_gains = spl.coeffs_x
+    append!(coeffs_gains, spl.coeffs_y)
+    append!(coeffs_gains, gains)
+    display(coeffs_gains)
+    spline_gains = JSON.json(Dict("array" => coeffs_gains)) * "\n"
 
     time_connection = open_connection(ip, time_port)
     spline_connection = open_connection(ip, spline_port)
 
-    send(spline_connection, spline_coeffs)
+    send(spline_connection, spline_gains)
     sleep(.5)
     send(time_connection, start_cmd)
     sleep(12.0)

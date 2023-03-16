@@ -1,13 +1,13 @@
 # To use with Revise.jl:
 # using Revise
 # push!(LOAD_PATH, joinpath(pwd(), "experiments\\jetracer\\src"))
-## activate experiments\\jetracer\\
+# ] activate experiments\\jetracer\\
 # using JetRacerExperiment
 
 module JetRacerExperiment
 
 using LearningWithSimpleModels
-using RosSockets #TODO should use a separate Project.toml for these deps
+using RosSockets
 import JSON
 
 include("experiment.jl")
