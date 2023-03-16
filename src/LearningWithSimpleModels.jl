@@ -27,7 +27,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     Spline, EvaluationData
 
 include("spline.jl")
-export evaluate, to_velocity_and_heading_angle, figure_eight, properties, spline_segment
+export evaluate, to_velocity_and_heading_angle, figure_eight, end_time, spline_segment
 
 include("dynamics.jl")
 include("controller.jl") 

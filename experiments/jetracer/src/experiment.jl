@@ -31,7 +31,7 @@ jetracer_figure_eight_task() = figure_eight(;
     xdot_f = nothing,
     ydot_f = nothing,
     radius = 1.00,
-    time = 30.0,
+    time = 20.0,
     laps = 1
 )
 

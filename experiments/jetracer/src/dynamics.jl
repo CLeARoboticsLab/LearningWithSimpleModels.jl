@@ -7,11 +7,12 @@ function rollout_actual_dynamics(
     n_segments::Integer
 )
 
-    task_time, _ = properties(task, sim_params)
+    task_time = end_time(task)
 
     setpoints = zeros(4, n_segments)
     
-    task_t0 = 0.0 # TODO: calc this from position on track
+    x = state(connections)
+    task_t0 = estimate_task_t0(task, x)
 
     start_rollout(connections)
     for j in 1:n_segments
@@ -35,10 +36,26 @@ end
 
 # Executes the function f and waits for the specified delay. The timer starts
 # before f is called
-function do_and_wait(f, delay)
+function do_and_wait(f::Function, delay::Real)
     cond = Condition()
     Timer(x->notify(cond), delay)
     data = @async $f()
     wait(cond)
     return fetch(data)
+end
+
+# Estimates progess along a task based on the current state. Discretizes the
+# task into n_points, calculates a cost for each point (distance to each point +
+# ϕ_weight * different in heading angle), and outputs the task time which
+# minimizes this cost
+function estimate_task_t0(task::Spline, x::Vector{Float64}, n_points::Integer = 100, ϕ_weight = 0.25)
+    dt = end_time(task) / n_points
+    costs = zeros(n_points)
+    for i in 1:n_points
+        p = evaluate(task, dt*i)
+        dist = norm(x[1:2] - p[1:2])
+        Δϕ = abs(x[4] - atan(p[4], p[3]))
+        costs[i] = dist + ϕ_weight*Δϕ
+    end
+    return argmin(costs) * dt
 end
