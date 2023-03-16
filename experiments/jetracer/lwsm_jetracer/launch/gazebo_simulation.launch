@@ -2,6 +2,9 @@
     <!-- Add node name to console output to identify which node is talking -->
     <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}"/>
 
+    <!-- Use simulation time in gazebo instead of actual time -->
+    <param name="/use_sim_time" value="true"/>
+
     <!-- gazebo motion capture simulation -->
     <node pkg="ros_sockets" type="gazebo_tracker" name="gazebo_tracker"  output="screen">
         <param name="tracker_name" value="jetracer" type="str" />
