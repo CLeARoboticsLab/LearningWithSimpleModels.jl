@@ -29,6 +29,11 @@
         <param name="topic_name" value="jetracer/spline_gains" type="str" />
     </node>
 
+    <!-- rollout data server -->
+    <node pkg="lwsm_jetracer" type="rollout_data" name="rollout_data" output="screen">
+        <param name="port" value="42425" type="int" />
+    </node>
+
     <!-- Controller -->
     <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen" />
 
