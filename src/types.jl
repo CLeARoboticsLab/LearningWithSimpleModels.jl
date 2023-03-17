@@ -31,7 +31,7 @@ Base.@kwdef struct WalkingWindowAlgorithm <:TrainingAlgorithm
     segs_per_rollout = 60
     segs_in_window::Integer = 5
 end
-Base.show(io::IO, ::WalkingWindowAlgorithm) = print(io,
+Base.show(io::IO, p::WalkingWindowAlgorithm) = print(io,
     "Walking Window Algorithm
     Segments per rollout: $(p.segs_per_rollout)
     Segments in window: $(p.segs_in_window)"

@@ -21,7 +21,7 @@ include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
-    WalkingWindowAlgorithm, RandomInitialAlgorithm,
+    TrainingAlgorithm, WalkingWindowAlgorithm, RandomInitialAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
     Spline, RolloutData, EvaluationData
@@ -44,9 +44,10 @@ export make_model, call_model
 include("gradient_estimate.jl")
 
 include("train.jl")
-export train
+export train, save_model
 
 include("plot_utils.jl")
+export plot_losses, animate_training
 
 include("evaluate.jl")
 export evaluate_model

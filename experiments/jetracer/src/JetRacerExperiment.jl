@@ -9,7 +9,7 @@ module JetRacerExperiment
 using LearningWithSimpleModels
 using RosSockets
 import JSON
-using Flux: Chain, withgradient
+using Flux: Chain, withgradient, setup, Descent, Adam, update!
 using Rotations
 using LinearAlgebra
 import ProgressMeter
@@ -18,6 +18,7 @@ include("experiment.jl")
 include("controller.jl")
 include("communication.jl")
 include("dynamics.jl")
+include("train.jl")
 include("gradient_estimate.jl")
 include("tests.jl")
 include("run.jl")
