@@ -12,6 +12,7 @@ function gradient_estimate(
     loss, grads = withgradient(model) do model
         loss = 0.0
         n_segments = length(r.t0_segs)
+        prev_setpoint = evaluate(task, r.t0_segs[1])
         for j in 1:n_segments-1
             t0_seg = r.t0_segs[j]
             tf_seg = t0_seg + sim_params.model_dt
@@ -20,11 +21,9 @@ function gradient_estimate(
             setpoint = evaluate(task, tf_seg)
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
                                                         model, t0_seg, x, task_time)
-            # Does prev_setpoint need to not be pulling from the setpoint array?
-            prev_setpoint = j > 1 ? r.setpoints[:,j-1] : evaluate(task, t0_seg)
-
             t = t0_seg - r.task_t0
             spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
+            prev_setpoint = new_setpoint
 
             idx_seg = r.idx_segs[j]
             x = r.xs[:,idx_seg]
