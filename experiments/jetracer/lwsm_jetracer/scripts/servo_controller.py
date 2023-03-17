@@ -18,11 +18,9 @@ class ServoController:
 
     def throttle_callback(self, throt):
         self.car.throttle = throt.data
-        rospy.loginfo("Throttle: %s", str(throt.data))
 
     def steering_callback(self, steer):
         self.car.steering = steer.data
-        rospy.loginfo("Steering: %s", str(steer.data))
 
     def shutdown(self):
         self.car.throttle = 0.0
