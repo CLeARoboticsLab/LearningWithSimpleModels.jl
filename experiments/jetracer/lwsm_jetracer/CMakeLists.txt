@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
 	rospy
 	std_msgs
 	message_generation
+	ros_sockets
 )
 
 add_message_files(
@@ -35,7 +36,16 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
-install(TARGETS	controller
+add_executable(rollout_data
+	src/rollout_data.cpp
+	src/rollout_data_server.cpp
+)
+target_link_libraries(
+	rollout_data
+	${catkin_LIBRARIES}
+)
+
+install(TARGETS	controller rollout_data
   	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
