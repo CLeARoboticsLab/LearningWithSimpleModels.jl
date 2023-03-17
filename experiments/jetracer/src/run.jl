@@ -4,12 +4,16 @@ function run()
     training_params = jetracer_training_parameters()
     sim_params = jetracer_simulation_parameters()
     ctrl_params = jetracer_controller_parameters()
-    n_segments = 60 # TODO make param?
+    simple_dynamics = jetracer_simple_dynamics()
+    controller = jetracer_controller()
+    cost = jetracer_cost()
+    n_segments = 20 # TODO make param? (input rollout time in sec)
 
+    p = ProgressMeter.Progress(training_params.iters)
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
     connections = open_connections()
 
-    for _ in 1:3
+    for i in 1:training_params.iters
         r = rollout_actual_dynamics(
             connections,
             task,
@@ -18,6 +22,16 @@ function run()
             ctrl_params,
             n_segments
         )
+        loss, grads = gradient_estimate(
+            r,
+            task,
+            model,
+            simple_dynamics,
+            controller,
+            cost,
+            sim_params
+        )
+        ProgressMeter.next!(p, showvalues = [(:loss,loss)])
     end
 
     close_connections(connections)

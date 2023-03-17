@@ -29,7 +29,8 @@ function rollout_actual_dynamics(
             x0_segs[:,j] = x
 
             setpoint = evaluate(task, tf_seg)
-            new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t0_seg, x, task_time)
+            new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
+                                                        model, t0_seg, x, task_time)
             setpoints[:,j] = new_setpoint
             gain_adjs[:,j] = gains_adjustment
             prev_setpoint = j > 1 ? setpoints[:,j-1] : evaluate(task, t0_seg)
@@ -45,6 +46,7 @@ function rollout_actual_dynamics(
         ts = rdata.ts,
         xs = rdata.xs,
         us = rdata.us,
+        task_t0 = task_t0,
         idx_segs = rdata.seg_idxs,
         t0_segs = t0_segs,
         x0_segs = x0_segs,

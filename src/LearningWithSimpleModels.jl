@@ -30,10 +30,13 @@ include("spline.jl")
 export evaluate, to_velocity_and_heading_angle, figure_eight, end_time, spline_segment
 
 include("dynamics.jl")
-include("controller.jl") 
+export f_simple
+
+include("controller.jl")
+export next_command
 
 include("cost.jl")
-export quadratic_cost
+export quadratic_cost, stage_cost
 
 include("model.jl")
 export make_model, call_model

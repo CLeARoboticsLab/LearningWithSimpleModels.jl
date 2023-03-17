@@ -90,7 +90,7 @@ function rollout_data(connections::Connections)
     payload = send_receive(connections.rollout, GET_ROLLOUT_DATA)
     data = JSON.parse(String(payload))
     return (
-        seg_idxs = convert(Vector{Int64}, data["seg_idxs"]),
+        seg_idxs = convert(Vector{Int64}, data["seg_idxs"]) .+ 1,
         ts = convert(Vector{Float64}, data["ts"]),
         xs = convert(Matrix{Float64}, reduce(hcat,data["xs"])),
         us = convert(Matrix{Float64}, reduce(hcat,data["us"]))

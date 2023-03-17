@@ -40,7 +40,7 @@ jetracer_training_parameters() = TrainingParameters(;
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
     learning_rate = 2.5e-4,
-    iters = 10,
+    iters = 3,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -51,7 +51,7 @@ jetracer_training_parameters() = TrainingParameters(;
 jetracer_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
-    dt = 0.01, # not used
+    dt = 1.0/10.0, # should match controller update rate
     model_dt = 0.5,
     model_scale = 1.0
 )

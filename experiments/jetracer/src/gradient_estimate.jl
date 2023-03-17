@@ -1,0 +1,51 @@
+function gradient_estimate(
+    r::RolloutData,
+    task::Spline,
+    model::Chain,
+    simple_dynamics::Dynamics,
+    controller::Controller,
+    cost::Cost,
+    sim_params::SimulationParameters
+)
+    task_time = end_time(task)
+
+    loss, grads = withgradient(model) do model
+        loss = 0.0
+        n_segments = length(r.t0_segs)
+        for j in 1:n_segments-1
+            t0_seg = r.t0_segs[j]
+            tf_seg = r.t0_segs[j+1]
+            x = r.x0_segs[:,j]
+            
+            setpoint = evaluate(task, tf_seg)
+            new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
+                                                        model, t0_seg, x, task_time)
+            # Does prev_setpoint need to not be pulling from the setpoint array?
+            prev_setpoint = j > 1 ? r.setpoints[:,j-1] : evaluate(task, t0_seg)
+
+            idx_seg = r.idx_segs[j]
+            t = r.ts[idx_seg]
+            spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
+            
+            for i in r.idx_segs[j]:r.idx_segs[j+1]-1
+                t = r.ts[i]
+                ctrl_setpoint = evaluate(spline_seg, t; wrap_time=false)
+                u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
+                loss = loss + stage_cost(cost, x, evaluate(task, r.task_t0 + t), u)
+                x_actual_next = r.xs[:,i+1]
+                x = (
+                    f_simple(simple_dynamics, t, sim_params.dt, x, u)
+                    - f_simple(simple_dynamics, t, sim_params.dt, r.xs[:,i], r.us[:,i])
+                    + x_actual_next
+                )
+                if !isapprox(x, x_actual_next)
+                    println("Mismatched states at index $(i)
+                    x: $(x)
+                    x_actual_next: $(x_actual_next)")
+                end
+            end
+        end
+        return loss
+    end
+    return loss, grads
+end
