@@ -4,13 +4,13 @@ function run()
     training_params = jetracer_training_parameters()
     sim_params = jetracer_simulation_parameters()
     ctrl_params = jetracer_controller_parameters()
-    n_segments = 3 # TODO make param?
+    n_segments = 60 # TODO make param?
 
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
     connections = open_connections()
 
     for _ in 1:3
-        rollout_actual_dynamics(
+        r = rollout_actual_dynamics(
             connections,
             task,
             model,

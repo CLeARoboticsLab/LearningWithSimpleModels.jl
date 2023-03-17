@@ -6,13 +6,13 @@ function rollout_actual_dynamics(
     ctrl_params::ControllerParameters,
     n_segments::Integer
 )
-
     task_time = end_time(task)
     n_states = length(sim_params.x0)
 
     t0_segs = zeros(n_segments)
     x0_segs = zeros(n_states, n_segments)
     setpoints = zeros(4, n_segments)
+    gain_adjs = zeros(4, n_segments)
     
     x = state(connections)
     task_t0 = estimate_task_t0(task, x)
@@ -20,7 +20,6 @@ function rollout_actual_dynamics(
     start_rollout(connections)
     for j in 1:n_segments
         do_and_wait(sim_params.model_dt) do 
-            
             t = time_elapsed(connections)
             t0_seg = task_t0 + t
             tf_seg = t0_seg + sim_params.model_dt
@@ -32,6 +31,7 @@ function rollout_actual_dynamics(
             setpoint = evaluate(task, tf_seg)
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t0_seg, x, task_time)
             setpoints[:,j] = new_setpoint
+            gain_adjs[:,j] = gains_adjustment
             prev_setpoint = j > 1 ? setpoints[:,j-1] : evaluate(task, t0_seg)
             spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
             send_command(connections, ctrl_params, spline_seg, gains_adjustment)
@@ -39,7 +39,21 @@ function rollout_actual_dynamics(
     end
     stop_rollout(connections)
     sleep(1.0)
+    
     rdata = rollout_data(connections)
+    return RolloutData(;
+        ts = rdata.ts,
+        xs = rdata.xs,
+        us = rdata.us,
+        idx_segs = rdata.seg_idxs,
+        t0_segs = t0_segs,
+        x0_segs = x0_segs,
+        setpoints = setpoints,
+        gain_adjs = gain_adjs,
+        ctrl_setpoints = zeros(4, length(rdata.ts)), # TODO
+        xf = zeros(4), # TODO; this is probably not needed
+        loss = 0.0# TODO; this might not be needed
+    )
 end
 
 # Executes the function f and waits for the specified delay. The timer starts
