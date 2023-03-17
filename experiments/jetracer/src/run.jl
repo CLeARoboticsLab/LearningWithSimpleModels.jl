@@ -7,7 +7,7 @@ function run()
     simple_dynamics = jetracer_simple_dynamics()
     controller = jetracer_controller()
     cost = jetracer_cost()
-    n_segments = 20 # TODO make param? (input rollout time in sec)
+    n_segments = 10 # TODO make param? (input rollout time in sec)
 
     p = ProgressMeter.Progress(training_params.iters)
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)

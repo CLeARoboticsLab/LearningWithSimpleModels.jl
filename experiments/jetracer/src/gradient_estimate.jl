@@ -14,7 +14,7 @@ function gradient_estimate(
         n_segments = length(r.t0_segs)
         for j in 1:n_segments-1
             t0_seg = r.t0_segs[j]
-            tf_seg = r.t0_segs[j+1]
+            tf_seg = t0_seg + sim_params.model_dt
             x = r.x0_segs[:,j]
             
             setpoint = evaluate(task, tf_seg)
@@ -23,10 +23,11 @@ function gradient_estimate(
             # Does prev_setpoint need to not be pulling from the setpoint array?
             prev_setpoint = j > 1 ? r.setpoints[:,j-1] : evaluate(task, t0_seg)
 
-            idx_seg = r.idx_segs[j]
-            t = r.ts[idx_seg]
+            t = t0_seg - r.task_t0
             spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
-            
+
+            idx_seg = r.idx_segs[j]
+            x = r.xs[:,idx_seg]
             for i in r.idx_segs[j]:r.idx_segs[j+1]-1
                 t = r.ts[i]
                 ctrl_setpoint = evaluate(spline_seg, t; wrap_time=false)
@@ -39,9 +40,8 @@ function gradient_estimate(
                     + x_actual_next
                 )
                 if !isapprox(x, x_actual_next)
-                    println("Mismatched states at index $(i)
-                    x: $(x)
-                    x_actual_next: $(x_actual_next)")
+                    println("Mismatched x at index $(i)
+                    Difference: $(x - x_actual_next)")
                 end
             end
         end
