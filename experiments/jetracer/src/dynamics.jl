@@ -38,6 +38,8 @@ function rollout_actual_dynamics(
         end 
     end
     stop_rollout(connections)
+    sleep(1.0)
+    rdata = rollout_data(connections)
 end
 
 # Executes the function f and waits for the specified delay. The timer starts

@@ -1,30 +1,35 @@
 const START_CMD = JSON.json(Dict("action" => "start_experiment")) * "\n"
 const STOP_CMD = JSON.json(Dict("action" => "stop_experiment")) * "\n"
 const GET_TIME_CMD = JSON.json(Dict("action" => "get_time_elapsed")) * "\n"
+const GET_ROLLOUT_DATA = JSON.json(Dict("action" => "get_rollout_data")) * "\n"
 
 struct Connections
     feedback::Connection
     control::Connection
     timing::Connection
+    rollout::Connection
 end
 
 function open_connections()
     ip = "192.168.1.135"
     feedback_port = 42422
     control_port = 42424
-    timing_port = 42423 
+    timing_port = 42423
+    rollout_port = 42425
 
     feedback = open_feedback_connection(ip, feedback_port)
     control = open_connection(ip, control_port)
     timing = open_connection(ip, timing_port)
+    rollout = open_connection(ip, rollout_port)
 
-    return Connections(feedback, control, timing)
+    return Connections(feedback, control, timing, rollout)
 end
 
 function close_connections(connections::Connections)
     close_connection(connections.feedback)
     close_connection(connections.control)
     close_connection(connections.timing)
+    close_connection(connections.rollout)
 end
 
 function start_rollout(connections::Connections)
@@ -79,4 +84,15 @@ function send_command(
         ctrl_params.kϕ] + gains_adjustment)
     command = JSON.json(Dict("array" => payload)) * "\n"
     send(connections.control, command)
+end
+
+function rollout_data(connections::Connections)
+    payload = send_receive(connections.rollout, GET_ROLLOUT_DATA)
+    data = JSON.parse(String(payload))
+    return (
+        seg_idxs = convert(Vector{Int64}, data["seg_idxs"]),
+        ts = convert(Vector{Float64}, data["ts"]),
+        xs = convert(Matrix{Float64}, reduce(hcat,data["xs"])),
+        us = convert(Matrix{Float64}, reduce(hcat,data["us"]))
+    )
 end
