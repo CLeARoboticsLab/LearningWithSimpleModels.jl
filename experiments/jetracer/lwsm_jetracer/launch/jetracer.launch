@@ -1,0 +1,54 @@
+<launch>
+    <!-- Add node name to console output to identify which node is talking -->
+    <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}"/>
+
+    <!-- Vicon -->
+    <arg name="server" default="localhost"/>
+    <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
+        <rosparam subst_value="true">
+            server: $(arg server)
+            port: 3883
+
+            update_frequency: 100.0
+            frame_id: world
+
+            # Use the VRPN server's time, or the client's ROS time.
+            use_server_time: false
+            broadcast_tf: true
+
+            # Must either specify refresh frequency > 0.0, or a list of trackers to create
+            #refresh_tracker_frequency: 1.0
+            #trackers:
+            - jetracer
+            #- SecondTracker
+        </rosparam>
+    </node>
+
+    <!-- state feedback server -->
+    <node pkg="ros_sockets" type="state_feedback" name="state_feedback" output="screen">
+        <param name="tracker_name" value="jetracer" type="str" />
+        <param name="port" value="42422" type="int" />
+    </node>
+
+    <!-- experiment time (for synchronization) -->
+    <node pkg="ros_sockets" type="experiment_time" name="experiment_time" output="screen">
+        <param name="port" value="42423" type="int" />
+    </node>
+
+    <!-- spline and gains publisher -->
+    <node pkg="ros_sockets" type="array_publisher" name="array_publisher" output="screen">
+        <param name="port" value="42424" type="int" />
+        <param name="topic_name" value="jetracer/spline_gains" type="str" />
+    </node>
+
+    <!-- rollout data server -->
+    <node pkg="lwsm_jetracer" type="rollout_data" name="rollout_data" output="screen">
+        <param name="port" value="42425" type="int" />
+    </node>
+
+    <!-- Controller -->
+    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen" />
+
+    <!-- Servo Controller -->
+    <node pkg="lwsm_jetracer" type="servo_controller.py" name="servo_controller"  output="screen" />
+</launch>
