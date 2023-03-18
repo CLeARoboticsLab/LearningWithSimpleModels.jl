@@ -15,9 +15,6 @@
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
 
-// Stop command
-const std::vector<double> g_stop{0.0, 0.0};
-
 // Handles ctrl+c of the node
 void sigIntHandler(int sig)
 {
@@ -39,8 +36,8 @@ class Controller
 
       start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
       spline_gains_sub_ = nh_.subscribe("jetracer/spline_gains", queue_size, &Controller::splineGainsCallback, this);
-      pose_sub_ = nh_.subscribe("jetracer/pose", queue_size, &Controller::poseCallback, this);
-      twist_sub_ = nh_.subscribe("jetracer/twist", queue_size, &Controller::twistCallback, this);
+      pose_sub_ = nh_.subscribe("vrpn_client_node/jetracer/pose", queue_size, &Controller::poseCallback, this);
+      twist_sub_ = nh_.subscribe("vrpn_client_node/jetracer/twist", queue_size, &Controller::twistCallback, this);
     }
 
     void shutdown()
@@ -64,6 +61,7 @@ class Controller
     double t_;
     double kx_, ky_, kv_, kphi_;
     double x_, y_, v_, phi_;
+    double last_s_;
     std::vector<double> spline_coeffs_;
     bool started_;
     std::vector<int> seg_idxs_;
@@ -88,7 +86,9 @@ class Controller
       else
       {
         ROS_INFO_STREAM("Stopping robot");
-        publishCommand(g_stop);
+        // keep last steering input, but kill throttle
+        std::vector<double> stop_cmd{0.0, last_s_};
+        publishCommand(stop_cmd);
         publishRolloutData();
       }
     }
@@ -204,6 +204,7 @@ class Controller
       s.data = command[1];
       throttle_pub_.publish(t);
       steering_pub_.publish(s);
+      last_s_ = s.data;
     }
 
     void publishRolloutData()
