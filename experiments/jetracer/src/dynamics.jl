@@ -5,6 +5,7 @@ function rollout_actual_dynamics(
     sim_params::SimulationParameters,
     ctrl_params::ControllerParameters,
     n_segments::Integer
+    ; use_model = true
 )
     task_time = end_time(task)
     n_states = length(sim_params.x0)
@@ -31,6 +32,13 @@ function rollout_actual_dynamics(
             setpoint = evaluate(task, tf_seg)
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
                                                         model, t0_seg, x, task_time)
+            
+            # Discard the new_setpoints and gains if not using the model
+            if !use_model
+                new_setpoint = setpoint
+                gains_adjustment = zeros(4)
+            end 
+            
             setpoints[:,j] = new_setpoint
             gain_adjs[:,j] = gains_adjustment
             prev_setpoint = j > 1 ? setpoints[:,j-1] : evaluate(task, t0_seg)
@@ -39,7 +47,7 @@ function rollout_actual_dynamics(
         end 
     end
     stop_rollout(connections)
-    sleep(1.0)
+    sleep(5.0)
     
     rdata = rollout_data(connections)
     return RolloutData(;

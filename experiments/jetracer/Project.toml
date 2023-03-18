@@ -1,4 +1,6 @@
 [deps]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LearningWithSimpleModels = "50f1fcde-fbed-4ab2-866a-fe2e6235a732"

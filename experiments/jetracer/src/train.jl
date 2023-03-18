@@ -20,6 +20,7 @@ function train(;
     losses = zeros(training_params.iters)
     rollouts = Vector{RolloutData}(undef,0)
     connections = open_connections()
+    sleep(0.5)
     for i in 1:training_params.iters
         loss, r = policy_update!(algo, connections, task, model, optimizer, simple_dynamics,
                                  controller, ctrl_params, cost, sim_params)
@@ -34,6 +35,7 @@ function train(;
     plot_losses(training_params, losses)
 
     # TODO need to figure out how to animate rollouts of varying lengths
+    # (probably need to make arrays of Point2f)
     # animate_training(training_params, rollouts, task)
 end
 

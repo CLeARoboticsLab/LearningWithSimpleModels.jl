@@ -14,7 +14,7 @@ Base.@kwdef struct JetracerCostParameters <: CostParameters
 end
 
 jetracer_cost() = Cost(;
-    params = JetracerCostParameters(; input_weight = 0.01),
+    params = JetracerCostParameters(; input_weight = 0.05),
     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
         return (
             (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
@@ -31,7 +31,7 @@ jetracer_figure_eight_task() = figure_eight(;
     xdot_f = nothing,
     ydot_f = nothing,
     radius = 1.00,
-    time = 20.0,
+    time = 30.0,
     laps = 1
 )
 
@@ -44,15 +44,15 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
-    seconds_per_rollout = 20.0
+    seconds_per_rollout = 40.0
 )
 
 jetracer_training_parameters() = TrainingParameters(;
     name = "jetracer",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.5e-4,
-    iters = 10,
+    learning_rate = 4e-5,
+    iters = 50,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -66,4 +66,12 @@ jetracer_simulation_parameters() = SimulationParameters(;
     dt = 1.0/10.0, # should match controller update rate
     model_dt = 0.5,
     model_scale = 1.0
+)
+
+jetracer_evaluation_parameters() = EvaluationParameters(;
+    name = "jetracer",
+    path = ".data",    
+    n_task_executions = 3,
+    save_plot = true,
+    save_animation = true
 )
