@@ -30,13 +30,13 @@ jetracer_figure_eight_task() = figure_eight(;
     ydot_0 = nothing,
     xdot_f = nothing,
     ydot_f = nothing,
-    radius = 1.00,
-    time = 30.0,
+    radius = 1.50,
+    time = 10.0,
     laps = 1
 )
 
 Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
-    seconds_per_rollout::Float64 = 10.0
+    seconds_per_rollout::Float64 = 12.0
 end
 Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
     "Hardware Training Algorithm
@@ -44,15 +44,15 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
-    seconds_per_rollout = 40.0
+    seconds_per_rollout = 12.0
 )
 
 jetracer_training_parameters() = TrainingParameters(;
     name = "jetracer",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 4e-5,
-    iters = 50,
+    learning_rate = 5e-5,
+    iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -63,7 +63,7 @@ jetracer_training_parameters() = TrainingParameters(;
 jetracer_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
-    dt = 1.0/10.0, # should match controller update rate
+    dt = 1.0/50.0, # should match controller update rate
     model_dt = 0.5,
     model_scale = 1.0
 )

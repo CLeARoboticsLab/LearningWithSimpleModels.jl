@@ -9,10 +9,10 @@ Base.@kwdef struct JetsonControllerParameters <: ControllerParameters
 end
 
 jetracer_controller_parameters() = JetsonControllerParameters(;
-    kx = 0.75,
-    ky = 0.75,
-    kv = 0.75,
-    kϕ = 0.75,
+    kx = 0.35,
+    ky = 0.35,
+    kv = 0.35,
+    kϕ = 0.35,
     limit = true,
     a_limit = 1.0,
     ω_limit = 1.0

@@ -11,7 +11,7 @@ struct Connections
 end
 
 function open_connections()
-    ip = "192.168.1.135"
+    ip = "192.168.1.223"
     feedback_port = 42422
     control_port = 42424
     timing_port = 42423
