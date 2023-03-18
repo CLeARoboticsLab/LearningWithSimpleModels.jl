@@ -31,7 +31,7 @@ Base.@kwdef struct WalkingWindowAlgorithm <:TrainingAlgorithm
     segs_per_rollout = 60
     segs_in_window::Integer = 5
 end
-Base.show(io::IO, ::WalkingWindowAlgorithm) = print(io,
+Base.show(io::IO, p::WalkingWindowAlgorithm) = print(io,
     "Walking Window Algorithm
     Segments per rollout: $(p.segs_per_rollout)
     Segments in window: $(p.segs_in_window)"
@@ -112,6 +112,7 @@ Base.@kwdef struct RolloutData
     ts::Vector{Float64}
     xs::Matrix{Float64}
     us::Matrix{Float64}
+    task_t0::Float64                # time along task where this rollout starts
     idx_segs::Vector{<:Integer}     # overall index at each model call
     t0_segs::Vector{Float64}        # time at each model call 
     x0_segs::Matrix{Float64}        # state at each model call

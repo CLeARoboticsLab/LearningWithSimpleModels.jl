@@ -54,6 +54,7 @@ function rollout_actual_dynamics(
 
     overall_idx = 1
     t = t0
+    task_t0 = t
     x = x0
     loss = 0.0
     for j in 1:n_segments
@@ -102,6 +103,7 @@ function rollout_actual_dynamics(
         ts = ts_actual,
         xs = xs_actual,
         us = us_actual,
+        task_t0 = task_t0,
         idx_segs = idx_segs,
         t0_segs = t0_segs,
         x0_segs = x0_segs,

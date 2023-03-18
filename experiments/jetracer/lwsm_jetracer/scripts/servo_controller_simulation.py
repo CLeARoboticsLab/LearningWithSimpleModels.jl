@@ -15,12 +15,10 @@ class ServoControllerSimulation:
     def throttle_callback(self, throt):
         self.cmd.linear.x = throt.data
         self.pub.publish(self.cmd)
-        rospy.loginfo("Throttle: %s", str(throt.data))
 
     def steering_callback(self, steer):
         self.cmd.angular.z = steer.data
         self.pub.publish(self.cmd)
-        rospy.loginfo("Steering: %s", str(steer.data))
 
     def shutdown(self):
         print("Stopping")

@@ -10,11 +10,10 @@
 #include "geometry_msgs/TwistStamped.h"
 #include <tf/transform_datatypes.h>
 
+#include "lwsm_jetracer/RolloutData.h"
+
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
-
-// Stop command
-const std::vector<double> g_stop{0.0, 0.0};
 
 // Handles ctrl+c of the node
 void sigIntHandler(int sig)
@@ -25,23 +24,20 @@ void sigIntHandler(int sig)
 class Controller
 {
   public:
-    Controller() : started_(false)
+    Controller() : started_(false), kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0),
+        spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
-
-      nh_.getParam("controller/kx", kx_);
-      nh_.getParam("controller/ky", ky_);
-      nh_.getParam("controller/kv", kv_);
-      nh_.getParam("controller/kphi", kphi_);
 
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
       steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
+      data_pub_ = nh_.advertise<lwsm_jetracer::RolloutData>("jetracer/rollout_data", queue_size);
 
       start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
-      spline_sub_ = nh_.subscribe("jetracer/spline", queue_size, &Controller::splineCallback, this);
-      pose_sub_ = nh_.subscribe("jetracer/pose", queue_size, &Controller::poseCallback, this);
-      twist_sub_ = nh_.subscribe("jetracer/twist", queue_size, &Controller::twistCallback, this);
+      spline_gains_sub_ = nh_.subscribe("jetracer/spline_gains", queue_size, &Controller::splineGainsCallback, this);
+      pose_sub_ = nh_.subscribe("vrpn_client_node/jetracer/pose", queue_size, &Controller::poseCallback, this);
+      twist_sub_ = nh_.subscribe("vrpn_client_node/jetracer/twist", queue_size, &Controller::twistCallback, this);
     }
 
     void shutdown()
@@ -55,16 +51,23 @@ class Controller
     ros::NodeHandle nh_;
     ros::Publisher throttle_pub_;
     ros::Publisher steering_pub_;
+    ros::Publisher data_pub_;
     ros::Subscriber start_time_sub_;
-    ros::Subscriber spline_sub_;
+    ros::Subscriber spline_gains_sub_;
     ros::Subscriber pose_sub_;
     ros::Subscriber twist_sub_;
 
     ros::Time start_time_;
+    double t_;
     double kx_, ky_, kv_, kphi_;
     double x_, y_, v_, phi_;
+    double last_s_;
     std::vector<double> spline_coeffs_;
     bool started_;
+    std::vector<int> seg_idxs_;
+    std::vector<double> ts_;
+    std::vector<std::vector<double>> xs_;
+    std::vector<std::vector<double>> us_;
 
     static constexpr double PI = 3.14159265358979323846264;
 
@@ -73,18 +76,33 @@ class Controller
       start_time_ = time.data;
       started_ = !start_time_.is_zero();
       if (started_)
+      {
         ROS_INFO_STREAM("Starting control");
+        seg_idxs_.clear();
+        ts_.clear();
+        xs_.clear();
+        us_.clear();
+      }
       else
       {
         ROS_INFO_STREAM("Stopping robot");
-        publishCommand(g_stop);
+        // keep last steering input, but kill throttle
+        std::vector<double> stop_cmd{0.0, last_s_};
+        publishCommand(stop_cmd);
+        publishRolloutData();
       }
     }
 
-    void splineCallback(std_msgs::Float64MultiArray spline)
+    void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
     {
-      spline_coeffs_ = spline.data;
-      ROS_INFO_STREAM("New spline loaded");
+      for(int i = 0; i < 8; i++) 
+        spline_coeffs_[i] = spline_gains.data[i];
+      kx_ = spline_gains.data[8];
+      ky_ = spline_gains.data[9];
+      kv_ = spline_gains.data[10];
+      kphi_ = spline_gains.data[11];
+      seg_idxs_.push_back(ts_.size());
+      ROS_INFO_STREAM("New spline and gains loaded");
     }
 
     void poseCallback(geometry_msgs::PoseStamped pose)
@@ -149,7 +167,11 @@ class Controller
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
       publishCommand(command);
-      // TODO add sigmoid instead of clamping?
+
+      std::vector<double> x{x_, y_, v_, phi_};
+      ts_.push_back(t_);
+      xs_.push_back(x);
+      us_.push_back(command);    
     }
 
     template <typename T>
@@ -160,15 +182,15 @@ class Controller
     std::vector<double> evaluateSpline()
     {
       ros::Duration d = ros::Time::now() - start_time_;
-      double t = d.toSec();
+      t_ = d.toSec();
 
-      double x = spline_coeffs_[0]*pow(t, 3.0) + spline_coeffs_[1]*pow(t, 2.0)
-                  + spline_coeffs_[2]*t + spline_coeffs_[3];
-      double y = spline_coeffs_[4]*pow(t, 3.0) + spline_coeffs_[5]*pow(t, 2.0)
-                  + spline_coeffs_[6]*t + spline_coeffs_[7];
-      double xdot = 3.0*spline_coeffs_[0]*pow(t, 2.0) + 2.0*spline_coeffs_[1]*t
+      double x = spline_coeffs_[0]*pow(t_, 3.0) + spline_coeffs_[1]*pow(t_, 2.0)
+                  + spline_coeffs_[2]*t_ + spline_coeffs_[3];
+      double y = spline_coeffs_[4]*pow(t_, 3.0) + spline_coeffs_[5]*pow(t_, 2.0)
+                  + spline_coeffs_[6]*t_ + spline_coeffs_[7];
+      double xdot = 3.0*spline_coeffs_[0]*pow(t_, 2.0) + 2.0*spline_coeffs_[1]*t_
                   + spline_coeffs_[2];
-      double ydot = 3.0*spline_coeffs_[4]*pow(t, 2.0) + 2.0*spline_coeffs_[5]*t
+      double ydot = 3.0*spline_coeffs_[4]*pow(t_, 2.0) + 2.0*spline_coeffs_[5]*t_
                   + spline_coeffs_[6];
 
       std::vector<double> setpoint{x, y, xdot, ydot};
@@ -182,6 +204,29 @@ class Controller
       s.data = command[1];
       throttle_pub_.publish(t);
       steering_pub_.publish(s);
+      last_s_ = s.data;
+    }
+
+    void publishRolloutData()
+    {
+      lwsm_jetracer::RolloutData msg;
+      msg.seg_idxs = seg_idxs_;
+      msg.ts = ts_;
+      std::vector<std_msgs::Float64MultiArray> xs;
+      std::vector<std_msgs::Float64MultiArray> us;
+      for (int i = 0; i < ts_.size(); i++)
+      {
+        std_msgs::Float64MultiArray x_msg;
+        x_msg.data = xs_[i];
+        xs.push_back(x_msg);
+
+        std_msgs::Float64MultiArray u_msg;
+        u_msg.data = us_[i];
+        us.push_back(u_msg);
+      }
+      msg.xs = xs;
+      msg.us = us;
+      data_pub_.publish(msg);
     }
 };
 

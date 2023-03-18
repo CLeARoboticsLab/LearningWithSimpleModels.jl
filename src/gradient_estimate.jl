@@ -37,6 +37,11 @@ function gradient_estimate(
             window_end_idx = window_start_idx + algo.segs_in_window - 1
             while window_end_idx <= n_segments
                 window = window_start_idx:window_end_idx
+                if window_start_idx > 1
+                    prev_setpoint = r.setpoints[:,window_start_idx-1]
+                else
+                    prev_setpoint = evaluate(task, r.t0_segs[window_start_idx])
+                end
                 for j in window
                     # Here we are repeating the process found in rollout_actual_dynamics
                     # so that we can take derivatives through the simple_dynamics
@@ -47,8 +52,8 @@ function gradient_estimate(
                     tf_seg = t + sim_params.model_dt - sim_params.dt
                     setpoint = evaluate(task, tf_seg)
                     new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t, x, task_time)
-                    prev_setpoint = j > 1 ? r.setpoints[:,j-1] : evaluate(task, t)
                     spline_seg = spline_segment(t, tf_seg, prev_setpoint, new_setpoint)
+                    prev_setpoint = new_setpoint
 
                     for i in 0:segment_length-1
                         overall_idx = seg_start_idx + i

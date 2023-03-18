@@ -4,9 +4,24 @@ project(lwsm_jetracer)
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	rospy
+	std_msgs
+	message_generation
+	ros_sockets
 )
 
-catkin_package()
+add_message_files(
+  FILES
+  RolloutData.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+catkin_package(
+	CATKIN_DEPENDS message_runtime
+)
 
 include_directories(
 	include
@@ -21,7 +36,16 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
-install(TARGETS	controller
+add_executable(rollout_data
+	src/rollout_data.cpp
+	src/rollout_data_server.cpp
+)
+target_link_libraries(
+	rollout_data
+	${catkin_LIBRARIES}
+)
+
+install(TARGETS	controller rollout_data
   	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
