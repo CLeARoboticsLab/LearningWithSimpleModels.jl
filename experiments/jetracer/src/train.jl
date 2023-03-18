@@ -26,12 +26,15 @@ function train(;
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
         losses[i] = loss
         push!(rollouts, r)
+        plot_rollout(r, task, loss)
     end
     close_connections(connections)
 
     save_model(training_params, model)
     plot_losses(training_params, losses)
-    animate_training(training_params, rollouts, task)
+
+    # TODO need to figure out how to animate rollouts of varying lengths
+    # animate_training(training_params, rollouts, task)
 end
 
 function policy_update!(
@@ -52,6 +55,6 @@ function policy_update!(
     loss, grads = gradient_estimate(r,task,model,simple_dynamics,controller,
                                     cost,sim_params)
     update!(optimizer,model,grads[1])
-    sleep(1.0)
+
     return loss, r              
 end
