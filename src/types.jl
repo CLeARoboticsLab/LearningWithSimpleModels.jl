@@ -82,7 +82,7 @@ Base.@kwdef struct SimulationParameters
     n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
-    model_scale::Float64 = 1.0
+    model_scale::Vector{Float64} = ones(8)
 end
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 

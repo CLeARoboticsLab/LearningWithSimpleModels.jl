@@ -94,7 +94,7 @@ unicycle_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 0.01,
     model_dt = 0.5,
-    model_scale = 1.0
+    model_scale = ones(8)
 )
 
 unicycle_evaluation_parameters() = EvaluationParameters(;

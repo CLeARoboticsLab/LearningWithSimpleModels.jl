@@ -34,7 +34,7 @@ function call_model(
         x[3]*cos(x[4]),
         x[3]*sin(x[4])
     ] #TODO make this more robust to arbitrary state definitions
-    model_out = model(vcat(x_transformed, t_transformed)) * sim_params.model_scale
+    model_out = model(vcat(x_transformed, t_transformed)) .* sim_params.model_scale
     setpoint_correction = model_out[1:4]
     gains_adjustment = model_out[5:8]
     return setpoint + setpoint_correction, gains_adjustment

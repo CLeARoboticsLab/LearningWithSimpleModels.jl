@@ -39,8 +39,11 @@ function gradient_estimate(
                     + x_actual_next
                 )
                 if !isapprox(x, x_actual_next)
-                    println("Mismatched x at index $(i)
-                    Difference: $(x - x_actual_next)")
+                    println("Mismatched x at index $(i), t: $(t)
+                    udiff: $(u - r.us[:,i])
+                    u: $(u)
+                    r.u: $(r.us[:,i])
+                    xdiff: $(x - x_actual_next)")
                 end
             end
         end
