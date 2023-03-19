@@ -8,7 +8,7 @@
             server: 192.168.1.100
             port: 3883
 
-            update_frequency: 20.0
+            update_frequency: 100.0
             frame_id: world
 
             # Use the VRPN server's time, or the client's ROS time.
@@ -46,7 +46,10 @@
     </node>
 
     <!-- Controller -->
-    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen" />
+    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen">
+        <param name="cycle_rate" value="20.0" type="double" />
+        <param name="keep_steering_on_shutdown" value="true" type="bool" />
+    </node>
 
     <!-- Servo Controller -->
     <!-- Note: commented out here: will launch on JetRacer via ssh and rosrun -->

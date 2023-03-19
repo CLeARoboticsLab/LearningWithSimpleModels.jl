@@ -29,6 +29,9 @@ class Controller
     {
       ROS_INFO_STREAM("Starting controller");
 
+      nh_.getParam("controller/cycle_rate", cycle_rate_);
+      nh_.getParam("controller/keep_steering_on_shutdown", keep_steering_on_shutdown_);
+
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
       steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
@@ -40,96 +43,14 @@ class Controller
       twist_sub_ = nh_.subscribe("vrpn_client_node/jetracer/twist", queue_size, &Controller::twistCallback, this);
     }
 
+    double cycle_rate(){return cycle_rate_;}
+
     void shutdown()
     {
+      stop_robot();
       ROS_INFO_STREAM("Stopping and exiting..." );
       ros::shutdown();
       std::cout << "Exited." << std::endl;
-    }
-
-  private:
-    ros::NodeHandle nh_;
-    ros::Publisher throttle_pub_;
-    ros::Publisher steering_pub_;
-    ros::Publisher data_pub_;
-    ros::Subscriber start_time_sub_;
-    ros::Subscriber spline_gains_sub_;
-    ros::Subscriber pose_sub_;
-    ros::Subscriber twist_sub_;
-
-    ros::Time start_time_;
-    double t_;
-    double kx_, ky_, kv_, kphi_;
-    double x_, y_, v_, phi_;
-    double last_s_;
-    std::vector<double> spline_coeffs_;
-    bool started_;
-    std::vector<int> seg_idxs_;
-    std::vector<double> ts_;
-    std::vector<std::vector<double>> xs_;
-    std::vector<std::vector<double>> us_;
-
-    static constexpr double PI = 3.14159265358979323846264;
-
-    void startTimeCallback(std_msgs::Time time)
-    {
-      start_time_ = time.data;
-      started_ = !start_time_.is_zero();
-      if (started_)
-      {
-        ROS_INFO_STREAM("Starting control");
-        seg_idxs_.clear();
-        ts_.clear();
-        xs_.clear();
-        us_.clear();
-      }
-      else
-      {
-        ROS_INFO_STREAM("Stopping robot");
-        // keep last steering input, but kill throttle
-        std::vector<double> stop_cmd{0.0, last_s_};
-        publishCommand(stop_cmd);
-        publishRolloutData();
-      }
-    }
-
-    void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
-    {
-      for(int i = 0; i < 8; i++) 
-        spline_coeffs_[i] = spline_gains.data[i];
-      kx_ = spline_gains.data[8];
-      ky_ = spline_gains.data[9];
-      kv_ = spline_gains.data[10];
-      kphi_ = spline_gains.data[11];
-      seg_idxs_.push_back(ts_.size());
-      ROS_INFO_STREAM("New spline and gains loaded");
-    }
-
-    void poseCallback(geometry_msgs::PoseStamped pose)
-    {
-      x_ = pose.pose.position.x;
-      y_ = pose.pose.position.y;
-      phi_ = headingAngle(pose);
-      control();
-    }
-
-    void twistCallback(geometry_msgs::TwistStamped twist)
-    {
-      double xdot = twist.twist.linear.x;
-      double ydot = twist.twist.linear.y;
-      v_ = sqrt(pow(xdot, 2.0) + pow(ydot, 2.0));
-    }
-
-    double headingAngle(geometry_msgs::PoseStamped pose)
-    {
-      tf::Quaternion q(pose.pose.orientation.x, 
-                       pose.pose.orientation.y, 
-                       pose.pose.orientation.z,
-                       pose.pose.orientation.w);
-      tf::Matrix3x3 m(q);
-      double roll, pitch, yaw;
-      m.getRPY(roll, pitch, yaw);
-      return yaw;
     }
 
     void control()
@@ -172,6 +93,98 @@ class Controller
       ts_.push_back(t_);
       xs_.push_back(x);
       us_.push_back(command);    
+    }
+
+  private:
+    ros::NodeHandle nh_;
+    ros::Publisher throttle_pub_;
+    ros::Publisher steering_pub_;
+    ros::Publisher data_pub_;
+    ros::Subscriber start_time_sub_;
+    ros::Subscriber spline_gains_sub_;
+    ros::Subscriber pose_sub_;
+    ros::Subscriber twist_sub_;
+
+    double cycle_rate_;
+    bool keep_steering_on_shutdown_;
+    ros::Time start_time_;
+    double t_;
+    double kx_, ky_, kv_, kphi_;
+    double x_, y_, v_, phi_;
+    double last_s_;
+    std::vector<double> spline_coeffs_;
+    bool started_;
+    std::vector<int> seg_idxs_;
+    std::vector<double> ts_;
+    std::vector<std::vector<double>> xs_;
+    std::vector<std::vector<double>> us_;
+
+    static constexpr double PI = 3.14159265358979323846264;
+
+    void startTimeCallback(std_msgs::Time time)
+    {
+      start_time_ = time.data;
+      started_ = !start_time_.is_zero();
+      if (started_)
+      {
+        ROS_INFO_STREAM("Starting control");
+        seg_idxs_.clear();
+        ts_.clear();
+        xs_.clear();
+        us_.clear();
+      }
+      else
+      {
+        stop_robot();
+        publishRolloutData();
+      }
+    }
+
+    void stop_robot()
+    {
+      ROS_INFO_STREAM("Stopping robot");
+      std::vector<double> stop_cmd{0.0, 0.0};
+      if (keep_steering_on_shutdown_)
+        stop_cmd[1] = last_s_;
+      publishCommand(stop_cmd);
+    }
+
+    void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
+    {
+      for(int i = 0; i < 8; i++) 
+        spline_coeffs_[i] = spline_gains.data[i];
+      kx_ = spline_gains.data[8];
+      ky_ = spline_gains.data[9];
+      kv_ = spline_gains.data[10];
+      kphi_ = spline_gains.data[11];
+      seg_idxs_.push_back(ts_.size());
+      ROS_INFO_STREAM("New spline and gains loaded");
+    }
+
+    void poseCallback(geometry_msgs::PoseStamped pose)
+    {
+      x_ = pose.pose.position.x;
+      y_ = pose.pose.position.y;
+      phi_ = headingAngle(pose);
+    }
+
+    void twistCallback(geometry_msgs::TwistStamped twist)
+    {
+      double xdot = twist.twist.linear.x;
+      double ydot = twist.twist.linear.y;
+      v_ = sqrt(pow(xdot, 2.0) + pow(ydot, 2.0));
+    }
+
+    double headingAngle(geometry_msgs::PoseStamped pose)
+    {
+      tf::Quaternion q(pose.pose.orientation.x, 
+                       pose.pose.orientation.y, 
+                       pose.pose.orientation.z,
+                       pose.pose.orientation.w);
+      tf::Matrix3x3 m(q);
+      double roll, pitch, yaw;
+      m.getRPY(roll, pitch, yaw);
+      return yaw;
     }
 
     template <typename T>
@@ -238,9 +251,16 @@ auto main(int argc, char **argv) -> int
 
   Controller controller;
 
+  ros::AsyncSpinner spinner(3);
+  spinner.start();
+
+  ros::Rate rate(controller.cycle_rate());
+
   while (!g_request_shutdown && ros::ok())
   {
+    controller.control();
     ros::spinOnce();
+    rate.sleep();
   }
 
   // shutdown gracefully if node is interrupted

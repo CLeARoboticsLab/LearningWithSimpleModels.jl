@@ -7,14 +7,14 @@
 
     <!-- gazebo motion capture simulation -->
     <node pkg="ros_sockets" type="gazebo_tracker" name="gazebo_tracker"  output="screen">
-        <param name="tracker_name" value="jetracer" type="str" />
+        <param name="tracker_name" value="vrpn_client_node/jetracer" type="str" />
         <param name="model_name" value="turtlebot3_burger" type="str" />
-        <param name="update_frequency" value="10.0" type="double" />
+        <param name="update_frequency" value="100.0" type="double" />
     </node>
 
     <!-- state feedback server -->
     <node pkg="ros_sockets" type="state_feedback" name="state_feedback" output="screen">
-        <param name="tracker_name" value="jetracer" type="str" />
+        <param name="tracker_name" value="vrpn_client_node/jetracer" type="str" />
         <param name="port" value="42422" type="int" />
     </node>
 
@@ -35,7 +35,10 @@
     </node>
 
     <!-- Controller -->
-    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen" />
+    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen">
+        <param name="cycle_rate" value="20.0" type="double" />
+        <param name="keep_steering_on_shutdown" value="false" type="bool" />
+    </node>
 
     <!-- Servo Controller (simulated) -->
     <node pkg="lwsm_jetracer" type="servo_controller_simulation.py" name="servo_controller_simulation"  output="screen" />
