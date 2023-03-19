@@ -16,7 +16,7 @@ class ServoController:
 
 		# these are adjustable
 		self.sgain = -1.0
-		self.soffset = -0.4
+		self.soffset = -0.325
 		self.tgain = -0.5
 		self.toffset = 0.05
 
