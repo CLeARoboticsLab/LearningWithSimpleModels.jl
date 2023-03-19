@@ -15,7 +15,7 @@ jetracer_controller_parameters() = JetsonControllerParameters(;
     kϕ = 0.35 - 0.025,
     limit = true,
     a_limit = 0.5,
-    ω_limit = 0.5
+    ω_limit = 1.0
 )
 
 function jetracer_policy(

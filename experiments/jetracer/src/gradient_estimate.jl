@@ -5,6 +5,7 @@ function gradient_estimate(
     simple_dynamics::Dynamics,
     controller::Controller,
     cost::Cost,
+    algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters
 )
     task_time = end_time(task)
@@ -12,8 +13,9 @@ function gradient_estimate(
     loss, grads = withgradient(model) do model
         loss = 0.0
         n_segments = length(r.t0_segs)
-        prev_setpoint = evaluate(task, r.t0_segs[1])
-        for j in 1:n_segments-1
+        start_seg_idx = 1 + algo.n_beginning_segs_to_truncate
+        prev_setpoint = start_seg_idx==1 ? evaluate(task, r.t0_segs[1]) : r.setpoints[:,start_seg_idx]
+        for j in start_seg_idx:n_segments-1
             t0_seg = r.t0_segs[j]
             tf_seg = t0_seg + sim_params.model_dt
             x = r.x0_segs[:,j]

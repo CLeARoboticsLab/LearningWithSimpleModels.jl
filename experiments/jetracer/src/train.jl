@@ -55,7 +55,7 @@ function policy_update!(
     r = rollout_actual_dynamics(connections, task, model, sim_params, 
                                 ctrl_params, n_segments)
     loss, grads = gradient_estimate(r,task,model,simple_dynamics,controller,
-                                    cost,sim_params)
+                                    cost,algo,sim_params)
     update!(optimizer,model,grads[1])
 
     return loss, r              
