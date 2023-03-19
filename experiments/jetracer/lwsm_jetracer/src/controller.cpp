@@ -84,7 +84,7 @@ class Controller
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
         phi_des += 2*PI;
       
-      double throttle = clamp(kv_*(v_des - v_), 0.0, 1.0);
+      double throttle = clamp(kv_*(v_des - v_), -0.5, 0.5);
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
       publishCommand(command);
