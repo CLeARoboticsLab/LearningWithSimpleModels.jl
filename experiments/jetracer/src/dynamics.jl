@@ -41,7 +41,7 @@ function rollout_actual_dynamics(
             
             setpoints[:,j] = new_setpoint
             gain_adjs[:,j] = gains_adjustment
-            prev_setpoint = j > 1 ? setpoints[:,j-1] : evaluate(task, t0_seg)
+            prev_setpoint = j > 1 ? setpoints[:,j-1] : starting_setpoint(x)
             spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
             send_command(connections, ctrl_params, spline_seg, gains_adjustment)
         end 
@@ -90,4 +90,17 @@ function estimate_task_t0(task::Spline, x::Vector{Float64}, n_points::Integer = 
         costs[i] = dist + ϕ_weight*Δϕ
     end
     return argmin(costs) * dt
+end
+
+# When generating the very first spline segment, use the current state of the
+# model instead of a point on the task to ensure the agent starts smoothly. Use
+# a small minimum initial velocity to ensure the spline "points" the right way
+# in the beginning
+function starting_setpoint(x::Vector{Float64}; v_init = 0.1)
+    return [
+        x[1],
+        x[2],
+        max(v_init, x[3])*cos(x[4]),
+        max(v_init, x[3])*sin(x[4])
+    ]
 end
