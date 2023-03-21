@@ -19,35 +19,44 @@ function rollout_actual_dynamics(
     task_t0 = estimate_task_t0(task, x)
 
     start_rollout(connections)
-    for j in 1:n_segments
+    for j in 1:n_segments + 1 #TODO make configurable
         do_and_wait(sim_params.model_dt) do 
-            t = time_elapsed(connections)
+            if j <= n_segments
+                t = time_elapsed(connections)
+            else
+                t = t0_segs[n_segments] - task_t0 + (j-n_segments)*sim_params.model_dt
+            end
             t0_seg = task_t0 + t
             tf_seg = t0_seg + sim_params.model_dt
-            t0_segs[j] = t0_seg
-
             x = state(connections)
-            x0_segs[:,j] = x
-
             setpoint = evaluate(task, tf_seg)
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
                                                         model, t0_seg, x, task_time)
             
             # Discard the new_setpoints and gains if not using the model
-            if !use_model
+            if !use_model || j > n_segments
                 new_setpoint = setpoint
                 gains_adjustment = zeros(4)
             end 
             
-            setpoints[:,j] = new_setpoint
-            gain_adjs[:,j] = gains_adjustment
-            prev_setpoint = j > 1 ? setpoints[:,j-1] : starting_setpoint(x)
+            prev_setpoint = j in 2:n_segments ? setpoints[:,j-1] : starting_setpoint(x)
             spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
             send_command(connections, ctrl_params, spline_seg, gains_adjustment)
+
+            if j == n_segments
+                stop_rollout(connections)
+            end
+
+            if j in 1:n_segments
+                t0_segs[j] = t0_seg
+                x0_segs[:,j] = x
+                setpoints[:,j] = new_setpoint
+                gain_adjs[:,j] = gains_adjustment
+            end
         end 
     end
-    stop_rollout(connections)
-    sleep(3.0)
+    
+    sleep(5.5)
     
     rdata = rollout_data(connections)
     return RolloutData(;
@@ -96,7 +105,7 @@ end
 # model instead of a point on the task to ensure the agent starts smoothly. Use
 # a small minimum initial velocity to ensure the spline "points" the right way
 # in the beginning
-function starting_setpoint(x::Vector{Float64}; v_init = 0.1)
+function starting_setpoint(x::Vector{Float64}; v_init = 0.01)
     return [
         x[1],
         x[2],

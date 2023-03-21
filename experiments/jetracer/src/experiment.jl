@@ -14,7 +14,7 @@ Base.@kwdef struct JetracerCostParameters <: CostParameters
 end
 
 jetracer_cost() = Cost(;
-    params = JetracerCostParameters(; input_weight = 0.1),
+    params = JetracerCostParameters(; input_weight = 0.01),
     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
         return (
             (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
@@ -31,7 +31,7 @@ jetracer_figure_eight_task() = figure_eight(;
     xdot_f = nothing,
     ydot_f = nothing,
     radius = 1.50,
-    time = 8.0,
+    time = 6.0,
     laps = 1
 )
 
@@ -46,8 +46,8 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
-    seconds_per_rollout = 15.0,
-    n_beginning_segs_to_truncate = 10
+    seconds_per_rollout = 5 + 6.0*1.25,
+    n_beginning_segs_to_truncate = 13
 )
 
 jetracer_training_parameters() = TrainingParameters(;
@@ -67,7 +67,7 @@ jetracer_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
     dt = 1.0/50.0, # should match controller update rate
-    model_dt = 0.5,
+    model_dt = 6.0/20,
     model_scale = [1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5]
 )
 

@@ -14,7 +14,7 @@ jetracer_controller_parameters() = JetsonControllerParameters(;
     kv = 0.35,
     kϕ = 0.35,
     limit = true,
-    a_limit = 0.5,
+    a_limit = 0.75,
     ω_limit = 1.0
 )
 
