@@ -24,13 +24,14 @@ void sigIntHandler(int sig)
 class Controller
 {
   public:
-    Controller() : started_(false), kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0),
-        spline_coeffs_(8, 0.0)
+    Controller() : started_(false), is_stopping_(false), 
+        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
       nh_.getParam("controller/cycle_rate", cycle_rate_);
-      nh_.getParam("controller/keep_steering_on_shutdown", keep_steering_on_shutdown_);
+      nh_.getParam("controller/max_throttle", max_throttle_);
+      nh_.getParam("controller/min_throttle", min_throttle_); 
 
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
@@ -55,7 +56,7 @@ class Controller
 
     void control()
     {
-      if (!started_)
+      if (!started_ && !is_stopping_)
         return;
 
       std::vector<double> setpoint = evaluateSpline();
@@ -84,15 +85,20 @@ class Controller
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
         phi_des += 2*PI;
       
-      double throttle = clamp(kv_*(v_des - v_), -0.5, 0.5);
+      double throttle = clamp(kv_*(v_des - v_), min_throttle_, max_throttle_);
+      if (is_stopping_)
+        throttle = 0.0;
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
       publishCommand(command);
 
-      std::vector<double> x{x_, y_, v_, phi_};
-      ts_.push_back(t_);
-      xs_.push_back(x);
-      us_.push_back(command);    
+      if (!is_stopping_)
+      {
+        std::vector<double> x{x_, y_, v_, phi_};
+        ts_.push_back(t_);
+        xs_.push_back(x);
+        us_.push_back(command);
+      }
     }
 
   private:
@@ -106,7 +112,8 @@ class Controller
     ros::Subscriber twist_sub_;
 
     double cycle_rate_;
-    bool keep_steering_on_shutdown_;
+    double max_throttle_;
+    double min_throttle_;
     ros::Time start_time_;
     double t_;
     double kx_, ky_, kv_, kphi_;
@@ -114,6 +121,7 @@ class Controller
     double last_s_;
     std::vector<double> spline_coeffs_;
     bool started_;
+    bool is_stopping_;
     std::vector<int> seg_idxs_;
     std::vector<double> ts_;
     std::vector<std::vector<double>> xs_;
@@ -123,10 +131,10 @@ class Controller
 
     void startTimeCallback(std_msgs::Time time)
     {
-      start_time_ = time.data;
-      started_ = !start_time_.is_zero();
+      started_ = !time.data.is_zero();
       if (started_)
       {
+        start_time_ = time.data;
         ROS_INFO_STREAM("Starting control");
         seg_idxs_.clear();
         ts_.clear();
@@ -135,18 +143,20 @@ class Controller
       }
       else
       {
-        stop_robot();
         publishRolloutData();
+        ROS_INFO_STREAM("Rollout data published");
+        is_stopping_ = true;
+        ros::Duration(4.0).sleep();
+        is_stopping_ = false;
+        stop_robot();
       }
     }
 
     void stop_robot()
     {
-      ROS_INFO_STREAM("Stopping robot");
       std::vector<double> stop_cmd{0.0, 0.0};
-      if (keep_steering_on_shutdown_)
-        stop_cmd[1] = last_s_;
       publishCommand(stop_cmd);
+      ROS_INFO_STREAM("Robot stopped");
     }
 
     void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
@@ -157,7 +167,8 @@ class Controller
       ky_ = spline_gains.data[9];
       kv_ = spline_gains.data[10];
       kphi_ = spline_gains.data[11];
-      seg_idxs_.push_back(ts_.size());
+      if (!is_stopping_)
+        seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
     }
 
@@ -187,8 +198,7 @@ class Controller
       return yaw;
     }
 
-    template <typename T>
-    T clamp(const T& n, const T& lower, const T& upper) {
+    double clamp(double n, double lower, double upper) {
       return std::max(lower, std::min(n, upper));
     }
 
@@ -251,7 +261,7 @@ auto main(int argc, char **argv) -> int
 
   Controller controller;
 
-  ros::AsyncSpinner spinner(3);
+  ros::AsyncSpinner spinner(4);
   spinner.start();
 
   ros::Rate rate(controller.cycle_rate());

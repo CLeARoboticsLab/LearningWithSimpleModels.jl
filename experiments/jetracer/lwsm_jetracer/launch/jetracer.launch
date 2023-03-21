@@ -48,7 +48,8 @@
     <!-- Controller -->
     <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen">
         <param name="cycle_rate" value="50.0" type="double" />
-        <param name="keep_steering_on_shutdown" value="true" type="bool" />
+        <param name="max_throttle" value="0.75" type="double" />
+        <param name="min_throttle" value="-0.75" type="double" />
     </node>
 
     <!-- Servo Controller -->
