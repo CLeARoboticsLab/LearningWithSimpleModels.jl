@@ -2,6 +2,7 @@ function rollout_actual_dynamics(
     connections::Connections,
     task::Spline,
     model::Chain,
+    algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters,
     ctrl_params::ControllerParameters,
     n_segments::Integer
@@ -19,7 +20,7 @@ function rollout_actual_dynamics(
     task_t0 = estimate_task_t0(task, x)
 
     start_rollout(connections)
-    for j in 1:n_segments + 1 #TODO make configurable
+    for j in 1:n_segments + algo.stopping_segments
         do_and_wait(sim_params.model_dt) do 
             if j <= n_segments
                 t = time_elapsed(connections)

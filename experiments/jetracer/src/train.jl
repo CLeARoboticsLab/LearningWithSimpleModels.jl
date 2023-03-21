@@ -52,7 +52,7 @@ function policy_update!(
     sim_params::SimulationParameters
 )
     n_segments = Integer(round(algo.seconds_per_rollout / sim_params.model_dt))
-    r = rollout_actual_dynamics(connections, task, model, sim_params, 
+    r = rollout_actual_dynamics(connections, task, model, algo, sim_params, 
                                 ctrl_params, n_segments)
     loss, grads = gradient_estimate(r,task,model,simple_dynamics,controller,
                                     cost,algo,sim_params)
