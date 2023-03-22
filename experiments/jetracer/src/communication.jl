@@ -13,7 +13,7 @@ end
 function open_connections()
     ip = "192.168.1.223"
     feedback_port = 42422
-    control_port = 42424
+    control_port = 42426
     timing_port = 42423
     rollout_port = 42425
 
