@@ -42,26 +42,26 @@ function Spline(;
         x = xs[i+1]
         y = ys[i+1]
 
-        f′ = zeros(row_length)
-        f′′ = zeros(row_length)
-        f′′′ = zeros(row_length)
-        f4 = zeros(row_length)
+        f2 = zeros(row_length)
+        f6 = zeros(row_length)
+        f7 = zeros(row_length)
 
         if i != 0
             idx = 8*(i-1)+1
             f = zeros(row_length)
             f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
-            f′[idx:idx+6] = [7*t^6, 6*t^5, 5*t^4, 4*t^3, 3*t^2, 2*t, 1]
             if i == n-1
-                f′′[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
-                f′′′[idx:idx+4] = [210*t^4, 120*t^3, 60*t^2, 24*t, 6]
-                append!(A, f′′)
-                append!(A, f′′′)
+                f2[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+                f6[idx:idx+1] = [5040*t, 720]
+                f7[idx] = 5040
+                append!(A, f2)
+                append!(A, f6)
+                append!(A, f7)
             end
         else
-            b_x[j:j+3] = [x, 0.0, 0.0, -xdot_0]
-            b_y[j:j+3] = [y, 0.0, 0.0, -ydot_0]
+            b_x[j:j+3] = [x, 0.0, 0.0, 0.0]
+            b_y[j:j+3] = [y, 0.0, 0.0, 0.0]
             j += 4
         end
 
@@ -70,25 +70,27 @@ function Spline(;
             f = zeros(row_length)
             f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
-            f′[idx:idx+6] = [-7*t^6, -6*t^5, -5*t^4, -4*t^3, -3*t^2, -2*t, -1]
             if i == 0
-                f′′[idx:idx+5] = [-42*t^5, -30*t^4, -20*t^3, -12*t^2, -6*t, -2]
-                f′′′[idx:idx+4] = [-210*t^4, -120*t^3, -60*t^2, -24*t, -6]
-                append!(A, f′′)
-                append!(A, f′′′)
+                f2[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+                f6[idx:idx+1] = [5040*t, 720]
+                f7[idx] = 5040
+                append!(A, f2)
+                append!(A, f6)
+                append!(A, f7)
             end
         else
-            b_x[j:j+3] = [x, 0.0, 0.0, xdot_0]
-            b_y[j:j+3] = [y, 0.0, 0.0, ydot_0]
+            b_x[j:j+3] = [x, 0.0, 0.0, 0.0]
+            b_y[j:j+3] = [y, 0.0, 0.0, 0.0]
             j += 4
         end
 
-        append!(A, f′)
-        # append!(A, f′′)
-        # append!(A, f′′′)
-        # append!(A, f4)
-
         if i != 0 && i != n-1
+            #1st order derivative row
+            f′ = zeros(row_length)
+            f′[8*(i-1)+1 : 8*(i-1)+1+6] = [7*t^6, 6*t^5, 5*t^4, 4*t^3, 3*t^2, 2*t, 1]
+            f′[8*(i)+1 : 8*(i)+1+6] = [-7*t^6, -6*t^5, -5*t^4, -4*t^3, -3*t^2, -2*t, -1]
+            append!(A, f′)
+
             #2nd order derivative row
             f′′ = zeros(row_length)
             f′′[8*(i-1)+1 : 8*(i-1)+1+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
@@ -329,12 +331,12 @@ function test_plot_acceleration()
         ydot_0 = nothing,
         xdot_f = nothing,
         ydot_f = nothing,
-        radius = 1.50,
-        time = 6.0,
+        radius = 1.00,
+        time = 10.0,
         laps = 1
 )
     ts = 0.0:0.01:12.0
-    _, _, xdots, ydots, xddots, yddots = eval_all(spl, ts)
+    xs, ys, xdots, ydots, xddots, yddots = eval_all(spl, ts)
     vs = zeros(length(ts))
     as = zeros(length(ts))
     for i in 1:length(ts)
@@ -342,9 +344,15 @@ function test_plot_acceleration()
         as[i] = sqrt(xddots[i]^2 + yddots[i]^2)
     end
     fig = Figure(resolution=(800,800))
-    ax = Axis(fig[1,1], xlabel="t", ylabel="v")
-    ax2 = Axis(fig[2,1], xlabel="t", ylabel="a")
-    lines!(ax, ts, vs)
-    lines!(ax2, ts, as)
+    ax = Axis(fig[1,1], xlabel="t", ylabel="xddot")
+    ax2 = Axis(fig[2,1], xlabel="t", ylabel="yddot")
+    lines!(ax, ts, xddots)
+    lines!(ax2, ts, yddots)
+
+    fig2 = Figure(resolution=(850,600))
+    ax3 = Axis(fig2[1,1], xlabel="x", ylabel="y")
+    lines!(ax3, xs, ys, label="Task", linestyle=:dash, color=:black)
+
     display(GLMakie.Screen(), fig)
+    display(GLMakie.Screen(), fig2)
 end
