@@ -53,16 +53,16 @@ function Spline(;
             f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
             f′[idx:idx+6] = [7*t^6, 6*t^5, 5*t^4, 4*t^3, 3*t^2, 2*t, 1]
-            # f′′[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
-            # f′′′[idx:idx+4] = [210*t^4, 120*t^3, 60*t^2, 24*t, 6]
-            # f4[idx:idx+3] = [840*t^3, 360*t^2, 120*t, 24]
-            # append!(A, f′′)
-            # append!(A, f′′′)
-            # append!(A, f4)
+            if i == n-1
+                f′′[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+                f′′′[idx:idx+4] = [210*t^4, 120*t^3, 60*t^2, 24*t, 6]
+                append!(A, f′′)
+                append!(A, f′′′)
+            end
         else
-            b_x[j:j+1] = [x, -xdot_0]
-            b_y[j:j+1] = [y, -ydot_0]
-            j += 2
+            b_x[j:j+3] = [x, 0.0, 0.0, -xdot_0]
+            b_y[j:j+3] = [y, 0.0, 0.0, -ydot_0]
+            j += 4
         end
 
         if i != n-1
@@ -71,16 +71,16 @@ function Spline(;
             f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
             f′[idx:idx+6] = [-7*t^6, -6*t^5, -5*t^4, -4*t^3, -3*t^2, -2*t, -1]
-            # f′′[idx:idx+5] = [-42*t^5, -30*t^4, -20*t^3, -12*t^2, -6*t, -2]
-            # f′′′[idx:idx+4] = [-210*t^4, -120*t^3, -60*t^2, -24*t, -6]
-            # f4[idx:idx+3] = [-840*t^3, -360*t^2, -120*t, -24]
-            # append!(A, f′′)
-            # append!(A, f′′′)
-            # append!(A, f4)
+            if i == 0
+                f′′[idx:idx+5] = [-42*t^5, -30*t^4, -20*t^3, -12*t^2, -6*t, -2]
+                f′′′[idx:idx+4] = [-210*t^4, -120*t^3, -60*t^2, -24*t, -6]
+                append!(A, f′′)
+                append!(A, f′′′)
+            end
         else
-            b_x[j:j+1] = [x, xdot_f]
-            b_y[j:j+1] = [y, ydot_f]
-            j += 2
+            b_x[j:j+3] = [x, 0.0, 0.0, xdot_0]
+            b_y[j:j+3] = [y, 0.0, 0.0, ydot_0]
+            j += 4
         end
 
         append!(A, f′)
@@ -129,6 +129,9 @@ function Spline(;
     coeffs_x = inv(A)*b_x
     coeffs_y = inv(A)*b_y
 
+    display(A)
+    display(b_x)
+
     return Spline(ts, coeffs_x, coeffs_y, x0, y0)
 end
 
@@ -157,18 +160,18 @@ function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
 
     seg = time_segment(t, spl.ts)
 
-    idx = 4*(seg-1) + 1
-    coeffs_x = spl.coeffs_x[idx:idx+3]
-    coeffs_y = spl.coeffs_y[idx:idx+3]
+    idx = 8*(seg-1) + 1
+    coeffs_x = spl.coeffs_x[idx:idx+7]
+    coeffs_y = spl.coeffs_y[idx:idx+7]
 
-    x = coeffs_x[1]*t^3 + coeffs_x[2]*t^2 + coeffs_x[3]*t + coeffs_x[4]
-    y = coeffs_y[1]*t^3 + coeffs_y[2]*t^2 + coeffs_y[3]*t + coeffs_y[4]
+    x = coeffs_x[1]*t^7 + coeffs_x[2]*t^6 + coeffs_x[3]*t^5 + coeffs_x[4]*t^4 + coeffs_x[5]*t^3 + coeffs_x[6]*t^2 + coeffs_x[7]*t + coeffs_x[8]
+    y = coeffs_y[1]*t^7 + coeffs_y[2]*t^6 + coeffs_y[3]*t^5 + coeffs_y[4]*t^4 + coeffs_y[5]*t^3 + coeffs_y[6]*t^2 + coeffs_y[7]*t + coeffs_y[8]
 
-    xdot = 3*coeffs_x[1]*t^2 + 2*coeffs_x[2]*t + coeffs_x[3]
-    ydot = 3*coeffs_y[1]*t^2 + 2*coeffs_y[2]*t + coeffs_y[3]
+    xdot = 7*coeffs_x[1]*t^6 + 6*coeffs_x[2]*t^5 + 5*coeffs_x[3]*t^4 + 4*coeffs_x[4]*t^3 + 3*coeffs_x[5]*t^2 + 2*coeffs_x[6]*t + coeffs_x[7]
+    ydot = 7*coeffs_y[1]*t^6 + 6*coeffs_y[2]*t^5 + 5*coeffs_y[3]*t^4 + 4*coeffs_y[4]*t^3 + 3*coeffs_y[5]*t^2 + 2*coeffs_y[6]*t + coeffs_y[7]
 
-    xddot = 6*coeffs_x[1]*t + 2*coeffs_x[2]
-    yddot = 6*coeffs_y[1]*t + 2*coeffs_y[2]
+    xddot = 6*7*coeffs_x[1]*t^5 + 5*6*coeffs_x[2]*t^4 + 4*5*coeffs_x[3]*t^3 + 3*4*coeffs_x[4]*t^2 + 2*3*coeffs_x[5]*t + 2*coeffs_x[6]
+    yddot = 6*7*coeffs_y[1]*t^5 + 5*6*coeffs_y[2]*t^4 + 4*5*coeffs_y[3]*t^3 + 3*4*coeffs_y[4]*t^2 + 2*3*coeffs_y[5]*t + 2*coeffs_y[6]
 
     return [x, y, xdot, ydot, xddot, yddot]
 end
