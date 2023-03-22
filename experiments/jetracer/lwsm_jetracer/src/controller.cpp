@@ -24,7 +24,7 @@ void sigIntHandler(int sig)
 class Controller
 {
   public:
-    Controller() : started_(false), is_stopping_(false), 
+    Controller() : started_(false), is_stopping_(false), control_lock_(false),
         kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
@@ -66,6 +66,8 @@ class Controller
       double xdot_des = setpoint[2];
       double ydot_des = setpoint[3];
 
+      control_lock_ = true;
+
       double xdot_tilde_des = xdot_des + kx_*(x_des - x_);
       double ydot_tilde_des = ydot_des + ky_*(y_des - y_);
       double v_des = sqrt(pow(xdot_tilde_des,2.0) + pow(ydot_tilde_des,2.0));
@@ -91,8 +93,7 @@ class Controller
         throttle = 0.0;
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
-      publishCommand(command);
-
+      
       if (!is_stopping_)
       {
         std::vector<double> x{x_, y_, v_, phi_};
@@ -100,6 +101,9 @@ class Controller
         xs_.push_back(x);
         us_.push_back(command);
       }
+
+      control_lock_ = false;
+      publishCommand(command);
     }
 
   private:
@@ -121,8 +125,7 @@ class Controller
     double x_, y_, v_, phi_;
     double last_s_;
     std::vector<double> spline_coeffs_;
-    bool started_;
-    bool is_stopping_;
+    bool started_, is_stopping_, control_lock_;
     std::vector<int> seg_idxs_;
     std::vector<double> ts_;
     std::vector<std::vector<double>> xs_;
@@ -162,6 +165,8 @@ class Controller
 
     void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
     {
+      if (control_lock_)
+        ROS_WARN_STREAM("Spline/gains loaded in the middle of control. Possible mismatch may follow.");
       for(int i = 0; i < 8; i++) 
         spline_coeffs_[i] = spline_gains.data[i];
       kx_ = spline_gains.data[8];
@@ -175,6 +180,8 @@ class Controller
 
     void poseCallback(geometry_msgs::PoseStamped pose)
     {
+      if (control_lock_)
+        return;
       x_ = pose.pose.position.x;
       y_ = pose.pose.position.y;
       phi_ = headingAngle(pose);
@@ -182,6 +189,8 @@ class Controller
 
     void twistCallback(geometry_msgs::TwistStamped twist)
     {
+      if (control_lock_)
+        return;
       double xdot = twist.twist.linear.x;
       double ydot = twist.twist.linear.y;
       v_ = sqrt(pow(xdot, 2.0) + pow(ydot, 2.0));
