@@ -29,10 +29,10 @@ function Spline(;
     end
 
     n = length(ts)
-    row_length = 4*(n-1)
+    row_length = 8*(n-1)
     A = zeros(0)
-    b_x = zeros(4*(n-1))
-    b_y = zeros(4*(n-1))
+    b_x = zeros(8*(n-1))
+    b_y = zeros(8*(n-1))
     x0 = xs[1]
     y0 = ys[1]
 
@@ -43,13 +43,22 @@ function Spline(;
         y = ys[i+1]
 
         f′ = zeros(row_length)
+        f′′ = zeros(row_length)
+        f′′′ = zeros(row_length)
+        f4 = zeros(row_length)
 
         if i != 0
-            idx = 4*(i-1)+1
+            idx = 8*(i-1)+1
             f = zeros(row_length)
-            f[idx:idx+3] = [t^3, t^2, t, 1]
+            f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
-            f′[idx:idx+2] = [3*t^2, 2*t, 1]
+            f′[idx:idx+6] = [7*t^6, 6*t^5, 5*t^4, 4*t^3, 3*t^2, 2*t, 1]
+            # f′′[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+            # f′′′[idx:idx+4] = [210*t^4, 120*t^3, 60*t^2, 24*t, 6]
+            # f4[idx:idx+3] = [840*t^3, 360*t^2, 120*t, 24]
+            # append!(A, f′′)
+            # append!(A, f′′′)
+            # append!(A, f4)
         else
             b_x[j:j+1] = [x, -xdot_0]
             b_y[j:j+1] = [y, -ydot_0]
@@ -57,11 +66,17 @@ function Spline(;
         end
 
         if i != n-1
-            idx = 4*i+1
+            idx = 8*i+1
             f = zeros(row_length)
-            f[idx:idx+3] = [t^3, t^2, t, 1]
+            f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
-            f′[idx:idx+2] = [-3*t^2, -2*t, -1]
+            f′[idx:idx+6] = [-7*t^6, -6*t^5, -5*t^4, -4*t^3, -3*t^2, -2*t, -1]
+            # f′′[idx:idx+5] = [-42*t^5, -30*t^4, -20*t^3, -12*t^2, -6*t, -2]
+            # f′′′[idx:idx+4] = [-210*t^4, -120*t^3, -60*t^2, -24*t, -6]
+            # f4[idx:idx+3] = [-840*t^3, -360*t^2, -120*t, -24]
+            # append!(A, f′′)
+            # append!(A, f′′′)
+            # append!(A, f4)
         else
             b_x[j:j+1] = [x, xdot_f]
             b_y[j:j+1] = [y, ydot_f]
@@ -69,21 +84,44 @@ function Spline(;
         end
 
         append!(A, f′)
+        # append!(A, f′′)
+        # append!(A, f′′′)
+        # append!(A, f4)
 
         if i != 0 && i != n-1
-            #second derivative rows
+            #2nd order derivative row
             f′′ = zeros(row_length)
-            f′′[4*(i-1)+1] = 6*t
-            f′′[4*(i-1) + 1+1] = 2
-
-            f′′[4*i+1] = -6*t
-            f′′[4*i + 1+1] = -2
-
+            f′′[8*(i-1)+1 : 8*(i-1)+1+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+            f′′[8*(i)+1 : 8*(i)+1+5] = [-42*t^5, -30*t^4, -20*t^3, -12*t^2, -6*t, -2]
             append!(A, f′′)
 
-            b_x[j:j+3] = [x, x, 0, 0]
-            b_y[j:j+3] = [y, y, 0, 0]
-            j += 4
+            #3rd order derivative row
+            f′′′ = zeros(row_length)
+            f′′′[8*(i-1)+1 : 8*(i-1)+1+4] = [210*t^4, 120*t^3, 60*t^2, 24*t, 6]
+            f′′′[8*(i)+1 : 8*(i)+1+4] = [-210*t^4, -120*t^3, -60*t^2, -24*t, -6]
+            append!(A, f′′′)
+
+            #4th order derivative row
+            f4 = zeros(row_length)
+            f4[8*(i-1)+1 : 8*(i-1)+1+3] = [840*t^3, 360*t^2, 120*t, 24]
+            f4[8*(i)+1 : 8*(i)+1+3] = [-840*t^3, -360*t^2, -120*t, -24]
+            append!(A, f4)
+
+            #5th order derivative row
+            f5 = zeros(row_length)
+            f5[8*(i-1)+1 : 8*(i-1)+1+2] = [2520*t^2, 720*t, 120]
+            f5[8*(i)+1 : 8*(i)+1+2] = [-2520*t^2, -720*t, -120]
+            append!(A, f5)
+
+            #6th order derivative row
+            f6 = zeros(row_length)
+            f6[8*(i-1)+1 : 8*(i-1)+1+1] = [5040*t, 720]
+            f6[8*(i)+1 : 8*(i)+1+1] = [-5040*t, -720]
+            append!(A, f6)
+
+            b_x[j:j+7] = [x, x, 0, 0, 0, 0, 0, 0]
+            b_y[j:j+7] = [y, y, 0, 0, 0, 0, 0, 0]
+            j += 8
         end
     end
 
