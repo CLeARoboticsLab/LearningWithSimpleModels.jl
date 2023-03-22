@@ -38,16 +38,21 @@ jetracer_figure_eight_task() = figure_eight(;
 Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
     seconds_per_rollout::Float64 = 12.0
     n_beginning_segs_to_truncate::Integer = 0
+    segs_in_window::Integer = 10
+    stopping_segments = 0
 end
 Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
     "Hardware Training Algorithm
     Seconds per rollout: $(p.seconds_per_rollout)
-    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)"
+    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)
+    Segments in window: $(p.segs_in_window)"
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
     seconds_per_rollout = 5 + 6.0*1.25,
-    n_beginning_segs_to_truncate = 13
+    n_beginning_segs_to_truncate = 13,
+    segs_in_window = 5,
+    stopping_segments = 1
 )
 
 jetracer_training_parameters() = TrainingParameters(;
