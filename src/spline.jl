@@ -141,10 +141,12 @@ function eval_all(spl, test_ts)
     ys_spline = zeros(length(test_ts))
     xdots_spline = zeros(length(test_ts))
     ydots_spline = zeros(length(test_ts))
+    xddots_spline = zeros(length(test_ts))
+    yddots_spline = zeros(length(test_ts))
     for (i,t) in enumerate(test_ts)
-        xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i] = evaluate(spl, t)
+        xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i], xddots_spline[i], yddots_spline[i] = evaluate(spl, t)
     end
-    return xs_spline, ys_spline, xdots_spline, ydots_spline
+    return xs_spline, ys_spline, xdots_spline, ydots_spline, xddots_spline, yddots_spline
 end
 
 # tasks in a point evaluated from a task in the form [x, y, xdot, ydot] and
@@ -276,4 +278,32 @@ function evaluate_segment(spl::Spline, time::Real)
     ydot = 5*coeffs_y[1]*t^4 + 4*coeffs_y[2]*t^3 + 3*coeffs_y[3]*t^2 + 2*coeffs_y[4]*t + coeffs_y[5]
 
     return [x, y, xdot, ydot]
+end
+
+function test_plot_acceleration()
+    spl = figure_eight(;
+        x0 = 0.0,
+        y0 = 0.0,
+        xdot_0 = nothing,
+        ydot_0 = nothing,
+        xdot_f = nothing,
+        ydot_f = nothing,
+        radius = 1.50,
+        time = 6.0,
+        laps = 1
+)
+    ts = 0.0:0.01:12.0
+    _, _, xdots, ydots, xddots, yddots = eval_all(spl, ts)
+    vs = zeros(length(ts))
+    as = zeros(length(ts))
+    for i in 1:length(ts)
+        vs[i] = sqrt(xdots[i]^2 + ydots[i]^2)
+        as[i] = sqrt(xddots[i]^2 + yddots[i]^2)
+    end
+    fig = Figure(resolution=(800,800))
+    ax = Axis(fig[1,1], xlabel="t", ylabel="v")
+    ax2 = Axis(fig[2,1], xlabel="t", ylabel="a")
+    lines!(ax, ts, vs)
+    lines!(ax2, ts, as)
+    display(GLMakie.Screen(), fig)
 end
