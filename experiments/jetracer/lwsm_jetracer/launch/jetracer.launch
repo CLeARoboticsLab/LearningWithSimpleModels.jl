@@ -36,7 +36,7 @@
 
     <!-- spline and gains publisher -->
     <node pkg="ros_sockets" type="array_publisher" name="array_publisher" output="screen">
-        <param name="port" value="42424" type="int" />
+        <param name="port" value="42426" type="int" />
         <param name="topic_name" value="jetracer/spline_gains" type="str" />
     </node>
 
@@ -50,6 +50,7 @@
         <param name="cycle_rate" value="50.0" type="double" />
         <param name="max_throttle" value="0.75" type="double" />
         <param name="min_throttle" value="-0.75" type="double" />
+        <param name="stopping_time" value="2.00" type="double" />
     </node>
 
     <!-- Servo Controller -->

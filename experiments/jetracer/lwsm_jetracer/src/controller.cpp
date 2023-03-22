@@ -32,6 +32,7 @@ class Controller
       nh_.getParam("controller/cycle_rate", cycle_rate_);
       nh_.getParam("controller/max_throttle", max_throttle_);
       nh_.getParam("controller/min_throttle", min_throttle_); 
+      nh_.getParam("controller/stopping_time", stopping_time_); 
 
       const auto queue_size = 100;
       throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
@@ -112,8 +113,8 @@ class Controller
     ros::Subscriber twist_sub_;
 
     double cycle_rate_;
-    double max_throttle_;
-    double min_throttle_;
+    double min_throttle_, max_throttle_;
+    double stopping_time_;
     ros::Time start_time_;
     double t_;
     double kx_, ky_, kv_, kphi_;
@@ -146,7 +147,7 @@ class Controller
         publishRolloutData();
         ROS_INFO_STREAM("Rollout data published");
         is_stopping_ = true;
-        ros::Duration(4.0).sleep();
+        ros::Duration(stopping_time_).sleep();
         is_stopping_ = false;
         stop_robot();
       }
