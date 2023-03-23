@@ -131,9 +131,6 @@ function Spline(;
     coeffs_x = inv(A)*b_x
     coeffs_y = inv(A)*b_y
 
-    display(A)
-    display(b_x)
-
     return Spline(ts, coeffs_x, coeffs_y, x0, y0)
 end
 
@@ -331,23 +328,25 @@ function test_plot_acceleration()
         ydot_0 = nothing,
         xdot_f = nothing,
         ydot_f = nothing,
-        radius = 1.00,
+        radius = 3.00,
         time = 10.0,
         laps = 1
 )
-    ts = 0.0:0.01:12.0
-    xs, ys, xdots, ydots, xddots, yddots = eval_all(spl, ts)
+    ts = 0.0:0.01:30.0
+    xs, ys, xdots, ydots = eval_all(spl, ts)
     vs = zeros(length(ts))
-    as = zeros(length(ts))
+    # as = zeros(length(ts))
     for i in 1:length(ts)
         vs[i] = sqrt(xdots[i]^2 + ydots[i]^2)
-        as[i] = sqrt(xddots[i]^2 + yddots[i]^2)
+        # as[i] = sqrt(xddots[i]^2 + yddots[i]^2)
     end
     fig = Figure(resolution=(800,800))
-    ax = Axis(fig[1,1], xlabel="t", ylabel="xddot")
-    ax2 = Axis(fig[2,1], xlabel="t", ylabel="yddot")
-    lines!(ax, ts, xddots)
-    lines!(ax2, ts, yddots)
+    ax = Axis(fig[1,1], xlabel="t", ylabel="xdot")
+    ax2 = Axis(fig[2,1], xlabel="t", ylabel="ydot")
+    ax3 = Axis(fig[3,1], xlabel="t", ylabel="v")
+    lines!(ax, ts, xdots)
+    lines!(ax2, ts, ydots)
+    lines!(ax3, ts, vs)
 
     fig2 = Figure(resolution=(850,600))
     ax3 = Axis(fig2[1,1], xlabel="x", ylabel="y")

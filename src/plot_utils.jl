@@ -76,6 +76,24 @@ function plot_evaluation(;
     display(GLMakie.Screen(), fig)
     display(GLMakie.Screen(), fig2)
     display(GLMakie.Screen(), fig3)
+
+    plot_ctrl_setpoints(eval_data.r)
+end
+
+function plot_ctrl_setpoints(r::RolloutData)
+    fig = Figure(resolution=(1000,800))
+    ax1 = Axis(fig[1,1], xlabel="t", ylabel="x_des")
+    ax2 = Axis(fig[2,1], xlabel="t", ylabel="y_des")
+    ax3 = Axis(fig[3,1], xlabel="t", ylabel="xdot_des")
+    ax4 = Axis(fig[4,1], xlabel="t", ylabel="ydot_des")
+    ax5 = Axis(fig[5,1], xlabel="t", ylabel="v_des")
+    lines!(ax1, r.ts, r.ctrl_setpoints[1,:], label="x_des")
+    lines!(ax2, r.ts, r.ctrl_setpoints[2,:], label="y_des")
+    lines!(ax3, r.ts, r.ctrl_setpoints[3,:], label="xdot_des")
+    lines!(ax4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
+    v = [sqrt(r.ctrl_setpoints[3,i]^2 + r.ctrl_setpoints[4,i]^2) for i in 1:length(r.ts)]
+    lines!(ax5, r.ts, v, label="v_des")
+    display(GLMakie.Screen(), fig)
 end
 
 function plot_task(task::Spline, sim_params::SimulationParameters)
