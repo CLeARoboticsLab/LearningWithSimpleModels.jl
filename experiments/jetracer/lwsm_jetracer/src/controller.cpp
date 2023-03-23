@@ -25,7 +25,7 @@ class Controller
 {
   public:
     Controller() : started_(false), is_stopping_(false), control_lock_(false),
-        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), spline_coeffs_(12, 0.0)
+        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), spline_coeffs_(6, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
@@ -167,12 +167,12 @@ class Controller
     {
       if (control_lock_)
         ROS_WARN_STREAM("Spline/gains loaded in the middle of control. Possible mismatch may follow.");
-      for(int i = 0; i < 12; i++) 
+      for(int i = 0; i < 6; i++) 
         spline_coeffs_[i] = spline_gains.data[i];
-      kx_ = spline_gains.data[12];
-      ky_ = spline_gains.data[13];
-      kv_ = spline_gains.data[14];
-      kphi_ = spline_gains.data[15];
+      kx_ = spline_gains.data[6];
+      ky_ = spline_gains.data[7];
+      kv_ = spline_gains.data[8];
+      kphi_ = spline_gains.data[9];
       if (!is_stopping_)
         seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
@@ -217,10 +217,10 @@ class Controller
       ros::Duration d = ros::Time::now() - start_time_;
       t_ = d.toSec();
 
-      double x = spline_coeffs_[0]*pow(t_, 5.0) + spline_coeffs_[1]*pow(t_, 4.0) + spline_coeffs_[2]*pow(t_, 3.0) + spline_coeffs_[3]*pow(t_, 2.0) + spline_coeffs_[4]*t_ + spline_coeffs_[5];
-      double y = spline_coeffs_[6]*pow(t_, 5.0) + spline_coeffs_[7]*pow(t_, 4.0) + spline_coeffs_[8]*pow(t_, 3.0) + spline_coeffs_[9]*pow(t_, 2.0) + spline_coeffs_[10]*t_ + spline_coeffs_[11];
-      double xdot = 5*spline_coeffs_[0]*pow(t_, 4.0) + 4*spline_coeffs_[1]*pow(t_, 3.0) + 3*spline_coeffs_[2]*pow(t_, 2.0) + 2*spline_coeffs_[3]*pow(t_, 1.0) + spline_coeffs_[4];
-      double ydot = 5*spline_coeffs_[6]*pow(t_, 4.0) + 4*spline_coeffs_[7]*pow(t_, 3.0) + 3*spline_coeffs_[8]*pow(t_, 2.0) + 2*spline_coeffs_[9]*pow(t_, 1.0) + spline_coeffs_[10];
+      double x = spline_coeffs_[0]*pow(t_, 2.0) + spline_coeffs_[1]*t_ + spline_coeffs_[2];
+      double y = spline_coeffs_[3]*pow(t_, 2.0) + spline_coeffs_[4]*t_ + spline_coeffs_[5];
+      double xdot = 2*spline_coeffs_[0]*pow(t_, 1.0) + spline_coeffs_[1];
+      double ydot = 2*spline_coeffs_[3]*pow(t_, 1.0) + spline_coeffs_[4];
 
       std::vector<double> setpoint{x, y, xdot, ydot};
       return setpoint;
