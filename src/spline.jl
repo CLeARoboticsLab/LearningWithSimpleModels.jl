@@ -172,7 +172,7 @@ function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
     xddot = 6*7*coeffs_x[1]*t^5 + 5*6*coeffs_x[2]*t^4 + 4*5*coeffs_x[3]*t^3 + 3*4*coeffs_x[4]*t^2 + 2*3*coeffs_x[5]*t + 2*coeffs_x[6]
     yddot = 6*7*coeffs_y[1]*t^5 + 5*6*coeffs_y[2]*t^4 + 4*5*coeffs_y[3]*t^3 + 3*4*coeffs_y[4]*t^2 + 2*3*coeffs_y[5]*t + 2*coeffs_y[6]
 
-    return [x, y, xdot, ydot, xddot, yddot]
+    return [x, y, xdot, ydot]
 end
 
 # evaluate the spline at all the test_ts and return arrays of the results
@@ -274,15 +274,11 @@ function spline_segment(
     xf = setpoint[1]
     xdot_0 = prev_setpoint[3]
     xdot_f = setpoint[3]
-    xddot_0 = prev_setpoint[5]
-    xddot_f = setpoint[5]
 
     y0 = prev_setpoint[2]
     yf = setpoint[2]
     ydot_0 = prev_setpoint[4]
     ydot_f = setpoint[4]
-    yddot_0 = prev_setpoint[6]
-    yddot_f = setpoint[6]
 
     A = [
             t0^2    t0  1

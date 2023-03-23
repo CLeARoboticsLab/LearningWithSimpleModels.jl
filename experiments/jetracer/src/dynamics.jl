@@ -13,7 +13,7 @@ function rollout_actual_dynamics(
 
     t0_segs = zeros(n_segments)
     x0_segs = zeros(n_states, n_segments)
-    setpoints = zeros(6, n_segments)
+    setpoints = zeros(4, n_segments)
     gain_adjs = zeros(4, n_segments)
     
     x = state(connections)

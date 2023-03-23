@@ -73,7 +73,7 @@ jetracer_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/50.0, # should match controller update rate
     model_dt = 6.0/20,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5]
+    model_scale = [1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5]
 )
 
 jetracer_evaluation_parameters() = EvaluationParameters(;
