@@ -17,7 +17,7 @@ jetracer_cost() = Cost(;
     params = JetracerCostParameters(; input_weight = 0.01),
     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
         return (
-            (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
+            (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2 #+ 3.0*(x[3] - sqrt(x_des[3]^2 + x_des[4]^2))^2
             + cost.params.input_weight*(sum(u.^2))
         )
     end
@@ -49,17 +49,17 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
-    seconds_per_rollout = 5 + 6.0*1.25,
-    n_beginning_segs_to_truncate = 13,
-    segs_in_window = 5,
-    stopping_segments = 1
+    seconds_per_rollout = 5 + 6.0*1.00,
+    n_beginning_segs_to_truncate = 10,
+    segs_in_window = 10,
+    stopping_segments = 2
 )
 
 jetracer_training_parameters() = TrainingParameters(;
     name = "jetracer",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.5e-3,
+    learning_rate = 5e-4,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -73,13 +73,13 @@ jetracer_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/50.0, # should match controller update rate
     model_dt = 6.0/20,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5]
+    model_scale = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5, 0.5, 0.5]
 )
 
 jetracer_evaluation_parameters() = EvaluationParameters(;
     name = "jetracer",
     path = ".data",    
-    n_task_executions = 3,
+    n_task_executions = 1,
     save_plot = true,
     save_animation = true
 )

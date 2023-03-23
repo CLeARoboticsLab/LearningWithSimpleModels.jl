@@ -15,7 +15,7 @@ function make_model(layer_sizes::Vector{<:Integer})
 end
 
 function make_model(n_states::Integer, hidden_layer_sizes::Vector{<:Integer})
-    layer_sizes = vcat(n_states+2, hidden_layer_sizes, 6+4)
+    layer_sizes = vcat(n_states+2, hidden_layer_sizes, 4+6)
     return make_model(layer_sizes)
 end
 

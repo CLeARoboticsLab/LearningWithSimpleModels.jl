@@ -13,7 +13,7 @@ function rollout_actual_dynamics(
 
     t0_segs = zeros(n_segments)
     x0_segs = zeros(n_states, n_segments)
-    setpoints = zeros(4, n_segments)
+    setpoints = zeros(6, n_segments)
     gain_adjs = zeros(4, n_segments)
     
     x = state(connections)
@@ -111,6 +111,8 @@ function starting_setpoint(x::Vector{Float64}; v_init = 0.01)
         x[1],
         x[2],
         max(v_init, x[3])*cos(x[4]),
-        max(v_init, x[3])*sin(x[4])
+        max(v_init, x[3])*sin(x[4]),
+        0.,
+        0.
     ]
 end

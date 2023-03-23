@@ -171,7 +171,7 @@ function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
 
     xdot = 7*coeffs_x[1]*t^6 + 6*coeffs_x[2]*t^5 + 5*coeffs_x[3]*t^4 + 4*coeffs_x[4]*t^3 + 3*coeffs_x[5]*t^2 + 2*coeffs_x[6]*t + coeffs_x[7]
     ydot = 7*coeffs_y[1]*t^6 + 6*coeffs_y[2]*t^5 + 5*coeffs_y[3]*t^4 + 4*coeffs_y[4]*t^3 + 3*coeffs_y[5]*t^2 + 2*coeffs_y[6]*t + coeffs_y[7]
-
+    
     xddot = 6*7*coeffs_x[1]*t^5 + 5*6*coeffs_x[2]*t^4 + 4*5*coeffs_x[3]*t^3 + 3*4*coeffs_x[4]*t^2 + 2*3*coeffs_x[5]*t + 2*coeffs_x[6]
     yddot = 6*7*coeffs_y[1]*t^5 + 5*6*coeffs_y[2]*t^4 + 4*5*coeffs_y[3]*t^3 + 3*4*coeffs_y[4]*t^2 + 2*3*coeffs_y[5]*t + 2*coeffs_y[6]
 
@@ -187,9 +187,9 @@ function eval_all(spl, test_ts)
     xddots_spline = zeros(length(test_ts))
     yddots_spline = zeros(length(test_ts))
     for (i,t) in enumerate(test_ts)
-        xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i], xddots_spline[i], yddots_spline[i] = evaluate(spl, t)
+        xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i] = evaluate(spl, t)
     end
-    return xs_spline, ys_spline, xdots_spline, ydots_spline, xddots_spline, yddots_spline
+    return xs_spline, ys_spline, xdots_spline, ydots_spline
 end
 
 # tasks in a point evaluated from a task in the form [x, y, xdot, ydot] and
@@ -296,8 +296,8 @@ function spline_segment(
             20*tf^3 12*tf^2 6*tf    2       0   0
         ]
 
-    coeffs_x = A \ [x0, xf, xdot_0, xdot_f, xddot_0, xddot_f]
-    coeffs_y = A \ [y0, yf, ydot_0, ydot_f, yddot_0, yddot_f]
+        coeffs_x = A \ [x0, xf, xdot_0, xdot_f, xddot_0, xddot_f]
+        coeffs_y = A \ [y0, yf, ydot_0, ydot_f, yddot_0, yddot_f]
 
     return Spline(
         [t0, tf],

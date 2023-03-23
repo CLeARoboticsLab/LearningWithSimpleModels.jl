@@ -72,7 +72,7 @@ unicycle_training_algorithm() = RandomInitialAlgorithm(;
     variances = [.25^2, .25^2, .25^2, .25^2],
     n_rollouts_per_update = 3,
     segs_per_rollout = 20,
-    segs_in_window = 20,
+    segs_in_window = 5,
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
 )
 
@@ -80,7 +80,7 @@ unicycle_training_parameters() = TrainingParameters(;
     name = "unicycle",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.5e-4,
+    learning_rate = 5e-5,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -94,7 +94,7 @@ unicycle_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 0.01,
     model_dt = 0.5,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    model_scale = ones(8)
 )
 
 unicycle_evaluation_parameters() = EvaluationParameters(;

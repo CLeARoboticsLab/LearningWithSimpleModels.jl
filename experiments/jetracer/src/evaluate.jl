@@ -1,6 +1,7 @@
 function evaluate_on_hardware(;
     task::Spline,
     ctrl_params::ControllerParameters,
+    algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters,
     eval_params::EvaluationParameters,
     use_model::Bool = true
@@ -15,7 +16,7 @@ function evaluate_on_hardware(;
 
     connections = open_connections()
     sleep(0.5)
-    r = rollout_actual_dynamics(connections, task, model, sim_params,
+    r = rollout_actual_dynamics(connections, task, model, algo, sim_params,
         ctrl_params, n_segments; use_model)
     close_connections(connections)
 
@@ -64,5 +65,5 @@ function plot_hardware_evaluation(;
         sim_params = sim_params,
     )
     # TODO need to fix this. has to do with: color = range(0.5,1.0, length=T)
-    # animate_evaluation(eval_params, eval_data)
+    animate_evaluation(eval_params, eval_data)
 end

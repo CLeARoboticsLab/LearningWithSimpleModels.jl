@@ -129,7 +129,7 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     path = joinpath(eval_params.path, filename)
 
     traj_points = Observable(Point2f[(eval_data.r.xs[1,1], eval_data.r.xs[2,1])])
-    ctrl_set_points = Observable(Point2f[(eval_data.r.ctrl_setpoints[1,1], eval_data.r.ctrl_setpoints[2,1])])
+    # ctrl_set_points = Observable(Point2f[(eval_data.r.ctrl_setpoints[1,1], eval_data.r.ctrl_setpoints[2,1])])
     set_points = Observable(Point2f[(eval_data.r.setpoints[1,1], eval_data.r.setpoints[2,1])])
     task_points = Observable(Point2f[(eval_data.xs_task[1], eval_data.ys_task[1])])
     T = length(eval_data.r.ts)
@@ -138,7 +138,7 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     ax = Axis(fig[1,1], xlabel="x", ylabel="y")
     limits!(ax, -8, 8, -5, 5)
     lines!(ax, task_points, label="Task", linestyle=:dash, color=:black)
-    lines!(ax, ctrl_set_points, label="Controller setpoints", linestyle=:dash, color=:red)
+    # lines!(ax, ctrl_set_points, label="Controller setpoints", linestyle=:dash, color=:red)
 
     scatter!(ax, traj_points, color = range(0.5,1.0, length=T), colormap=:thermal, markersize=7)
     scatter!(ax, set_points, color = range(0.5,1.0, length=T), colormap=:thermal, markersize=20)
@@ -146,7 +146,7 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     j = 1
     record(fig, path, 1:T; framterate = 100) do i
         traj_points[] = push!(traj_points[], Point2f(eval_data.r.xs[1,i], eval_data.r.xs[2,i]))
-        ctrl_set_points[] = push!(ctrl_set_points[], Point2f(eval_data.r.ctrl_setpoints[1,i], eval_data.r.ctrl_setpoints[2,i]))
+        # ctrl_set_points[] = push!(ctrl_set_points[], Point2f(eval_data.r.ctrl_setpoints[1,i], eval_data.r.ctrl_setpoints[2,i]))
         if j <= length(eval_data.r.idx_segs) && i >= eval_data.r.idx_segs[j]
             set_points[] = push!(set_points[], Point2f(eval_data.r.setpoints[1,j], eval_data.r.setpoints[2,j]))
             j += 1

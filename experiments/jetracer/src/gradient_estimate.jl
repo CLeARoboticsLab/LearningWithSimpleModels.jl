@@ -35,7 +35,7 @@ function gradient_estimate(
                 x = r.xs[:,idx_seg]
                 for i in r.idx_segs[j]:r.idx_segs[j+1]-1
                     t = r.ts[i]
-                    ctrl_setpoint = evaluate(spline_seg, t; wrap_time=false)
+                    ctrl_setpoint = evaluate_segment(spline_seg, t)
                     u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
                     loss = loss + stage_cost(cost, x, evaluate(task, r.task_t0 + t), u)
                     x_actual_next = r.xs[:,i+1]

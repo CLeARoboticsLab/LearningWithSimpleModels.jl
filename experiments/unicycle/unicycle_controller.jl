@@ -74,7 +74,7 @@ unicycle_controller() = Controller(;
         kv = 1.25,
         kϕ = 2.75,
         limit = true,
-        a_limit = 4.0,
+        a_limit = 10.0,
         ω_limit = 2.5
     ),
     policy = unicycle_policy
