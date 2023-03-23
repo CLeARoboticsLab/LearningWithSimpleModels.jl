@@ -1,13 +1,14 @@
 function plot_rollout(
     r::RolloutData,
     task::Spline,
-    loss::Float64  
+    loss::Float64,
+    losses::Vector{Float64}  
 )
     xs_task, ys_task, _, _ = eval_all(task, r.ts .+ r.task_t0)
     T = length(r.ts)
     segs = length(r.t0_segs)
 
-    fig = Figure(resolution=(1000,800))
+    fig = Figure(resolution=(1400,800))
 
     # trajectory
     ax = Axis(fig[1:3,1:3], title="Loss: $(loss)", xlabel="x", ylabel="y")
@@ -30,6 +31,23 @@ function plot_rollout(
     lines!(ax3_2, r.t0_segs .- r.task_t0, r.gain_adjs[2,:], label="Δky")
     lines!(ax3_3, r.t0_segs .- r.task_t0, r.gain_adjs[3,:], label="Δkv")
     lines!(ax3_4, r.t0_segs .- r.task_t0, r.gain_adjs[4,:], label="Δkϕ")
+
+    # control setpoints
+    vs = [sqrt(r.ctrl_setpoints[3,i]^2 + r.ctrl_setpoints[4,i]^2) for i in 1:length(r.ts)]
+    ax4_1 = Axis(fig[1,5], xlabel="t", ylabel="x_des")
+    ax4_2 = Axis(fig[2,5], xlabel="t", ylabel="y_des")
+    ax4_3 = Axis(fig[3,5], xlabel="t", ylabel="xdot_des")
+    ax4_4 = Axis(fig[4,5], xlabel="t", ylabel="ydot_des")
+    ax4_5 = Axis(fig[5,5], xlabel="t", ylabel="v_des")
+    lines!(ax4_1, r.ts, r.ctrl_setpoints[1,:], label="x_des")
+    lines!(ax4_2, r.ts, r.ctrl_setpoints[2,:], label="y_des")
+    lines!(ax4_3, r.ts, r.ctrl_setpoints[3,:], label="xdot_des")
+    lines!(ax4_4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
+    lines!(ax4_5, r.ts, vs, label="v_des")
+
+    # losses
+    ax5 = Axis(fig[5,4], xlabel="Iteration", ylabel="Loss")
+    lines!(ax5, losses, label="loss")
 
     display(fig)
 end

@@ -17,7 +17,7 @@ function train(;
         optimizer = setup(Adam(training_params.learning_rate), model)
     end
 
-    losses = zeros(training_params.iters)
+    losses = Vector{Float64}(undef,0)
     rollouts = Vector{RolloutData}(undef,0)
     connections = open_connections()
     sleep(0.5)
@@ -25,9 +25,9 @@ function train(;
         loss, r = policy_update!(algo, connections, task, model, optimizer, simple_dynamics,
                                  controller, ctrl_params, cost, sim_params)
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
-        losses[i] = loss
+        push!(losses, loss)
         push!(rollouts, r)
-        plot_rollout(r, task, loss)
+        plot_rollout(r, task, loss, losses)
     end
     close_connections(connections)
 

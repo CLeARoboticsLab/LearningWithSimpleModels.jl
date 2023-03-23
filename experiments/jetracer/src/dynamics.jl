@@ -70,9 +70,9 @@ function rollout_actual_dynamics(
         x0_segs = x0_segs,
         setpoints = setpoints,
         gain_adjs = gain_adjs,
-        ctrl_setpoints = zeros(4, length(rdata.ts)), # TODO
+        ctrl_setpoints = rdata.ctrl_setpoints,
         xf = zeros(4), # TODO; this is probably not needed
-        loss = 0.0# TODO; this might not be needed
+        loss = 0.0 # TODO; this might not be needed
     )
 end
 

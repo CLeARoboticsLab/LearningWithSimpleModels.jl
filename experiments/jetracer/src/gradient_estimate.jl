@@ -17,7 +17,6 @@ function gradient_estimate(
         window_end_idx = window_start_idx + algo.segs_in_window - 1
         while window_end_idx <= n_segments-2 # TODO: I think there is a race condition on the cpp side forcing -2 here
             window = window_start_idx:window_end_idx
-            println(window)
             prev_setpoint = window_start_idx==1 ? starting_setpoint(r.x0_segs[:,1]) : r.setpoints[:,window_start_idx-1]
             for j in window
                 t0_seg = r.t0_segs[j]
