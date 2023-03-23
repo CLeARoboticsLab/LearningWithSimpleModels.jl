@@ -100,6 +100,7 @@ class Controller
         ts_.push_back(t_);
         xs_.push_back(x);
         us_.push_back(command);
+        ctrl_setpoints_.push_back(setpoint);
       }
 
       control_lock_ = false;
@@ -128,8 +129,7 @@ class Controller
     bool started_, is_stopping_, control_lock_;
     std::vector<int> seg_idxs_;
     std::vector<double> ts_;
-    std::vector<std::vector<double>> xs_;
-    std::vector<std::vector<double>> us_;
+    std::vector<std::vector<double>> xs_, us_, ctrl_setpoints_;
 
     static constexpr double PI = 3.14159265358979323846264;
 
@@ -144,6 +144,7 @@ class Controller
         ts_.clear();
         xs_.clear();
         us_.clear();
+        ctrl_setpoints_.clear();
       }
       else
       {
@@ -243,6 +244,7 @@ class Controller
       msg.ts = ts_;
       std::vector<std_msgs::Float64MultiArray> xs;
       std::vector<std_msgs::Float64MultiArray> us;
+      std::vector<std_msgs::Float64MultiArray> ctrl_setpoints;
       for (int i = 0; i < ts_.size(); i++)
       {
         std_msgs::Float64MultiArray x_msg;
@@ -252,9 +254,14 @@ class Controller
         std_msgs::Float64MultiArray u_msg;
         u_msg.data = us_[i];
         us.push_back(u_msg);
+
+        std_msgs::Float64MultiArray ctrl_setpoint_msg;
+        ctrl_setpoint_msg.data = ctrl_setpoints_[i];
+        ctrl_setpoints.push_back(ctrl_setpoint_msg);
       }
       msg.xs = xs;
       msg.us = us;
+      msg.ctrl_setpoints = ctrl_setpoints;
       data_pub_.publish(msg);
     }
 };
