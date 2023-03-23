@@ -285,16 +285,16 @@ function spline_segment(
     yddot_f = setpoint[6]
 
     A = [
-            t0^5    t0^4    t0^3    t0^2    t0  1
-            tf^5    tf^4    tf^3    tf^2    tf  1
-            5*t0^4  4*t0^3  3*t0^2  2*t0    1   0
-            5*tf^4  4*tf^3  3*tf^2  2*tf    1   0
-            20*t0^3 12*t0^2 6*t0    2       0   0
-            20*tf^3 12*tf^2 6*tf    2       0   0
+            t0^2    t0  1
+            tf^2    tf  1
+            2*t0    1   0
+            2*tf    1   0
         ]
 
-        coeffs_x = A \ [x0, xf, xdot_0, xdot_f, xddot_0, xddot_f]
-        coeffs_y = A \ [y0, yf, ydot_0, ydot_f, yddot_0, yddot_f]
+    W = diagm([1.,1.,1.,1.])
+
+    coeffs_x = inv(A'*W*A)*A'*W*[x0, xf, xdot_0, xdot_f]
+    coeffs_y = inv(A'*W*A)*A'*W*[y0, yf, ydot_0, ydot_f]
 
     return Spline(
         [t0, tf],
@@ -305,17 +305,32 @@ function spline_segment(
     )
 end
 
+# function evaluate_segment(spl::Spline, time::Real)
+#     t = time
+
+#     coeffs_x = spl.coeffs_x
+#     coeffs_y = spl.coeffs_y
+
+#     x = coeffs_x[1]*t^5 + coeffs_x[2]*t^4 + coeffs_x[3]*t^3 + coeffs_x[4]*t^2 + coeffs_x[5]*t + coeffs_x[6]
+#     y = coeffs_y[1]*t^5 + coeffs_y[2]*t^4 + coeffs_y[3]*t^3 + coeffs_y[4]*t^2 + coeffs_y[5]*t + coeffs_y[6]
+
+#     xdot = 5*coeffs_x[1]*t^4 + 4*coeffs_x[2]*t^3 + 3*coeffs_x[3]*t^2 + 2*coeffs_x[4]*t + coeffs_x[5]
+#     ydot = 5*coeffs_y[1]*t^4 + 4*coeffs_y[2]*t^3 + 3*coeffs_y[3]*t^2 + 2*coeffs_y[4]*t + coeffs_y[5]
+
+#     return [x, y, xdot, ydot]
+# end
+
 function evaluate_segment(spl::Spline, time::Real)
     t = time
 
     coeffs_x = spl.coeffs_x
     coeffs_y = spl.coeffs_y
 
-    x = coeffs_x[1]*t^5 + coeffs_x[2]*t^4 + coeffs_x[3]*t^3 + coeffs_x[4]*t^2 + coeffs_x[5]*t + coeffs_x[6]
-    y = coeffs_y[1]*t^5 + coeffs_y[2]*t^4 + coeffs_y[3]*t^3 + coeffs_y[4]*t^2 + coeffs_y[5]*t + coeffs_y[6]
+    x = coeffs_x[1]*t^2 + coeffs_x[2]*t + coeffs_x[3]
+    y = coeffs_y[1]*t^2 + coeffs_y[2]*t + coeffs_y[3]
 
-    xdot = 5*coeffs_x[1]*t^4 + 4*coeffs_x[2]*t^3 + 3*coeffs_x[3]*t^2 + 2*coeffs_x[4]*t + coeffs_x[5]
-    ydot = 5*coeffs_y[1]*t^4 + 4*coeffs_y[2]*t^3 + 3*coeffs_y[3]*t^2 + 2*coeffs_y[4]*t + coeffs_y[5]
+    xdot = 2*coeffs_x[1]*t + coeffs_x[2]
+    ydot = 2*coeffs_y[1]*t + coeffs_y[2]
 
     return [x, y, xdot, ydot]
 end
