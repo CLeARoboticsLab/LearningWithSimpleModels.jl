@@ -342,7 +342,7 @@ function test_plot_acceleration()
         radius = 3.00,
         time = 10.0,
         laps = 1
-)
+    )
     ts = 0.0:0.01:30.0
     xs, ys, xdots, ydots = eval_all(spl, ts)
     vs = zeros(length(ts))
