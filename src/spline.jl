@@ -328,7 +328,10 @@ function evaluate_segment(spl::Spline, time::Real)
     xdot = 2*coeffs_x[1]*t + coeffs_x[2]
     ydot = 2*coeffs_y[1]*t + coeffs_y[2]
 
-    return [x, y, xdot, ydot]
+    xddot = 2*coeffs_x[1]
+    yddot = 2*coeffs_y[1]
+
+    return [x, y, xdot, ydot, xddot, yddot]
 end
 
 function test_plot_acceleration()

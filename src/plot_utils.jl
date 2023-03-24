@@ -150,15 +150,21 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     ctrl_set_points = Observable(Point2f[(eval_data.r.ctrl_setpoints[1,1], eval_data.r.ctrl_setpoints[2,1])])
     set_points = Observable(Point2f[(eval_data.r.setpoints[1,1], eval_data.r.setpoints[2,1])])
     task_points = Observable(Point2f[(eval_data.xs_task[1], eval_data.ys_task[1])])
+    task_point = Observable(Point2f[(eval_data.xs_task[1], eval_data.ys_task[1])])
+    task_point_delayed = Observable(Point2f[(eval_data.xs_task[1], eval_data.ys_task[1])])
+    traj_point = Observable(Point2f[(eval_data.r.xs[1,1], eval_data.r.xs[2,1])])
     T = length(eval_data.r.ts)
 
     fig = Figure(resolution=(850,600))
     ax = Axis(fig[1,1], xlabel="x", ylabel="y")
     lines!(ax, task_points, label="Task", linestyle=:dash, color=:black)
     lines!(ax, ctrl_set_points, label="Controller setpoints", linestyle=:dash, color=:red)
-
     scatter!(ax, traj_points, colormap=:thermal, markersize=7)
     scatter!(ax, set_points, colormap=:thermal, markersize=16, marker=:xcross)
+    scatter!(ax, task_point, color=:black, markersize=16)
+    scatter!(ax, task_point_delayed, color=:red, markersize=16)
+    scatter!(ax, traj_point, color=:blue, markersize=16)
+    limits!(ax, -3.5, 3.5, -2.0, 2.0)
 
     j = 1
     record(fig, path, 1:T; framterate = 100) do i
@@ -169,6 +175,10 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
             j += 1
         end
         task_points[] = push!(task_points[], Point2f(eval_data.xs_task[i],eval_data.ys_task[i]))
-        reset_limits!(ax)
+        task_point[] = Point2f[(eval_data.xs_task[i],eval_data.ys_task[i])]
+        delay_idx = max(1, i-Integer(round(0.0/(1/50))))
+        task_point_delayed[] = Point2f[(eval_data.xs_task[delay_idx],eval_data.ys_task[delay_idx])]
+        traj_point[] = Point2f[(eval_data.r.xs[1,i], eval_data.r.xs[2,i])]
+        # reset_limits!(ax)
     end
 end

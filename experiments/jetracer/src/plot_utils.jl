@@ -44,6 +44,11 @@ function plot_rollout(
     lines!(ax4_3, r.ts, r.ctrl_setpoints[3,:], label="xdot_des")
     lines!(ax4_4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
     lines!(ax4_5, r.ts, vs, label="v_des")
+    ylims!(ax4_1, -4, 4)
+    ylims!(ax4_2, -2, 2)
+    ylims!(ax4_3, -2.5, 2.5)
+    ylims!(ax4_4, -2.5, 2.5)
+    ylims!(ax4_5, 1.25, 2.25)
 
     # losses
     ax5 = Axis(fig[5,4], xlabel="Iteration", ylabel="Loss")
