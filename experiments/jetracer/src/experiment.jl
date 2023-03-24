@@ -23,6 +23,19 @@ jetracer_cost() = Cost(;
     end
 )
 
+Base.@kwdef struct JetracerTerminalCostParameters <: CostParameters
+    weight::Float64 = 0.0
+end
+
+jetracer_terminal_cost() = Cost(;
+    params = JetracerTerminalCostParameters(; weight = 0.0),
+    g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
+        return (
+            cost.params.weight*(x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
+        )
+    end
+)
+
 jetracer_figure_eight_task() = figure_eight(;
     x0 = 0.0,
     y0 = 0.0,
@@ -38,6 +51,7 @@ jetracer_figure_eight_task() = figure_eight(;
 Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
     seconds_per_rollout::Float64 = 12.0
     n_beginning_segs_to_truncate::Integer = 0
+    use_window::Bool = false
     segs_in_window::Integer = 10
     stopping_segments = 0
 end
@@ -45,12 +59,14 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
     "Hardware Training Algorithm
     Seconds per rollout: $(p.seconds_per_rollout)
     Skipped beginning segments: $(p.n_beginning_segs_to_truncate)
+    Use window: $(p.use_window)
     Segments in window: $(p.segs_in_window)"
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
     seconds_per_rollout = 3 + 6.0*2.00,
     n_beginning_segs_to_truncate = 20,
+    use_window = true,
     segs_in_window = 20,
     stopping_segments = 2
 )

@@ -7,12 +7,14 @@ function run()
     simple_dynamics = jetracer_simple_dynamics()
     controller = jetracer_controller()
     cost = jetracer_cost()
+    terminal_cost = jetracer_terminal_cost()
 
     train(;
         simple_dynamics = simple_dynamics,
         controller = controller,
         ctrl_params = ctrl_params,
         cost = cost,
+        terminal_cost = terminal_cost,
         task = task,
         algo = algo,
         training_params = training_params,

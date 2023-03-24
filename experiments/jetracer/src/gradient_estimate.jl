@@ -5,6 +5,7 @@ function gradient_estimate(
     simple_dynamics::Dynamics,
     controller::Controller,
     cost::Cost,
+    terminal_cost::Cost,
     algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters
 )
@@ -14,10 +15,13 @@ function gradient_estimate(
         loss = 0.0
         n_segments = length(r.t0_segs)
         window_start_idx = 1 + algo.n_beginning_segs_to_truncate
-        window_end_idx = window_start_idx + algo.segs_in_window - 1
+        window_end_idx = algo.use_window ? window_start_idx + algo.segs_in_window - 1 : n_segments-2
         while window_end_idx <= n_segments-2 # TODO: I think there is a race condition on the cpp side forcing -2 here
             window = window_start_idx:window_end_idx
             prev_setpoint = window_start_idx==1 ? starting_setpoint(r.x0_segs[:,1]) : r.setpoints[:,window_start_idx-1]
+            t = 0.0
+            x = 0.0
+            u = 0.0
             for j in window
                 t0_seg = r.t0_segs[j]
                 tf_seg = t0_seg + sim_params.model_dt
@@ -52,6 +56,7 @@ function gradient_estimate(
                     end
                 end
             end
+            loss = loss + stage_cost(terminal_cost, x, evaluate(task, r.task_t0 + t), u)
             window_start_idx += 1
             window_end_idx += 1
         end
