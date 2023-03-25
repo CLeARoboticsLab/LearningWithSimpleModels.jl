@@ -91,7 +91,7 @@ function rollout_actual_dynamics(
             ctrl_setpoints[:,overall_idx] = evaluate_segment(spline_seg, t+sim_params.dt)
             u = next_command(controller, x, ctrl_setpoints[:,overall_idx], gains_adjustment)
             us_actual[:,overall_idx] = u
-            loss = loss + stage_cost(cost, x, evaluate(task, t), u)
+            loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u)
 
             overall_idx += 1
             t += sim_params.dt

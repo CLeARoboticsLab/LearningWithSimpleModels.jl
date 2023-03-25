@@ -69,6 +69,8 @@ function plot_evaluation(;
     lines!(ax3_7, eval_data.r.t0_segs, eval_data.r.setpoints[2,:], label="y_sp")
     lines!(ax3_8, eval_data.r.t0_segs, eval_data.r.setpoints[3,:], label="xdot_sp")
     lines!(ax3_9, eval_data.r.t0_segs, eval_data.r.setpoints[4,:], label="ydot_sp")
+    ax3_10 = Axis(fig3[5,2], xlabel="t", ylabel="v")
+    lines!(ax3_10, eval_data.r.ts, eval_data.r.xs[3,:], label="v")
 
     if !isnothing(eval_params.path) && eval_params.save_plot
         eval_plot_filename = eval_params.name * "_eval_plot.png"

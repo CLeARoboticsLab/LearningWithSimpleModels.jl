@@ -5,4 +5,5 @@ quadratic_cost(; Q::Matrix{Float64}, R::Matrix{Float64}) = Cost(;
     end
 )
 
-stage_cost(cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) = cost.g(cost::Cost,x,x_des,u)
+stage_cost(cost::Cost, t::Float64, x::Vector{Float64}, x_des::Vector{Float64}, 
+            task::AbstractTask, u::Vector{Float64}) = cost.g(cost::Cost,t,x,x_des,task,u)

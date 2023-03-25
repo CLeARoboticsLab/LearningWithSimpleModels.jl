@@ -147,15 +147,7 @@ end
 Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
 function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
-    t = time
-
-    # wrap time in the case of repeated tasks
-    if wrap_time
-        task_time = end_time(spl)
-        if time > task_time
-            t = time - (time ÷ task_time)*task_time
-        end
-    end
+    t = wrap_time ? wrapped_time(cir, time) : time
 
     seg = time_segment(t, spl.ts)
 

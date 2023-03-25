@@ -31,6 +31,7 @@ export evaluate, to_velocity_and_heading_angle, figure_eight,
     end_time, spline_segment, eval_all, evaluate_segment
 
 include("fig_eight_circle.jl")
+export wrapped_time
 
 include("dynamics.jl")
 export f_simple

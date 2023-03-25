@@ -110,9 +110,10 @@ struct Spline <: AbstractTask
     y0::Float64
 end
 
-Base.@kwdef struct FigEightCircle <: AbstractTask
-    r::Real = 3.0
-    time::Real = 10.0
+struct FigEightCircle <: AbstractTask
+    r::Real
+    time::Real
+    v::Real
 end
 
 Base.@kwdef struct RolloutData
