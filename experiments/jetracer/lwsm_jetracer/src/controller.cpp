@@ -65,6 +65,8 @@ class Controller
       double y_des = setpoint[1];
       double xdot_des = setpoint[2];
       double ydot_des = setpoint[3];
+      double xddot_des = setpoint[4];
+      double yddot_des = setpoint[5];
 
       control_lock_ = true;
 
@@ -88,7 +90,8 @@ class Controller
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
         phi_des += 2*PI;
       
-      double throttle = clamp(kv_*(v_des - v_), min_throttle_, max_throttle_);
+      double a_des = sqrt(pow(xddot_des,2.0) + pow(yddot_des,2.0));
+      double throttle =  clamp(0.03*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
       if (is_stopping_)
         throttle = 0.0;
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
@@ -222,8 +225,10 @@ class Controller
       double y = spline_coeffs_[3]*pow(t_, 2.0) + spline_coeffs_[4]*t_ + spline_coeffs_[5];
       double xdot = 2*spline_coeffs_[0]*pow(t_, 1.0) + spline_coeffs_[1];
       double ydot = 2*spline_coeffs_[3]*pow(t_, 1.0) + spline_coeffs_[4];
+      double xddot = 2*spline_coeffs_[0];
+      double yddot = 2*spline_coeffs_[3];
 
-      std::vector<double> setpoint{x, y, xdot, ydot};
+      std::vector<double> setpoint{x, y, xdot, ydot, xddot, yddot};
       return setpoint;
     }
 
