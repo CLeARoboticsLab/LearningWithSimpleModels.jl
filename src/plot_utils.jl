@@ -49,15 +49,26 @@ function plot_evaluation(;
     lines!(ax1, eval_data.r.ts, eval_data.r.us[1,:], label="accel")
     lines!(ax2, eval_data.r.ts, eval_data.r.us[2,:], label="turn rate")
     
-    fig3 = Figure(resolution=(600,600))
+    fig3 = Figure(resolution=(1000,1200))
     ax3_1 = Axis(fig3[1,1], xlabel="t", ylabel="Δkx")
     ax3_2 = Axis(fig3[2,1], xlabel="t", ylabel="Δky")
     ax3_3 = Axis(fig3[3,1], xlabel="t", ylabel="Δkv")
     ax3_4 = Axis(fig3[4,1], xlabel="t", ylabel="Δkϕ")
+    ax3_5 = Axis(fig3[5,1], xlabel="t", ylabel="Δka")
     lines!(ax3_1, eval_data.r.t0_segs, eval_data.r.gain_adjs[1,:], label="Δkx")
     lines!(ax3_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[2,:], label="Δky")
     lines!(ax3_3, eval_data.r.t0_segs, eval_data.r.gain_adjs[3,:], label="Δkv")
     lines!(ax3_4, eval_data.r.t0_segs, eval_data.r.gain_adjs[4,:], label="Δkϕ")
+    lines!(ax3_5, eval_data.r.t0_segs, eval_data.r.gain_adjs[5,:], label="Δka")
+
+    ax3_6 = Axis(fig3[1,2], xlabel="t", ylabel="x_sp")
+    ax3_7 = Axis(fig3[2,2], xlabel="t", ylabel="y_sp")
+    ax3_8 = Axis(fig3[3,2], xlabel="t", ylabel="xdot_sp")
+    ax3_9 = Axis(fig3[4,2], xlabel="t", ylabel="ydot_sp")
+    lines!(ax3_6, eval_data.r.t0_segs, eval_data.r.setpoints[1,:], label="x_sp")
+    lines!(ax3_7, eval_data.r.t0_segs, eval_data.r.setpoints[2,:], label="y_sp")
+    lines!(ax3_8, eval_data.r.t0_segs, eval_data.r.setpoints[3,:], label="xdot_sp")
+    lines!(ax3_9, eval_data.r.t0_segs, eval_data.r.setpoints[4,:], label="ydot_sp")
 
     if !isnothing(eval_params.path) && eval_params.save_plot
         eval_plot_filename = eval_params.name * "_eval_plot.png"
@@ -164,7 +175,8 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     scatter!(ax, task_point, color=:black, markersize=16)
     scatter!(ax, task_point_delayed, color=:red, markersize=16)
     scatter!(ax, traj_point, color=:blue, markersize=16)
-    limits!(ax, -3.5, 3.5, -2.0, 2.0)
+    # limits!(ax, -3.5, 3.5, -2.0, 2.0)
+    limits!(ax, -6.5, 6.5, -3.5, 3.5)
 
     j = 1
     record(fig, path, 1:T; framterate = 100) do i

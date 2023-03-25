@@ -4,6 +4,7 @@ Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
     kv::Float64
     kϕ::Float64
     limit::Bool
+    ka::Float64
     a_limit::Float64
     ω_limit::Float64
 end
@@ -27,11 +28,14 @@ function unicycle_policy(
     y_des = setpoints[2]
     xdot_des = setpoints[3]
     ydot_des = setpoints[4]
+    xddot_des = setpoints[5]
+    yddot_des = setpoints[6]
 
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
     Δkv = gains_adjustment[3]
     Δkϕ = gains_adjustment[4]    
+    Δka = gains_adjustment[5] 
 
     xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
     ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
@@ -55,7 +59,9 @@ function unicycle_policy(
         ϕ_des += 2*π
     end
 
-    a = (controller.params.kv + Δkv)*(v_des - v)
+    a_des = sqrt(xddot_des^2 + yddot_des^2)
+
+    a = (controller.params.ka + Δka)*a_des + (controller.params.kv + Δkv)*(v_des - v)
     ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     if controller.params.limit
@@ -73,6 +79,7 @@ unicycle_controller() = Controller(;
         ky = 2.25,
         kv = 1.25,
         kϕ = 2.75,
+        ka = 0.03,
         limit = true,
         a_limit = 10.0,
         ω_limit = 2.5

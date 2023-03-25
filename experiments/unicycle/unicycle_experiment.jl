@@ -80,8 +80,8 @@ unicycle_training_parameters() = TrainingParameters(;
     name = "unicycle",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.5e-4,
-    iters = 10,
+    learning_rate = .5e-4,
+    iters = 15,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -94,7 +94,7 @@ unicycle_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 0.01,
     model_dt = 0.5,
-    model_scale = ones(8)
+    model_scale = [1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.5]
 )
 
 unicycle_evaluation_parameters() = EvaluationParameters(;

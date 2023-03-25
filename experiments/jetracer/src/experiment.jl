@@ -16,10 +16,12 @@ end
 jetracer_cost() = Cost(;
     params = JetracerCostParameters(; input_weight = 0.01),
     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
-        w = 2.0
-        θ = atan(x_des[4], x_des[3])
+        # w = 2.0
+        θ_des = atan(x_des[4], x_des[3])
         return (
-            (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2 #+ 3.0*(x[3] - sqrt(x_des[3]^2 + x_des[4]^2))^2
+            (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2 
+            #+ 0.25*(x[3] - sqrt(x_des[3]^2 + x_des[4]^2))^2
+            #+ 0.25*(x[4] - θ_des)^2
             + cost.params.input_weight*(sum(u.^2))
             # (x[1] - x_des[1])^2*(1+w*(cos(θ))^2) + (x[2] - x_des[2])^2*(1+w*(sin(θ))^2)
             # + cost.params.input_weight*(sum(u.^2))
@@ -72,14 +74,14 @@ jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
     n_beginning_segs_to_truncate = 17,
     use_window = false,
     segs_in_window = 20,
-    stopping_segments = 2
+    stopping_segments = 3
 )
 
 jetracer_training_parameters() = TrainingParameters(;
     name = "jetracer",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 1.5e-2,
+    learning_rate = 1.5e-4,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -93,7 +95,7 @@ jetracer_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/50.0, # should match controller update rate
     model_dt = 6.0/20.0,
-    model_scale = [1.0, 1.0, .5, .5, 0.25, 0.25, 0.25, 0.25, 0.07]
+    model_scale = [0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.5, 0.5, 0.10]
 )
 
 jetracer_evaluation_parameters() = EvaluationParameters(;
