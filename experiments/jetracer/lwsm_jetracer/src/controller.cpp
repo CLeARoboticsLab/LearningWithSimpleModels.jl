@@ -25,7 +25,7 @@ class Controller
 {
   public:
     Controller() : started_(false), is_stopping_(false), control_lock_(false),
-        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), spline_coeffs_(6, 0.0)
+        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), spline_coeffs_(6, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
@@ -91,7 +91,7 @@ class Controller
         phi_des += 2*PI;
       
       double a_des = sqrt(pow(xddot_des,2.0) + pow(yddot_des,2.0));
-      double throttle =  clamp(0.03*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
+      double throttle =  clamp(ka_*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
       if (is_stopping_)
         throttle = 0.0;
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
@@ -125,7 +125,7 @@ class Controller
     double stopping_time_;
     ros::Time start_time_;
     double t_;
-    double kx_, ky_, kv_, kphi_;
+    double kx_, ky_, kv_, kphi_, ka_;
     double x_, y_, v_, phi_;
     double last_s_;
     std::vector<double> spline_coeffs_;
@@ -177,6 +177,7 @@ class Controller
       ky_ = spline_gains.data[7];
       kv_ = spline_gains.data[8];
       kphi_ = spline_gains.data[9];
+      ka_ = spline_gains.data[10];
       if (!is_stopping_)
         seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
