@@ -1,6 +1,6 @@
 function gradient_estimate(
     r::RolloutData,
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     simple_dynamics::Dynamics,
     controller::Controller,
@@ -18,7 +18,7 @@ end
 
 function gradient_estimate(
     rs::Vector{RolloutData},
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     simple_dynamics::Dynamics,
     controller::Controller,

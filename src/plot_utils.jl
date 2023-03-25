@@ -107,7 +107,7 @@ function plot_ctrl_setpoints(r::RolloutData)
     display(GLMakie.Screen(), fig)
 end
 
-function plot_task(task::Spline, sim_params::SimulationParameters)
+function plot_task(task::AbstractTask, sim_params::SimulationParameters)
     task_time, _ = properties(task, sim_params)
     ts = 0.0:sim_params.dt:task_time
     xs_task, ys_task, _, _ = eval_all(task, ts)
@@ -119,7 +119,7 @@ function plot_task(task::Spline, sim_params::SimulationParameters)
 end
 
 #TODO: separate rollouts by policy update
-function animate_training(training_params::TrainingParameters, rollouts::Vector{RolloutData}, task::Spline)
+function animate_training(training_params::TrainingParameters, rollouts::Vector{RolloutData}, task::AbstractTask)
     if isnothing(training_params.save_path) || !training_params.save_animation
         return
     end

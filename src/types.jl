@@ -100,12 +100,19 @@ Base.@kwdef struct EvaluationParameters
     save_animation::Bool = false
 end
 
-struct Spline
+abstract type AbstractTask end
+
+struct Spline <: AbstractTask
     ts::Vector{Float64}
     coeffs_x::Vector{Float64}
     coeffs_y::Vector{Float64}
     x0::Float64
     y0::Float64
+end
+
+Base.@kwdef struct FigEightCircle <: AbstractTask
+    r::Real = 3.0
+    time::Real = 10.0
 end
 
 Base.@kwdef struct RolloutData

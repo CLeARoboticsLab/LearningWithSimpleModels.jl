@@ -1,6 +1,6 @@
 function rollout_actual_dynamics(
     connections::Connections,
-    task::Spline,
+    task::AbstractTask,
     model::Chain,
     algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters,

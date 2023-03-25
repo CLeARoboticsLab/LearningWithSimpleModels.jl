@@ -4,7 +4,7 @@ f_actual(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{F
 # Rollout from the x0 given in sim_params, for the entire task specified by
 # eval_params, from the beginning
 function rollout_actual_dynamics(
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller,
@@ -26,7 +26,7 @@ end
 
 # Rollout from the specified t0, x0, for only n_segments model calls 
 function rollout_actual_dynamics(
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller,

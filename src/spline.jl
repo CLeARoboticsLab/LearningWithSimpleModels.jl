@@ -208,7 +208,7 @@ end
 
 end_time(spl::Spline) = last(spl.ts)
 
-function properties(task::Spline, sim_params::SimulationParameters)
+function properties(task::AbstractTask, sim_params::SimulationParameters)
     task_time = end_time(task)
     segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
     return task_time, segment_length
@@ -346,8 +346,12 @@ function test_plot_acceleration()
         time = 10.0,
         laps = 1
     )
+    plot_task(spl)
+end
+
+function plot_task(task)
     ts = 0.0:0.01:30.0
-    xs, ys, xdots, ydots = eval_all(spl, ts)
+    xs, ys, xdots, ydots = eval_all(task, ts)
     vs = zeros(length(ts))
     # as = zeros(length(ts))
     for i in 1:length(ts)

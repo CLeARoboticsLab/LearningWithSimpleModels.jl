@@ -3,7 +3,7 @@ function train(;
     actual_dynamics::Dynamics,
     controller::Controller,
     cost::Cost,
-    task::Spline,
+    task::AbstractTask,
     algo::TrainingAlgorithm,
     training_params::TrainingParameters,
     sim_params::SimulationParameters  
@@ -38,7 +38,7 @@ end
 
 function policy_update!(
     algo::WalkingWindowAlgorithm,
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     optimizer,
     simple_dynamics::Dynamics,
@@ -62,7 +62,7 @@ end
 
 function policy_update!(
     algo::RandomInitialAlgorithm,
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     optimizer,
     simple_dynamics::Dynamics,
