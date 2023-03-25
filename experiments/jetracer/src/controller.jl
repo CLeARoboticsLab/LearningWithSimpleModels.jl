@@ -3,6 +3,7 @@ Base.@kwdef struct JetsonControllerParameters <: ControllerParameters
     ky::Float64
     kv::Float64
     kϕ::Float64
+    ka::Float64
     limit::Bool
     a_limit::Float64
     ω_limit::Float64
@@ -13,6 +14,7 @@ jetracer_controller_parameters() = JetsonControllerParameters(;
     ky = 0.45,
     kv = 0.45,
     kϕ = 0.45,
+    ka = 0.03,
     limit = true,
     a_limit = 0.75,
     ω_limit = 1.0
@@ -39,7 +41,8 @@ function jetracer_policy(
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
     Δkv = gains_adjustment[3]
-    Δkϕ = gains_adjustment[4]    
+    Δkϕ = gains_adjustment[4]
+    Δka = gains_adjustment[5]    
 
     xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
     ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
@@ -65,7 +68,7 @@ function jetracer_policy(
 
     a_des = sqrt(xddot_des^2 + yddot_des^2)
     
-    a = 0.03*a_des + (controller.params.kv + Δkv)*(v_des - v)
+    a = (controller.params.ka + Δka)*a_des + (controller.params.kv + Δkv)*(v_des - v)
     ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     if controller.params.limit

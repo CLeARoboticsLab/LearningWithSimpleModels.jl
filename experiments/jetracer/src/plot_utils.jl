@@ -27,10 +27,12 @@ function plot_rollout(
     ax3_2 = Axis(fig[2,4], xlabel="t", ylabel="Δky")
     ax3_3 = Axis(fig[3,4], xlabel="t", ylabel="Δkv")
     ax3_4 = Axis(fig[4,4], xlabel="t", ylabel="Δkϕ")
+    ax3_5 = Axis(fig[5,4], xlabel="t", ylabel="Δka")
     lines!(ax3_1, r.t0_segs .- r.task_t0, r.gain_adjs[1,:], label="Δkx")
     lines!(ax3_2, r.t0_segs .- r.task_t0, r.gain_adjs[2,:], label="Δky")
     lines!(ax3_3, r.t0_segs .- r.task_t0, r.gain_adjs[3,:], label="Δkv")
     lines!(ax3_4, r.t0_segs .- r.task_t0, r.gain_adjs[4,:], label="Δkϕ")
+    lines!(ax3_5, r.t0_segs .- r.task_t0, r.gain_adjs[5,:], label="Δka")
 
     # control setpoints
     vs = [sqrt(r.ctrl_setpoints[3,i]^2 + r.ctrl_setpoints[4,i]^2) for i in 1:length(r.ts)]
@@ -38,20 +40,20 @@ function plot_rollout(
     ax4_2 = Axis(fig[2,5], xlabel="t", ylabel="y_des")
     ax4_3 = Axis(fig[3,5], xlabel="t", ylabel="xdot_des")
     ax4_4 = Axis(fig[4,5], xlabel="t", ylabel="ydot_des")
-    ax4_5 = Axis(fig[5,5], xlabel="t", ylabel="v_des")
+    # ax4_5 = Axis(fig[5,5], xlabel="t", ylabel="v_des")
     lines!(ax4_1, r.ts, r.ctrl_setpoints[1,:], label="x_des")
     lines!(ax4_2, r.ts, r.ctrl_setpoints[2,:], label="y_des")
     lines!(ax4_3, r.ts, r.ctrl_setpoints[3,:], label="xdot_des")
     lines!(ax4_4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
-    lines!(ax4_5, r.ts, vs, label="v_des")
+    # lines!(ax4_5, r.ts, vs, label="v_des")
     ylims!(ax4_1, -4, 4)
     ylims!(ax4_2, -2, 2)
     ylims!(ax4_3, -2.5, 2.5)
     ylims!(ax4_4, -2.5, 2.5)
-    ylims!(ax4_5, 1.25, 2.25)
+    # ylims!(ax4_5, 1.25, 2.25)
 
     # losses
-    ax5 = Axis(fig[5,4], xlabel="Iteration", ylabel="Loss")
+    ax5 = Axis(fig[5,5], xlabel="Iteration", ylabel="Loss")
     lines!(ax5, losses, label="loss")
 
     display(fig)
