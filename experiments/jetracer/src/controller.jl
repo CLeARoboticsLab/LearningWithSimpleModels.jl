@@ -33,6 +33,8 @@ function jetracer_policy(
     y_des = setpoints[2]
     xdot_des = setpoints[3]
     ydot_des = setpoints[4]
+    xddot_des = setpoints[5]
+    yddot_des = setpoints[6]
 
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
@@ -61,7 +63,9 @@ function jetracer_policy(
         ϕ_des += 2*π
     end
 
-    a = (controller.params.kv + Δkv)*(v_des - v)
+    a_des = sqrt(xddot_des^2 + yddot_des^2)
+    
+    a = 0.03*a_des + (controller.params.kv + Δkv)*(v_des - v)
     ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     if controller.params.limit

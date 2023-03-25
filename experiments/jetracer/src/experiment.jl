@@ -68,8 +68,8 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
 )
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
-    seconds_per_rollout = 5 + 6.0*2.00,
-    n_beginning_segs_to_truncate = 10,
+    seconds_per_rollout = 5 + 6.0*3.00,
+    n_beginning_segs_to_truncate = 17,
     use_window = false,
     segs_in_window = 20,
     stopping_segments = 2
@@ -79,7 +79,7 @@ jetracer_training_parameters() = TrainingParameters(;
     name = "jetracer",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.5e-2,
+    learning_rate = 1.5e-2,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
