@@ -1,6 +1,6 @@
 function gradient_estimate(
     r::RolloutData,
-    task::Spline,
+    task::AbstractTask,
     model::Chain,
     simple_dynamics::Dynamics,
     controller::Controller,
@@ -40,7 +40,7 @@ function gradient_estimate(
                     t = r.ts[i]
                     ctrl_setpoint = evaluate_segment(spline_seg, t)
                     u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
-                    loss = loss + stage_cost(cost, x, evaluate(task, r.task_t0 + t), u)
+                    loss = loss + stage_cost(cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u)
                     x_actual_next = r.xs[:,i+1]
                     x = (
                         f_simple(simple_dynamics, t, sim_params.dt, x, u)
@@ -56,7 +56,7 @@ function gradient_estimate(
                     end
                 end
             end
-            loss = loss + stage_cost(terminal_cost, x, evaluate(task, r.task_t0 + t), u)
+            loss = loss + stage_cost(terminal_cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u)
             window_start_idx += 1
             window_end_idx += 1
         end

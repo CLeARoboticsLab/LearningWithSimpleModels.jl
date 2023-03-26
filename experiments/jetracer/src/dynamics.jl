@@ -57,7 +57,7 @@ function rollout_actual_dynamics(
         end 
     end
     
-    sleep(5.5)
+    sleep(8.5)
     
     rdata = rollout_data(connections)
     return RolloutData(;
@@ -90,7 +90,7 @@ end
 # task into n_points, calculates a cost for each point (distance to each point +
 # ϕ_weight * different in heading angle), and outputs the task time which
 # minimizes this cost
-function estimate_task_t0(task::Spline, x::Vector{Float64}, n_points::Integer = 100, ϕ_weight = 0.25)
+function estimate_task_t0(task::AbstractTask, x::Vector{Float64}, n_points::Integer = 100, ϕ_weight = 0.25)
     dt = end_time(task) / n_points
     costs = zeros(n_points)
     for i in 1:n_points

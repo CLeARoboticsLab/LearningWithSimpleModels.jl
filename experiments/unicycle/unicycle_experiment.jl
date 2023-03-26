@@ -37,7 +37,7 @@ unicycle_actual_dynamics() = Dynamics(;
     end
 )
 
-Base.@kwdef struct UnicycleCostParameters <: CostParameters
+Base.@kwdef struct UnicycleCostParameters <: CostParameters #TODO vel weight
     input_weight::Float64 = 0.0
 end
 

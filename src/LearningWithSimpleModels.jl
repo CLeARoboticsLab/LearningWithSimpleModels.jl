@@ -24,7 +24,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     TrainingAlgorithm, WalkingWindowAlgorithm, RandomInitialAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
-    FigEightCircle, Spline, RolloutData, EvaluationData
+    AbstractTask, FigEightCircle, Spline, RolloutData, EvaluationData
 
 include("spline.jl")
 export evaluate, to_velocity_and_heading_angle, figure_eight, 
