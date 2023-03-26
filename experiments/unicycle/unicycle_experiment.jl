@@ -55,7 +55,7 @@ unicycle_cost() = Cost(;
     params = UnicycleCostParameters(; input_weight = 0.01),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
         t = wrapped_time(cir,time)
-        center_x = t < cir.time/2 ? cir.r : -cir.r
+        center_x = x[1] > 0.0 ? cir.r : -cir.r
         center_y = 0.0
         r = sqrt((x[1]-center_x)^2 + (x[2]-center_y)^2)
         v = x[3]

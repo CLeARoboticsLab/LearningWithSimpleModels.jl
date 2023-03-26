@@ -56,7 +56,7 @@ function gradient_estimate(
                     end
                 end
             end
-            loss = loss + stage_cost(terminal_cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u)
+            # loss = loss + stage_cost(terminal_cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u)
             window_start_idx += 1
             window_end_idx += 1
         end

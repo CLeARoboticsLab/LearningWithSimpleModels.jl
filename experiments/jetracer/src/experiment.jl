@@ -11,6 +11,7 @@ jetracer_simple_dynamics() = Dynamics(;
 
 Base.@kwdef struct JetracerCostParameters <: CostParameters
     vel_weight::Float64 = 0.1
+    angle_weight::Float64 = 0.1
     input_weight::Float64 = 0.0
 end
 
@@ -31,17 +32,66 @@ end
 # )
 
 jetracer_cost() = Cost(;
-    params = JetracerCostParameters(; vel_weight=1/30, input_weight = 0.00),
+    params = JetracerCostParameters(; vel_weight=1/30, angle_weight=10/30, input_weight = 0.00),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
         t = wrapped_time(cir,time)
-        # center_x = t < cir.time/2 ? cir.r : -cir.r
-        center_x = x[1] > 0.0 ? cir.r : -cir.r
+        extra_weight = 1.0        
+
+        nom_quadrant = Integer(ceil(t/cir.time * 4))
+
+        if nom_quadrant == 1
+            if x[2] > 0.0
+                center_x = cir.r
+            else
+                center_x = -cir.r
+            end
+        elseif nom_quadrant == 2
+            center_x = cir.r
+        elseif nom_quadrant == 3
+            if x[2] > 0.0
+                center_x = -cir.r
+            else
+                center_x = cir.r
+            end
+        elseif nom_quadrant == 4   
+            center_x = -cir.r
+        end
+
         center_y = 0.0
         r = sqrt((x[1]-center_x)^2 + (x[2]-center_y)^2)
+
         v = x[3]
+        ϕ = x[4]
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+
+        if nom_quadrant == 1
+            if x[2] > 0.0
+                ϕ_des = arc_angle - π/2
+            else
+                ϕ_des = arc_angle + π/2
+            end
+        elseif nom_quadrant == 2
+            ϕ_des = arc_angle - π/2  
+        elseif nom_quadrant == 3
+            if x[2] > 0.0
+                ϕ_des = arc_angle + π/2
+            else
+                ϕ_des = arc_angle - π/2
+            end
+        elseif nom_quadrant == 4   
+            ϕ_des = arc_angle + π/2 
+        end
+
+        if abs(ϕ_des - ϕ) > abs(ϕ_des - 2*π - ϕ)
+            ϕ_des -= 2*π
+        elseif abs(ϕ_des - ϕ) > abs(ϕ_des + 2*π - ϕ)
+            ϕ_des += 2*π
+        end
+
         return (
-            (r - cir.r)^2
+            extra_weight*(r - cir.r)^2
             + cost.params.vel_weight*(v - cir.v)^2
+            + cost.params.angle_weight*(ϕ - ϕ_des)^2
             + cost.params.input_weight*(sum(u.^2))
         )
     end
@@ -89,17 +139,17 @@ Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
     seconds_per_rollout = 5 + 5.5*3.00,
-    n_beginning_segs_to_truncate = 20,
+    n_beginning_segs_to_truncate = 20*2,
     use_window = true,
-    segs_in_window = 15,
-    stopping_segments = 4
+    segs_in_window = 15*2,
+    stopping_segments = 4*2
 )
 
 jetracer_training_parameters() = TrainingParameters(;
     name = "jetracer",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 1.0e-3,
+    learning_rate = 2.0e-3,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -112,14 +162,14 @@ jetracer_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, 0.0],
     n_inputs = 2,
     dt = 1.0/50.0, # should match controller update rate
-    model_dt = 5.5/20.0,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.25, 0.07]
+    model_dt = 5.5/20.0/2,
+    model_scale = [1.0, 1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.00, 0.00]
 )
 
 jetracer_evaluation_parameters() = EvaluationParameters(;
     name = "jetracer",
     path = ".data",    
-    n_task_executions = 3,
+    n_task_executions = 6,
     save_plot = true,
     save_animation = true
 )

@@ -57,7 +57,7 @@ function rollout_actual_dynamics(
         end 
     end
     
-    sleep(8.5)
+    sleep(5.5)
     
     rdata = rollout_data(connections)
     return RolloutData(;
