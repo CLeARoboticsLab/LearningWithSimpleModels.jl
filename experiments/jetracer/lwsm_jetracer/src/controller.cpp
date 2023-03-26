@@ -85,6 +85,14 @@ class Controller
       else if (ydot_tilde_des < 0.0)
         phi_des += 2*PI;
       
+      if(is_stopping_)
+      {
+        double center_x = x_ < 0.0 ? -1.5 : 1.5;
+        double center_y = 0.0;
+        double arc_angle = atan2(y_ - center_y, x_ - center_x);
+        phi_des = x_ < 0.0 ? arc_angle + PI/2 : arc_angle - PI/2;
+      }
+
       if (abs(phi_des - phi_) > abs(phi_des - 2*PI - phi_))
         phi_des -= 2*PI;
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
@@ -92,8 +100,10 @@ class Controller
       
       double a_des = sqrt(pow(xddot_des,2.0) + pow(yddot_des,2.0));
       double throttle =  clamp(ka_*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
+      
       if (is_stopping_)
         throttle = 0.0;
+
       double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
       std::vector<double> command{throttle, steering};
       
