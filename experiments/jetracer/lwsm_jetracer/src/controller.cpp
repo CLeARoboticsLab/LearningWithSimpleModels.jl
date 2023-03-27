@@ -25,7 +25,7 @@ class Controller
 {
   public:
     Controller() : started_(false), is_stopping_(false), control_lock_(false),
-        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), spline_coeffs_(8, 0.0)
+        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), komg_(0.0), spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
@@ -102,15 +102,19 @@ class Controller
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
         phi_des += 2*PI;
       
-      double a_des = sqrt(pow(xddot_des,2.0) + pow(yddot_des,2.0));
-      double throttle =  clamp(ka_*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
+      // feedforward control inputs
+      double v_des_og = sqrt(xdot_des*xdot_des + ydot_des*ydot_des);
+      double phi_des_og = atan2(ydot_des, xdot_des);
+      double a_des = cos(phi_des_og)*xddot_des + sin(phi_des_og)*yddot_des;
+      double omg_des = -xddot_des/v_des_og*sin(phi_des_og) + yddot_des/v_des_og*cos(phi_des_og);
 
-      double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
+      double throttle =  clamp(ka_*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
+      double steering = clamp(komg_*omg_des + kphi_*(phi_des - phi_), -1.0, 1.0);
 
       if (is_stopping_)
       {
         throttle = 0.0;
-        steering = steering*1.00;
+        steering = steering*1.10;
       }
 
       std::vector<double> command{throttle, steering};
@@ -143,7 +147,7 @@ class Controller
     double stopping_time_;
     ros::Time start_time_;
     double t_;
-    double kx_, ky_, kv_, kphi_, ka_;
+    double kx_, ky_, kv_, kphi_, ka_, komg_;
     double x_, y_, v_, phi_;
     double last_s_;
     std::vector<double> spline_coeffs_;
@@ -212,6 +216,7 @@ class Controller
       kv_ = spline_gains.data[8];
       kphi_ = spline_gains.data[9];
       ka_ = spline_gains.data[10];
+      komg_ = spline_gains.data[11];
       if (!is_stopping_)
         seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
