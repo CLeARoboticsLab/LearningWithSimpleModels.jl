@@ -82,7 +82,8 @@ function send_command(
         ctrl_params.ky,
         ctrl_params.kv,
         ctrl_params.kϕ,
-        ctrl_params.ka] + gains_adjustment)
+        ctrl_params.ka,
+        ctrl_params.kω] + gains_adjustment)
     command = JSON.json(Dict("array" => payload)) * "\n"
     send(connections.control, command)
 end

@@ -14,7 +14,7 @@ function rollout_actual_dynamics(
     t0_segs = zeros(n_segments)
     x0_segs = zeros(n_states, n_segments)
     setpoints = zeros(4, n_segments)
-    gain_adjs = zeros(5, n_segments)
+    gain_adjs = zeros(6, n_segments)
     
     x = state(connections)
     task_t0 = estimate_task_t0(task, x)
@@ -37,7 +37,7 @@ function rollout_actual_dynamics(
             # Discard the new_setpoints and gains if not using the model
             if !use_model || j > n_segments
                 new_setpoint = setpoint
-                gains_adjustment = zeros(5)
+                gains_adjustment = zeros(6)
             end 
             
             prev_setpoint = j in 2:n_segments ? setpoints[:,j-1] : starting_setpoint(x)

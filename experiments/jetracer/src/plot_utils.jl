@@ -37,19 +37,16 @@ function plot_rollout(
     # control setpoints
     # vs = [sqrt(r.ctrl_setpoints[3,i]^2 + r.ctrl_setpoints[4,i]^2) for i in 1:length(r.ts)]
     ax4_1 = Axis(fig[1,5], xlabel="t", ylabel="v")
-    ax4_2 = Axis(fig[2,5], xlabel="t", ylabel="y_des")
+    ax4_2 = Axis(fig[2,5], xlabel="t", ylabel="Δkω")
     ax4_3 = Axis(fig[3,5], xlabel="t", ylabel="xdot_des")
     ax4_4 = Axis(fig[4,5], xlabel="t", ylabel="ydot_des")
     # ax4_5 = Axis(fig[5,5], xlabel="t", ylabel="v_des")
     lines!(ax4_1, r.ts, r.xs[3,:], label="v")
-    lines!(ax4_2, r.ts, r.ctrl_setpoints[2,:], label="y_des")
+    lines!(ax4_2, r.t0_segs .- r.task_t0, r.gain_adjs[6,:], label="Δkω")
     lines!(ax4_3, r.ts, r.ctrl_setpoints[3,:], label="xdot_des")
     lines!(ax4_4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
-    # lines!(ax4_5, r.ts, vs, label="v_des")
-    # ylims!(ax4_1, -4, 4)
-    ylims!(ax4_2, -2, 2)
-    ylims!(ax4_3, -2.5, 2.5)
-    ylims!(ax4_4, -2.5, 2.5)
+    ylims!(ax4_3, -3.5, 3.5)
+    ylims!(ax4_4, -3.5, 3.5)
     # ylims!(ax4_5, 1.25, 2.25)
 
     # losses
