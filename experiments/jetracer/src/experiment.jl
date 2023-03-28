@@ -4,7 +4,7 @@ jetracer_simple_dynamics() = Dynamics(;
             x[1] + x[3]*cos(x[4])*dt,
             x[2] + x[3]*sin(x[4])*dt,
             x[3] + u[1]*dt,
-            x[4] + u[2]*dt
+            x[4] + x[3]*u[2]*dt
         ]
     end
 )
