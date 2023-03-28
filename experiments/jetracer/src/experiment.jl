@@ -32,7 +32,7 @@ end
 # )
 
 jetracer_cost() = Cost(;
-    params = JetracerCostParameters(; vel_weight=1/30, angle_weight=30/30, input_weight = 0.00),
+    params = JetracerCostParameters(; vel_weight=1/30, angle_weight=10/30, input_weight = 0.00),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
         t = wrapped_time(cir,time)
         extra_weight = 1.0        
