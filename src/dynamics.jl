@@ -49,7 +49,7 @@ function rollout_actual_dynamics(
     xs_actual = zeros(n_states, total_timesteps)
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
     setpoints = zeros(4, n_segments)
-    gain_adjs = zeros(5, n_segments)
+    gain_adjs = zeros(6, n_segments)
     ctrl_setpoints = zeros(6, total_timesteps)
 
     overall_idx = 1
@@ -73,7 +73,7 @@ function rollout_actual_dynamics(
         # Discard the new_setpoints and gains if not using the model
         if !use_model
             new_setpoint = setpoint
-            gains_adjustment = zeros(5)
+            gains_adjustment = zeros(6)
         end 
 
         setpoints[:,j] = new_setpoint

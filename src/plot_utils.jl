@@ -55,11 +55,13 @@ function plot_evaluation(;
     ax3_3 = Axis(fig3[3,1], xlabel="t", ylabel="Δkv")
     ax3_4 = Axis(fig3[4,1], xlabel="t", ylabel="Δkϕ")
     ax3_5 = Axis(fig3[5,1], xlabel="t", ylabel="Δka")
+    ax3_5_2 = Axis(fig3[6,1], xlabel="t", ylabel="Δkω")
     lines!(ax3_1, eval_data.r.t0_segs, eval_data.r.gain_adjs[1,:], label="Δkx")
     lines!(ax3_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[2,:], label="Δky")
     lines!(ax3_3, eval_data.r.t0_segs, eval_data.r.gain_adjs[3,:], label="Δkv")
     lines!(ax3_4, eval_data.r.t0_segs, eval_data.r.gain_adjs[4,:], label="Δkϕ")
     lines!(ax3_5, eval_data.r.t0_segs, eval_data.r.gain_adjs[5,:], label="Δka")
+    lines!(ax3_5_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[6,:], label="Δkω")
 
     ax3_6 = Axis(fig3[1,2], xlabel="t", ylabel="x_sp")
     ax3_7 = Axis(fig3[2,2], xlabel="t", ylabel="y_sp")
