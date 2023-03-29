@@ -67,6 +67,7 @@ Base.@kwdef struct TrainingParameters
     save_model::Bool = true
     save_plot::Bool = true
     save_animation::Bool = false
+    save_all_data::Bool = true
 end
 Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
@@ -129,6 +130,11 @@ Base.@kwdef struct RolloutData
     ctrl_setpoints::Matrix{Float64} # setpoints input into controller
     xf::Vector{Float64}             # final state, at T+1
     loss::Float64
+end
+
+Base.@kwdef struct TrainingData
+    losses::Vector{Float64}
+    rollouts::Vector{RolloutData}
 end
 
 Base.@kwdef struct EvaluationData

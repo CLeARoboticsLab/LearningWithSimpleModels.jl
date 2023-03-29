@@ -99,3 +99,13 @@ function save_model(training_params::TrainingParameters, model::Chain)
     path = joinpath(training_params.save_path, filename)
     @save path model
 end
+
+function save_all_data(training_params::TrainingParameters, data::TrainingData)
+    if isnothing(training_params.save_path) || !training_params.save_all_data
+        return
+    end
+
+    filename = training_params.name * "_training_data.bson"
+    path = joinpath(training_params.save_path, filename)
+    @save path data
+end

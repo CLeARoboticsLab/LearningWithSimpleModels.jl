@@ -155,7 +155,8 @@ jetracer_training_parameters() = TrainingParameters(;
     loss_aggregation = simulation_timestep,
     save_model = true,
     save_plot = true,
-    save_animation = true
+    save_animation = true,
+    save_all_data = true
 )
 
 jetracer_simulation_parameters() = SimulationParameters(;

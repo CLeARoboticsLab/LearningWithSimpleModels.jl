@@ -34,6 +34,12 @@ function train(;
 
     save_model(training_params, model)
     plot_losses(training_params, losses)
+    save_all_data(training_params, 
+        TrainingData(;
+            losses = losses,
+            rollouts = rollouts
+        )
+    )
 
     # TODO need to figure out how to animate rollouts of varying lengths
     # (probably need to make arrays of Point2f)
