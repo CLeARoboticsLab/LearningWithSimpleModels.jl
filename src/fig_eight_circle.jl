@@ -26,12 +26,3 @@ function test_plot_fig_eight_circle()
     cir = FigEightCircle()
     plot_task(cir)
 end
-
-function wrapped_time(task::AbstractTask, time::Real)
-    t = time
-    task_time = end_time(task)
-    if time > task_time
-        t = time - (time ÷ task_time)*task_time
-    end
-    return t
-end

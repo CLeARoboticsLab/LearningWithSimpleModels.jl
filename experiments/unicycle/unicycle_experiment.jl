@@ -45,16 +45,6 @@ Base.@kwdef struct UnicycleCostParameters <: CostParameters
     input_weight::Float64 = 0.0
 end
 
-# unicycle_cost() = Cost(;
-#     params = UnicycleCostParameters(; input_weight = 0.00),
-#     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
-#         return (
-#             (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2
-#             + cost.params.input_weight*(sum(u.^2))
-#         )
-#     end
-# )
-
 unicycle_cost() = Cost(;
     params = UnicycleCostParameters(; vel_weight=1/30, angle_weight=10/30, input_weight = 0.00),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
@@ -120,18 +110,6 @@ unicycle_cost() = Cost(;
         )
     end
 )
-
-# unicycle_figure_eight_task() = figure_eight(;
-#     x0 = 0.0,
-#     y0 = 0.0,
-#     xdot_0 = nothing,
-#     ydot_0 = nothing,
-#     xdot_f = nothing,
-#     ydot_f = nothing,
-#     radius = 3.0,
-#     time = 10.0,
-#     laps = 1
-# )
 
 unicycle_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 

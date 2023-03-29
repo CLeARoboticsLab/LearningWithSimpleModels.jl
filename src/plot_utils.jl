@@ -179,8 +179,8 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     scatter!(ax, task_point, color=:black, markersize=16)
     scatter!(ax, task_point_delayed, color=:red, markersize=16)
     scatter!(ax, traj_point, color=:blue, markersize=16)
-    # limits!(ax, -3.5, 3.5, -2.0, 2.0)
-    limits!(ax, -6.5, 6.5, -3.5, 3.5)
+    limits!(ax, -3.5, 3.5, -2.0, 2.0)
+    # limits!(ax, -6.5, 6.5, -3.5, 3.5)
 
     j = 1
     record(fig, path, 1:T; framterate = 100) do i

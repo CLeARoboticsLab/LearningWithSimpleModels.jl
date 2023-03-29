@@ -15,22 +15,6 @@ Base.@kwdef struct JetracerCostParameters <: CostParameters
     input_weight::Float64 = 0.0
 end
 
-# jetracer_cost() = Cost(;
-#     params = JetracerCostParameters(; input_weight = 0.01),
-#     g = (cost::Cost, x::Vector{Float64}, x_des::Vector{Float64}, u::Vector{Float64}) -> begin
-#         # w = 2.0
-#         θ_des = atan(x_des[4], x_des[3])
-#         return (
-#             (x[1] - x_des[1])^2 + (x[2] - x_des[2])^2 
-#             #+ 0.25*(x[3] - sqrt(x_des[3]^2 + x_des[4]^2))^2
-#             #+ 0.25*(x[4] - θ_des)^2
-#             + cost.params.input_weight*(sum(u.^2))
-#             # (x[1] - x_des[1])^2*(1+w*(cos(θ))^2) + (x[2] - x_des[2])^2*(1+w*(sin(θ))^2)
-#             # + cost.params.input_weight*(sum(u.^2))
-#         )
-#     end
-# )
-
 jetracer_cost() = Cost(;
     params = JetracerCostParameters(; vel_weight=1/30, angle_weight=10/30, input_weight = 0.00),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
@@ -96,29 +80,6 @@ jetracer_cost() = Cost(;
         )
     end
 )
-
-Base.@kwdef struct JetracerTerminalCostParameters <: CostParameters
-    weight::Float64 = 0.0
-end
-
-jetracer_terminal_cost() = Cost(;
-    params = JetracerCostParameters(; vel_weight=0.05, input_weight = 0.00),
-    g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
-        return 0.0
-    end
-)
-
-# jetracer_figure_eight_task() = figure_eight(;
-#     x0 = 0.0,
-#     y0 = 0.0,
-#     xdot_0 = nothing,
-#     ydot_0 = nothing,
-#     xdot_f = nothing,
-#     ydot_f = nothing,
-#     radius = 1.50,
-#     time = 6.0,
-#     laps = 1
-# )
 
 jetracer_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 

@@ -3,7 +3,6 @@ function train(;
     controller::Controller,
     ctrl_params::ControllerParameters,
     cost::Cost,
-    terminal_cost::Cost,
     task::AbstractTask,
     algo::TrainingAlgorithm,
     training_params::TrainingParameters,
@@ -24,7 +23,7 @@ function train(;
     sleep(0.5)
     for i in 1:training_params.iters
         loss, r = policy_update!(algo, connections, task, model, optimizer, simple_dynamics,
-                                 controller, ctrl_params, cost, terminal_cost, sim_params)
+                                 controller, ctrl_params, cost, sim_params)
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
         push!(losses, loss)
         push!(rollouts, r)
@@ -56,14 +55,13 @@ function policy_update!(
     controller::Controller,
     ctrl_params::ControllerParameters,
     cost::Cost,
-    terminal_cost::Cost,
     sim_params::SimulationParameters
 )
     n_segments = Integer(round(algo.seconds_per_rollout / sim_params.model_dt))
     r = rollout_actual_dynamics(connections, task, model, algo, sim_params, 
                                 ctrl_params, n_segments)
     loss, grads = gradient_estimate(r,task,model,simple_dynamics,controller,
-                                    cost,terminal_cost,algo,sim_params)
+                                    cost,algo,sim_params)
     update!(optimizer,model,grads[1])
 
     return loss, r              

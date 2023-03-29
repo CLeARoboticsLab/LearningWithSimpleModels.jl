@@ -5,7 +5,6 @@ function gradient_estimate(
     simple_dynamics::Dynamics,
     controller::Controller,
     cost::Cost,
-    terminal_cost::Cost,
     algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters
 )
@@ -56,7 +55,6 @@ function gradient_estimate(
                     end
                 end
             end
-            # loss = loss + stage_cost(terminal_cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u)
             window_start_idx += 1
             window_end_idx += 1
         end
