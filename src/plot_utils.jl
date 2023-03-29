@@ -55,11 +55,13 @@ function plot_evaluation(;
     ax3_3 = Axis(fig3[3,1], xlabel="t", ylabel="Δkv")
     ax3_4 = Axis(fig3[4,1], xlabel="t", ylabel="Δkϕ")
     ax3_5 = Axis(fig3[5,1], xlabel="t", ylabel="Δka")
+    ax3_5_2 = Axis(fig3[6,1], xlabel="t", ylabel="Δkω")
     lines!(ax3_1, eval_data.r.t0_segs, eval_data.r.gain_adjs[1,:], label="Δkx")
     lines!(ax3_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[2,:], label="Δky")
     lines!(ax3_3, eval_data.r.t0_segs, eval_data.r.gain_adjs[3,:], label="Δkv")
     lines!(ax3_4, eval_data.r.t0_segs, eval_data.r.gain_adjs[4,:], label="Δkϕ")
     lines!(ax3_5, eval_data.r.t0_segs, eval_data.r.gain_adjs[5,:], label="Δka")
+    lines!(ax3_5_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[6,:], label="Δkω")
 
     ax3_6 = Axis(fig3[1,2], xlabel="t", ylabel="x_sp")
     ax3_7 = Axis(fig3[2,2], xlabel="t", ylabel="y_sp")
@@ -69,6 +71,8 @@ function plot_evaluation(;
     lines!(ax3_7, eval_data.r.t0_segs, eval_data.r.setpoints[2,:], label="y_sp")
     lines!(ax3_8, eval_data.r.t0_segs, eval_data.r.setpoints[3,:], label="xdot_sp")
     lines!(ax3_9, eval_data.r.t0_segs, eval_data.r.setpoints[4,:], label="ydot_sp")
+    ax3_10 = Axis(fig3[5,2], xlabel="t", ylabel="v")
+    lines!(ax3_10, eval_data.r.ts, eval_data.r.xs[3,:], label="v")
 
     if !isnothing(eval_params.path) && eval_params.save_plot
         eval_plot_filename = eval_params.name * "_eval_plot.png"
@@ -107,7 +111,7 @@ function plot_ctrl_setpoints(r::RolloutData)
     display(GLMakie.Screen(), fig)
 end
 
-function plot_task(task::Spline, sim_params::SimulationParameters)
+function plot_task(task::AbstractTask, sim_params::SimulationParameters)
     task_time, _ = properties(task, sim_params)
     ts = 0.0:sim_params.dt:task_time
     xs_task, ys_task, _, _ = eval_all(task, ts)
@@ -119,7 +123,7 @@ function plot_task(task::Spline, sim_params::SimulationParameters)
 end
 
 #TODO: separate rollouts by policy update
-function animate_training(training_params::TrainingParameters, rollouts::Vector{RolloutData}, task::Spline)
+function animate_training(training_params::TrainingParameters, rollouts::Vector{RolloutData}, task::AbstractTask)
     if isnothing(training_params.save_path) || !training_params.save_animation
         return
     end
@@ -175,8 +179,8 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     scatter!(ax, task_point, color=:black, markersize=16)
     scatter!(ax, task_point_delayed, color=:red, markersize=16)
     scatter!(ax, traj_point, color=:blue, markersize=16)
-    # limits!(ax, -3.5, 3.5, -2.0, 2.0)
-    limits!(ax, -6.5, 6.5, -3.5, 3.5)
+    limits!(ax, -3.5, 3.5, -2.0, 2.0)
+    # limits!(ax, -6.5, 6.5, -3.5, 3.5)
 
     j = 1
     record(fig, path, 1:T; framterate = 100) do i

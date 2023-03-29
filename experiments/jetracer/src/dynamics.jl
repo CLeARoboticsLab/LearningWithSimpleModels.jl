@@ -1,6 +1,6 @@
 function rollout_actual_dynamics(
     connections::Connections,
-    task::Spline,
+    task::AbstractTask,
     model::Chain,
     algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters,
@@ -14,7 +14,7 @@ function rollout_actual_dynamics(
     t0_segs = zeros(n_segments)
     x0_segs = zeros(n_states, n_segments)
     setpoints = zeros(4, n_segments)
-    gain_adjs = zeros(5, n_segments)
+    gain_adjs = zeros(6, n_segments)
     
     x = state(connections)
     task_t0 = estimate_task_t0(task, x)
@@ -37,7 +37,7 @@ function rollout_actual_dynamics(
             # Discard the new_setpoints and gains if not using the model
             if !use_model || j > n_segments
                 new_setpoint = setpoint
-                gains_adjustment = zeros(5)
+                gains_adjustment = zeros(6)
             end 
             
             prev_setpoint = j in 2:n_segments ? setpoints[:,j-1] : starting_setpoint(x)
@@ -71,8 +71,8 @@ function rollout_actual_dynamics(
         setpoints = setpoints,
         gain_adjs = gain_adjs,
         ctrl_setpoints = rdata.ctrl_setpoints,
-        xf = zeros(4), # TODO; this is probably not needed
-        loss = 0.0 # TODO; this might not be needed
+        xf = zeros(4), # not used
+        loss = 0.0 # not used
     )
 end
 
@@ -90,7 +90,7 @@ end
 # task into n_points, calculates a cost for each point (distance to each point +
 # ϕ_weight * different in heading angle), and outputs the task time which
 # minimizes this cost
-function estimate_task_t0(task::Spline, x::Vector{Float64}, n_points::Integer = 100, ϕ_weight = 0.25)
+function estimate_task_t0(task::AbstractTask, x::Vector{Float64}, n_points::Integer = 100, ϕ_weight = 0.25)
     dt = end_time(task) / n_points
     costs = zeros(n_points)
     for i in 1:n_points

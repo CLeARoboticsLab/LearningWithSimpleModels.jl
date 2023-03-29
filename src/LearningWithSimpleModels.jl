@@ -24,12 +24,19 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     TrainingAlgorithm, WalkingWindowAlgorithm, RandomInitialAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
-    Spline, RolloutData, EvaluationData
+    AbstractTask, FigEightCircle, Spline, RolloutData, TrainingData, EvaluationData
+
+include("task.jl")
+export to_velocity_and_heading_angle
 
 include("spline.jl")
-export evaluate, to_velocity_and_heading_angle, figure_eight, 
+export evaluate, figure_eight, 
     end_time, spline_segment, eval_all, evaluate_segment
 
+include("fig_eight_circle.jl")
+export wrapped_time
+
+include("spline_segment.jl")
 include("dynamics.jl")
 export f_simple
 
@@ -45,7 +52,7 @@ export make_model, call_model
 include("gradient_estimate.jl")
 
 include("train.jl")
-export train, save_model
+export train, save_model, save_all_data
 
 include("plot_utils.jl")
 export plot_losses, animate_training, plot_evaluation, animate_evaluation

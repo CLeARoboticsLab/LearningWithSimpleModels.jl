@@ -1,5 +1,5 @@
 """
-Generate a cubic spline
+Generate a minimum snap (7th order) spline
 # Arguments
 - `xs`, `ys`: x- and y-coordinates
 - `ts`: arrival time at each coordinate (first point must be >= 0.0)
@@ -147,15 +147,7 @@ end
 Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
 function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
-    t = time
-
-    # wrap time in the case of repeated tasks
-    if wrap_time
-        task_time = end_time(spl)
-        if time > task_time
-            t = time - (time ÷ task_time)*task_time
-        end
-    end
+    t = wrap_time ? wrapped_time(spl, time) : time
 
     seg = time_segment(t, spl.ts)
 
@@ -189,26 +181,9 @@ function eval_all(spl, test_ts)
     return xs_spline, ys_spline, xdots_spline, ydots_spline
 end
 
-# tasks in a point evaluated from a task in the form [x, y, xdot, ydot] and
-# replaces xdot and ydot with velocity and heading angle, respectively
-function to_velocity_and_heading_angle(task_point::Vector{Float64})
-    xdot = task_point[3]
-    ydot = task_point[4]
-    
-    v = sqrt(xdot^2 + ydot^2)
-
-    if xdot == 0
-        ϕ = sign(ydot)*π/2
-    else
-        ϕ = atan(ydot,xdot)
-    end
-
-    return [task_point[1], task_point[2], v, ϕ]
-end
-
 end_time(spl::Spline) = last(spl.ts)
 
-function properties(task::Spline, sim_params::SimulationParameters)
+function properties(task::AbstractTask, sim_params::SimulationParameters)
     task_time = end_time(task)
     segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
     return task_time, segment_length
@@ -265,75 +240,6 @@ function figure_eight(;
     )
 end
 
-function spline_segment(
-    t0::Float64, tf::Float64,
-    prev_setpoint::Vector{Float64}, setpoint::Vector{Float64}
-)
-    
-    x0 = prev_setpoint[1]
-    xf = setpoint[1]
-    xdot_0 = prev_setpoint[3]
-    xdot_f = setpoint[3]
-
-    y0 = prev_setpoint[2]
-    yf = setpoint[2]
-    ydot_0 = prev_setpoint[4]
-    ydot_f = setpoint[4]
-
-    A = [
-            t0^2    t0  1
-            tf^2    tf  1
-            2*t0    1   0
-            2*tf    1   0
-        ]
-
-    W = diagm([1.,1.,1.,1.])
-
-    coeffs_x = inv(A'*W*A)*A'*W*[x0, xf, xdot_0, xdot_f]
-    coeffs_y = inv(A'*W*A)*A'*W*[y0, yf, ydot_0, ydot_f]
-
-    return Spline(
-        [t0, tf],
-        coeffs_x,
-        coeffs_y,
-        x0,
-        y0
-    )
-end
-
-# function evaluate_segment(spl::Spline, time::Real)
-#     t = time
-
-#     coeffs_x = spl.coeffs_x
-#     coeffs_y = spl.coeffs_y
-
-#     x = coeffs_x[1]*t^5 + coeffs_x[2]*t^4 + coeffs_x[3]*t^3 + coeffs_x[4]*t^2 + coeffs_x[5]*t + coeffs_x[6]
-#     y = coeffs_y[1]*t^5 + coeffs_y[2]*t^4 + coeffs_y[3]*t^3 + coeffs_y[4]*t^2 + coeffs_y[5]*t + coeffs_y[6]
-
-#     xdot = 5*coeffs_x[1]*t^4 + 4*coeffs_x[2]*t^3 + 3*coeffs_x[3]*t^2 + 2*coeffs_x[4]*t + coeffs_x[5]
-#     ydot = 5*coeffs_y[1]*t^4 + 4*coeffs_y[2]*t^3 + 3*coeffs_y[3]*t^2 + 2*coeffs_y[4]*t + coeffs_y[5]
-
-#     return [x, y, xdot, ydot]
-# end
-
-function evaluate_segment(spl::Spline, time::Real)
-    t = time
-
-    coeffs_x = spl.coeffs_x
-    coeffs_y = spl.coeffs_y
-
-    x = coeffs_x[1]*t^2 + coeffs_x[2]*t + coeffs_x[3]
-    y = coeffs_y[1]*t^2 + coeffs_y[2]*t + coeffs_y[3]
-
-    xdot = 2*coeffs_x[1]*t + coeffs_x[2]
-    ydot = 2*coeffs_y[1]*t + coeffs_y[2]
-
-    xddot = 2*coeffs_x[1]
-    yddot = 2*coeffs_y[1]
-
-    return [x, y, xdot, ydot, xddot, yddot]
-end
-
 function test_plot_acceleration()
     spl = figure_eight(;
         x0 = 0.0,
@@ -346,26 +252,5 @@ function test_plot_acceleration()
         time = 10.0,
         laps = 1
     )
-    ts = 0.0:0.01:30.0
-    xs, ys, xdots, ydots = eval_all(spl, ts)
-    vs = zeros(length(ts))
-    # as = zeros(length(ts))
-    for i in 1:length(ts)
-        vs[i] = sqrt(xdots[i]^2 + ydots[i]^2)
-        # as[i] = sqrt(xddots[i]^2 + yddots[i]^2)
-    end
-    fig = Figure(resolution=(800,800))
-    ax = Axis(fig[1,1], xlabel="t", ylabel="xdot")
-    ax2 = Axis(fig[2,1], xlabel="t", ylabel="ydot")
-    ax3 = Axis(fig[3,1], xlabel="t", ylabel="v")
-    lines!(ax, ts, xdots)
-    lines!(ax2, ts, ydots)
-    lines!(ax3, ts, vs)
-
-    fig2 = Figure(resolution=(850,600))
-    ax3 = Axis(fig2[1,1], xlabel="x", ylabel="y")
-    lines!(ax3, xs, ys, label="Task", linestyle=:dash, color=:black)
-
-    display(GLMakie.Screen(), fig)
-    display(GLMakie.Screen(), fig2)
+    plot_task(spl)
 end

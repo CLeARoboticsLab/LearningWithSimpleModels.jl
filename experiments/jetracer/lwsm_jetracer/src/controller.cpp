@@ -25,7 +25,7 @@ class Controller
 {
   public:
     Controller() : started_(false), is_stopping_(false), control_lock_(false),
-        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), spline_coeffs_(6, 0.0)
+        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), komg_(0.0), spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
@@ -85,16 +85,38 @@ class Controller
       else if (ydot_tilde_des < 0.0)
         phi_des += 2*PI;
       
+      if(is_stopping_)
+      {
+        double center_x = x_ < 0.0 ? -1.5 : 1.5;
+        double center_y = 0.0;
+        double arc_angle = atan2(y_ - center_y, x_ - center_x);
+        double r_des = 1.5;
+        double r = sqrt(pow(x_ - center_x, 2.0) + pow(y_ - center_y, 2.0));
+        double arc_length = 2*PI*r_des/10;
+        double corr = PI/2 - atan2(arc_length,r-r_des);
+        phi_des = x_ < 0.0 ? arc_angle + PI/2 + corr : arc_angle - PI/2 - corr;
+      }
+
       if (abs(phi_des - phi_) > abs(phi_des - 2*PI - phi_))
         phi_des -= 2*PI;
       else if (abs(phi_des - phi_) > abs(phi_des + 2*PI - phi_))
         phi_des += 2*PI;
       
-      double a_des = sqrt(pow(xddot_des,2.0) + pow(yddot_des,2.0));
+      // feedforward control inputs
+      double v_des_og = sqrt(xdot_des*xdot_des + ydot_des*ydot_des);
+      double phi_des_og = atan2(ydot_des, xdot_des);
+      double a_des = cos(phi_des_og)*xddot_des + sin(phi_des_og)*yddot_des;
+      double omg_des = -xddot_des/v_des_og*sin(phi_des_og) + yddot_des/v_des_og*cos(phi_des_og);
+
       double throttle =  clamp(ka_*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
+      double steering = clamp(komg_*omg_des + kphi_*(phi_des - phi_), -1.0, 1.0);
+
       if (is_stopping_)
+      {
         throttle = 0.0;
-      double steering = clamp(kphi_*(phi_des - phi_), -1.0, 1.0);
+        steering = steering*1.10;
+      }
+
       std::vector<double> command{throttle, steering};
       
       if (!is_stopping_)
@@ -125,7 +147,7 @@ class Controller
     double stopping_time_;
     ros::Time start_time_;
     double t_;
-    double kx_, ky_, kv_, kphi_, ka_;
+    double kx_, ky_, kv_, kphi_, ka_, komg_;
     double x_, y_, v_, phi_;
     double last_s_;
     std::vector<double> spline_coeffs_;
@@ -167,7 +189,23 @@ class Controller
       ROS_INFO_STREAM("Robot stopped");
     }
 
-    void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
+    // void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
+    // {
+    //   if (control_lock_)
+    //     ROS_WARN_STREAM("Spline/gains loaded in the middle of control. Possible mismatch may follow.");
+    //   for(int i = 0; i < 8; i++) 
+    //     spline_coeffs_[i] = spline_gains.data[i];
+    //   kx_ = spline_gains.data[8];
+    //   ky_ = spline_gains.data[9];
+    //   kv_ = spline_gains.data[10];
+    //   kphi_ = spline_gains.data[11];
+    //   ka_ = spline_gains.data[12];
+    //   if (!is_stopping_)
+    //     seg_idxs_.push_back(ts_.size());
+    //   ROS_INFO_STREAM("New spline and gains loaded");
+    // }
+
+        void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
     {
       if (control_lock_)
         ROS_WARN_STREAM("Spline/gains loaded in the middle of control. Possible mismatch may follow.");
@@ -178,6 +216,7 @@ class Controller
       kv_ = spline_gains.data[8];
       kphi_ = spline_gains.data[9];
       ka_ = spline_gains.data[10];
+      komg_ = spline_gains.data[11];
       if (!is_stopping_)
         seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
@@ -232,6 +271,21 @@ class Controller
       std::vector<double> setpoint{x, y, xdot, ydot, xddot, yddot};
       return setpoint;
     }
+
+    // std::vector<double> evaluateSpline()
+    // {
+    //   ros::Duration d = ros::Time::now() - start_time_;
+    //   t_ = d.toSec();
+
+    //   double x = spline_coeffs_[0]*pow(t_, 3.0) + spline_coeffs_[1]*pow(t_, 2.0) + spline_coeffs_[2]*t_ + spline_coeffs_[3];
+    //   double y = spline_coeffs_[4]*pow(t_, 3.0) + spline_coeffs_[5]*pow(t_, 2.0) + spline_coeffs_[6]*t_ + spline_coeffs_[7];
+    //   double xdot = 3*spline_coeffs_[0]*pow(t_, 2.0) + 2*spline_coeffs_[1]*pow(t_, 1.0) + spline_coeffs_[2];
+    //   double ydot = 3*spline_coeffs_[4]*pow(t_, 2.0) + 2*spline_coeffs_[5]*pow(t_, 1.0) + spline_coeffs_[6];
+    //   double xddot = 6*spline_coeffs_[0]*pow(t_, 1.0) + 2*spline_coeffs_[1];
+    //   double yddot = 6*spline_coeffs_[4]*pow(t_, 1.0) + 2*spline_coeffs_[5];
+    //   std::vector<double> setpoint{x, y, xdot, ydot, xddot, yddot};
+    //   return setpoint;
+    // }
 
     void publishCommand(std::vector<double> command)
     {

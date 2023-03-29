@@ -3,8 +3,7 @@ function train(;
     controller::Controller,
     ctrl_params::ControllerParameters,
     cost::Cost,
-    terminal_cost::Cost,
-    task::Spline,
+    task::AbstractTask,
     algo::TrainingAlgorithm,
     training_params::TrainingParameters,
     sim_params::SimulationParameters  
@@ -24,7 +23,7 @@ function train(;
     sleep(0.5)
     for i in 1:training_params.iters
         loss, r = policy_update!(algo, connections, task, model, optimizer, simple_dynamics,
-                                 controller, ctrl_params, cost, terminal_cost, sim_params)
+                                 controller, ctrl_params, cost, sim_params)
         ProgressMeter.next!(p, showvalues = [(:loss,loss)])
         push!(losses, loss)
         push!(rollouts, r)
@@ -34,6 +33,12 @@ function train(;
 
     save_model(training_params, model)
     plot_losses(training_params, losses)
+    save_all_data(training_params, 
+        TrainingData(;
+            losses = losses,
+            rollouts = rollouts
+        )
+    )
 
     # TODO need to figure out how to animate rollouts of varying lengths
     # (probably need to make arrays of Point2f)
@@ -43,21 +48,20 @@ end
 function policy_update!(
     algo::HardwareTrainingAlgorithm,
     connections::Connections,
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     optimizer,
     simple_dynamics::Dynamics,
     controller::Controller,
     ctrl_params::ControllerParameters,
     cost::Cost,
-    terminal_cost::Cost,
     sim_params::SimulationParameters
 )
     n_segments = Integer(round(algo.seconds_per_rollout / sim_params.model_dt))
     r = rollout_actual_dynamics(connections, task, model, algo, sim_params, 
                                 ctrl_params, n_segments)
     loss, grads = gradient_estimate(r,task,model,simple_dynamics,controller,
-                                    cost,terminal_cost,algo,sim_params)
+                                    cost,algo,sim_params)
     update!(optimizer,model,grads[1])
 
     return loss, r              

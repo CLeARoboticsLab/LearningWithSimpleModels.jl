@@ -2,7 +2,7 @@ function evaluate_model(;
     actual_dynamics::Dynamics,
     controller::Controller, 
     cost::Cost,
-    task::Spline,
+    task::AbstractTask,
     algo::TrainingAlgorithm,
     training_params::TrainingParameters,
     sim_params::SimulationParameters,

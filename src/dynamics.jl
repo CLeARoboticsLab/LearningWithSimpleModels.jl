@@ -4,7 +4,7 @@ f_actual(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{F
 # Rollout from the x0 given in sim_params, for the entire task specified by
 # eval_params, from the beginning
 function rollout_actual_dynamics(
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller,
@@ -26,7 +26,7 @@ end
 
 # Rollout from the specified t0, x0, for only n_segments model calls 
 function rollout_actual_dynamics(
-    task::Spline, 
+    task::AbstractTask, 
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller,
@@ -49,7 +49,7 @@ function rollout_actual_dynamics(
     xs_actual = zeros(n_states, total_timesteps)
     us_actual = zeros(sim_params.n_inputs, total_timesteps)
     setpoints = zeros(4, n_segments)
-    gain_adjs = zeros(5, n_segments)
+    gain_adjs = zeros(6, n_segments)
     ctrl_setpoints = zeros(6, total_timesteps)
 
     overall_idx = 1
@@ -73,7 +73,7 @@ function rollout_actual_dynamics(
         # Discard the new_setpoints and gains if not using the model
         if !use_model
             new_setpoint = setpoint
-            gains_adjustment = zeros(5)
+            gains_adjustment = zeros(6)
         end 
 
         setpoints[:,j] = new_setpoint
@@ -91,7 +91,7 @@ function rollout_actual_dynamics(
             ctrl_setpoints[:,overall_idx] = evaluate_segment(spline_seg, t+sim_params.dt)
             u = next_command(controller, x, ctrl_setpoints[:,overall_idx], gains_adjustment)
             us_actual[:,overall_idx] = u
-            loss = loss + stage_cost(cost, x, evaluate(task, t), u)
+            loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u)
 
             overall_idx += 1
             t += sim_params.dt

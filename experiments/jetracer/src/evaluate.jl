@@ -1,5 +1,5 @@
 function evaluate_on_hardware(;
-    task::Spline,
+    task::AbstractTask,
     ctrl_params::ControllerParameters,
     algo::HardwareTrainingAlgorithm,
     sim_params::SimulationParameters,
@@ -34,7 +34,7 @@ end
 
 function plot_hardware_evaluation(;
     eval_params::EvaluationParameters,
-    task::Spline,
+    task::AbstractTask,
     algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,

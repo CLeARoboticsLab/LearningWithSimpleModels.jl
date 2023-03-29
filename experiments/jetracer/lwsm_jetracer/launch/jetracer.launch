@@ -50,7 +50,7 @@
         <param name="cycle_rate" value="50.0" type="double" />
         <param name="max_throttle" value="0.75" type="double" />
         <param name="min_throttle" value="-0.75" type="double" />
-        <param name="stopping_time" value="2.00" type="double" />
+        <param name="stopping_time" value="2.50" type="double" />
     </node>
 
     <!-- Servo Controller -->

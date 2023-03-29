@@ -67,6 +67,7 @@ Base.@kwdef struct TrainingParameters
     save_model::Bool = true
     save_plot::Bool = true
     save_animation::Bool = false
+    save_all_data::Bool = true
 end
 Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
@@ -100,12 +101,20 @@ Base.@kwdef struct EvaluationParameters
     save_animation::Bool = false
 end
 
-struct Spline
+abstract type AbstractTask end
+
+struct Spline <: AbstractTask
     ts::Vector{Float64}
     coeffs_x::Vector{Float64}
     coeffs_y::Vector{Float64}
     x0::Float64
     y0::Float64
+end
+
+struct FigEightCircle <: AbstractTask
+    r::Real
+    time::Real
+    v::Real
 end
 
 Base.@kwdef struct RolloutData
@@ -121,6 +130,11 @@ Base.@kwdef struct RolloutData
     ctrl_setpoints::Matrix{Float64} # setpoints input into controller
     xf::Vector{Float64}             # final state, at T+1
     loss::Float64
+end
+
+Base.@kwdef struct TrainingData
+    losses::Vector{Float64}
+    rollouts::Vector{RolloutData}
 end
 
 Base.@kwdef struct EvaluationData
