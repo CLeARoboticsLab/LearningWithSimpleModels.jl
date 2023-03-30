@@ -9,7 +9,7 @@ function plot_losses(training_params::TrainingParameters, losses)
         save(path, fig)
     end
 
-    display(GLMakie.Screen(), fig)
+    display(fig)
 end
 
 function plot_rollout(
@@ -146,9 +146,9 @@ function plot_evaluation(;
         save(gains_plot_path, fig3)
     end
 
-    display(GLMakie.Screen(), fig)
-    display(GLMakie.Screen(), fig2)
-    display(GLMakie.Screen(), fig3)
+    display(fig)
+    display(fig2)
+    display(fig3)
 
     plot_ctrl_setpoints(eval_data.r)
 end
@@ -166,7 +166,7 @@ function plot_ctrl_setpoints(r::RolloutData)
     lines!(ax4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
     v = [sqrt(r.ctrl_setpoints[3,i]^2 + r.ctrl_setpoints[4,i]^2) for i in 1:length(r.ts)]
     lines!(ax5, r.ts, v, label="v_des")
-    display(GLMakie.Screen(), fig)
+    display(fig)
 end
 
 function plot_task(task::AbstractTask, sim_params::SimulationParameters)
@@ -177,7 +177,7 @@ function plot_task(task::AbstractTask, sim_params::SimulationParameters)
     fig = Figure()
     ax = Axis(fig[1,1], xlabel="x", ylabel="y")
     lines!(ax, xs_task, ys_task, label="Task")
-    display(GLMakie.Screen(), fig)
+    display(fig)
 end
 
 #TODO: separate rollouts by policy update

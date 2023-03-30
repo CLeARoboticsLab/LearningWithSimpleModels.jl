@@ -153,6 +153,6 @@ function test_unicycle_controller(; plot=true)
         ax_ω = Axis(fig[5,2], xlabel="t", ylabel="ω")
         lines!(ax_ω, ts, ωs)
 
-        display(GLMakie.Screen(), fig)
+        display(fig)
     end
 end

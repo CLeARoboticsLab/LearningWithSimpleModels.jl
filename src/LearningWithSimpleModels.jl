@@ -14,7 +14,7 @@ using Flux:
 using Distributions: Uniform, MvNormal
 using BSON: @save, @load
 using LinearAlgebra: diagm
-using GLMakie
+using CairoMakie
 using RosSockets
 import ProgressMeter
 using Rotations

@@ -45,6 +45,6 @@ function plot_task(task)
     ax3 = Axis(fig2[1,1], xlabel="x", ylabel="y")
     lines!(ax3, xs, ys, label="Task", linestyle=:dash, color=:black)
 
-    display(GLMakie.Screen(), fig)
-    display(GLMakie.Screen(), fig2)
+    display(fig)
+    display(fig2)
 end

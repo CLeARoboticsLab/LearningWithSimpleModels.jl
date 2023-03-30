@@ -10,7 +10,6 @@
 module JetRacerExperiment
 
 using LearningWithSimpleModels
-using CairoMakie
 
 include("experiment.jl")
 include("controller.jl")
