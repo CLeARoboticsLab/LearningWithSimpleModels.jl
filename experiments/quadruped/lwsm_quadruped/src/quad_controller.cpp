@@ -9,8 +9,12 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include <tf/transform_datatypes.h>
+#include <unitree_legged_msgs/HighCmd.h>
+#include "unitree_legged_sdk/unitree_legged_sdk.h"
 
 #include "lwsm_jetracer/RolloutData.h"
+
+using namespace UNITREE_LEGGED_SDK;
 
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
@@ -24,25 +28,39 @@ void sigIntHandler(int sig)
 class Controller
 {
   public:
-    Controller() : started_(false), is_stopping_(false), control_lock_(false),
+    Controller() : started_(false), control_lock_(false),
         kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), komg_(0.0), spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
-      nh_.getParam("controller/cycle_rate", cycle_rate_);
-      nh_.getParam("controller/max_throttle", max_throttle_);
-      nh_.getParam("controller/min_throttle", min_throttle_); 
-      nh_.getParam("controller/stopping_time", stopping_time_); 
+      cmd_.head[0] = 0xFE;
+      cmd_.head[1] = 0xEF;
+      cmd_.levelFlag = HIGHLEVEL;
+      cmd_.mode = 0;            // 0: idle, 2: walk
+      cmd_.gaitType = 0;        // 0: idle, 1: trot, 2: trot running, 3: climb stair, 4: trot obstacle
+      cmd_.speedLevel = 0;      // not used (only for mode=3) 
+      cmd_.footRaiseHeight = 0; // foot height while walking, delta value
+      cmd_.bodyHeight = 0;      // don't change
+      cmd_.euler[0] = 0;        // euler angles are for mode=1 only
+      cmd_.euler[1] = 0;
+      cmd_.euler[2] = 0;
+      cmd_.velocity[0] = 0.0f;  // forward speed, -1 ~ +1 m/s
+      cmd_.velocity[1] = 0.0f;  // side speed
+      cmd_.yawSpeed = 0.0f;     // rotation speed, rad/s
+      cmd_.reserve = 0;
 
-      const auto queue_size = 100;
-      throttle_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/throttle", queue_size);
-      steering_pub_ = nh_.advertise<std_msgs::Float32>("jetracer/steering", queue_size);
+      nh_.getParam("controller/cycle_rate", cycle_rate_);
+
+      const auto queue_size = 1000;
+      cmd_pub_ = nh_.advertise<unitree_legged_msgs::HighCmd>("high_cmd", queue_size);
+      //TODO topic name
       data_pub_ = nh_.advertise<lwsm_jetracer::RolloutData>("jetracer/rollout_data", queue_size);
 
       start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
+      //TODO topic name for spline_gains
       spline_gains_sub_ = nh_.subscribe("jetracer/spline_gains", queue_size, &Controller::splineGainsCallback, this);
-      pose_sub_ = nh_.subscribe("vrpn_client_node/jetracer/pose", queue_size, &Controller::poseCallback, this);
-      twist_sub_ = nh_.subscribe("vrpn_client_node/jetracer/twist", queue_size, &Controller::twistCallback, this);
+      pose_sub_ = nh_.subscribe("vrpn_client_node/quad/pose", queue_size, &Controller::poseCallback, this);
+      twist_sub_ = nh_.subscribe("vrpn_client_node/quad/twist", queue_size, &Controller::twistCallback, this);
     }
 
     double cycle_rate(){return cycle_rate_;}
@@ -50,6 +68,7 @@ class Controller
     void shutdown()
     {
       stop_robot();
+      ros::Duration(1.0).sleep();
       ROS_INFO_STREAM("Stopping and exiting..." );
       ros::shutdown();
       std::cout << "Exited." << std::endl;
@@ -57,7 +76,7 @@ class Controller
 
     void control()
     {
-      if (!started_ && !is_stopping_)
+      if (!started_)
         return;
 
       std::vector<double> setpoint = evaluateSpline();
@@ -73,6 +92,7 @@ class Controller
       double xdot_tilde_des = xdot_des + kx_*(x_des - x_);
       double ydot_tilde_des = ydot_des + ky_*(y_des - y_);
       double v_des = sqrt(pow(xdot_tilde_des,2.0) + pow(ydot_tilde_des,2.0));
+      v_des = clamp(v_des, -1.0, 1.0);
 
       double phi_des;
       if (xdot_tilde_des == 0)
@@ -84,18 +104,6 @@ class Controller
         phi_des += PI;
       else if (ydot_tilde_des < 0.0)
         phi_des += 2*PI;
-      
-      if(is_stopping_)
-      {
-        double center_x = x_ < 0.0 ? -1.5 : 1.5;
-        double center_y = 0.0;
-        double arc_angle = atan2(y_ - center_y, x_ - center_x);
-        double r_des = 1.5;
-        double r = sqrt(pow(x_ - center_x, 2.0) + pow(y_ - center_y, 2.0));
-        double arc_length = 2*PI*r_des/10;
-        double corr = PI/2 - atan2(arc_length,r-r_des);
-        phi_des = x_ < 0.0 ? arc_angle + PI/2 + corr : arc_angle - PI/2 - corr;
-      }
 
       if (abs(phi_des - phi_) > abs(phi_des - 2*PI - phi_))
         phi_des -= 2*PI;
@@ -105,28 +113,17 @@ class Controller
       // feedforward control inputs
       double v_des_og = sqrt(xdot_des*xdot_des + ydot_des*ydot_des);
       double phi_des_og = atan2(ydot_des, xdot_des);
-      double a_des = cos(phi_des_og)*xddot_des + sin(phi_des_og)*yddot_des;
       double omg_des = -xddot_des/v_des_og*sin(phi_des_og) + yddot_des/v_des_og*cos(phi_des_og);
 
-      double throttle =  clamp(ka_*a_des + kv_*(v_des - v_), min_throttle_, max_throttle_);
       double steering = clamp(komg_*omg_des + kphi_*(phi_des - phi_), -1.0, 1.0);
 
-      if (is_stopping_)
-      {
-        throttle = 0.0;
-        steering = steering*1.10;
-      }
-
-      std::vector<double> command{throttle, steering};
+      std::vector<double> command{v_des, steering};
       
-      if (!is_stopping_)
-      {
-        std::vector<double> x{x_, y_, v_, phi_};
-        ts_.push_back(t_);
-        xs_.push_back(x);
-        us_.push_back(command);
-        ctrl_setpoints_.push_back(setpoint);
-      }
+      std::vector<double> x{x_, y_, v_, phi_};
+      ts_.push_back(t_);
+      xs_.push_back(x);
+      us_.push_back(command);
+      ctrl_setpoints_.push_back(setpoint);
 
       control_lock_ = false;
       publishCommand(command);
@@ -134,8 +131,7 @@ class Controller
 
   private:
     ros::NodeHandle nh_;
-    ros::Publisher throttle_pub_;
-    ros::Publisher steering_pub_;
+    ros::Publisher cmd_pub_;
     ros::Publisher data_pub_;
     ros::Subscriber start_time_sub_;
     ros::Subscriber spline_gains_sub_;
@@ -143,25 +139,23 @@ class Controller
     ros::Subscriber twist_sub_;
 
     double cycle_rate_;
-    double min_throttle_, max_throttle_;
-    double stopping_time_;
     ros::Time start_time_;
     double t_;
     double kx_, ky_, kv_, kphi_, ka_, komg_;
     double x_, y_, v_, phi_;
-    double last_s_;
     std::vector<double> spline_coeffs_;
-    bool started_, is_stopping_, control_lock_;
+    bool started_, control_lock_;
     std::vector<int> seg_idxs_;
     std::vector<double> ts_;
     std::vector<std::vector<double>> xs_, us_, ctrl_setpoints_;
+    unitree_legged_msgs::HighCmd cmd_;
 
     static constexpr double PI = 3.14159265358979323846264;
 
     void startTimeCallback(std_msgs::Time time)
     {
-      started_ = !time.data.is_zero();
-      if (started_)
+      bool started = !time.data.is_zero();
+      if (started)
       {
         start_time_ = time.data;
         ROS_INFO_STREAM("Starting control");
@@ -170,42 +164,38 @@ class Controller
         xs_.clear();
         us_.clear();
         ctrl_setpoints_.clear();
+        start_robot();
+        started_ = started;
       }
       else
       {
+        stop_robot();
         publishRolloutData();
         ROS_INFO_STREAM("Rollout data published");
-        is_stopping_ = true;
-        ros::Duration(stopping_time_).sleep();
-        is_stopping_ = false;
-        stop_robot();
       }
+    }
+
+    void start_robot()
+    {
+      cmd_.mode = 2;
+      cmd_.gaitType = 1;
+      cmd_.velocity[0] = 0.0f; 
+      cmd_.yawSpeed = 0.0f;
+      cmd_pub_.publish(cmd_);
+      ROS_INFO_STREAM("Robot started");
     }
 
     void stop_robot()
     {
-      std::vector<double> stop_cmd{0.0, 0.0};
-      publishCommand(stop_cmd);
+      cmd_.mode = 0;
+      cmd_.gaitType = 0;
+      cmd_.velocity[0] = 0.0f; 
+      cmd_.yawSpeed = 0.0f;
+      cmd_pub_.publish(cmd_);
       ROS_INFO_STREAM("Robot stopped");
     }
 
-    // void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
-    // {
-    //   if (control_lock_)
-    //     ROS_WARN_STREAM("Spline/gains loaded in the middle of control. Possible mismatch may follow.");
-    //   for(int i = 0; i < 8; i++) 
-    //     spline_coeffs_[i] = spline_gains.data[i];
-    //   kx_ = spline_gains.data[8];
-    //   ky_ = spline_gains.data[9];
-    //   kv_ = spline_gains.data[10];
-    //   kphi_ = spline_gains.data[11];
-    //   ka_ = spline_gains.data[12];
-    //   if (!is_stopping_)
-    //     seg_idxs_.push_back(ts_.size());
-    //   ROS_INFO_STREAM("New spline and gains loaded");
-    // }
-
-        void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
+    void splineGainsCallback(std_msgs::Float64MultiArray spline_gains)
     {
       if (control_lock_)
         ROS_WARN_STREAM("Spline/gains loaded in the middle of control. Possible mismatch may follow.");
@@ -217,8 +207,7 @@ class Controller
       kphi_ = spline_gains.data[9];
       ka_ = spline_gains.data[10];
       komg_ = spline_gains.data[11];
-      if (!is_stopping_)
-        seg_idxs_.push_back(ts_.size());
+      seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
     }
 
@@ -272,29 +261,11 @@ class Controller
       return setpoint;
     }
 
-    // std::vector<double> evaluateSpline()
-    // {
-    //   ros::Duration d = ros::Time::now() - start_time_;
-    //   t_ = d.toSec();
-
-    //   double x = spline_coeffs_[0]*pow(t_, 3.0) + spline_coeffs_[1]*pow(t_, 2.0) + spline_coeffs_[2]*t_ + spline_coeffs_[3];
-    //   double y = spline_coeffs_[4]*pow(t_, 3.0) + spline_coeffs_[5]*pow(t_, 2.0) + spline_coeffs_[6]*t_ + spline_coeffs_[7];
-    //   double xdot = 3*spline_coeffs_[0]*pow(t_, 2.0) + 2*spline_coeffs_[1]*pow(t_, 1.0) + spline_coeffs_[2];
-    //   double ydot = 3*spline_coeffs_[4]*pow(t_, 2.0) + 2*spline_coeffs_[5]*pow(t_, 1.0) + spline_coeffs_[6];
-    //   double xddot = 6*spline_coeffs_[0]*pow(t_, 1.0) + 2*spline_coeffs_[1];
-    //   double yddot = 6*spline_coeffs_[4]*pow(t_, 1.0) + 2*spline_coeffs_[5];
-    //   std::vector<double> setpoint{x, y, xdot, ydot, xddot, yddot};
-    //   return setpoint;
-    // }
-
     void publishCommand(std::vector<double> command)
     {
-      std_msgs::Float32 t, s;
-      t.data = command[0];
-      s.data = command[1];
-      throttle_pub_.publish(t);
-      steering_pub_.publish(s);
-      last_s_ = s.data;
+      cmd_.velocity[0] = (float) command[0];
+      cmd_.yawSpeed = (float) command[1];
+      cmd_pub_.publish(cmd_);
     }
 
     void publishRolloutData()
