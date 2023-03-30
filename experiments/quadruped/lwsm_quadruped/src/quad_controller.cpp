@@ -3,7 +3,6 @@
 #include <cmath>
 
 #include <ros/ros.h>
-#include "std_msgs/Float32.h"
 #include "std_msgs/Time.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -49,7 +48,7 @@ class Controller
       cmd_.yawSpeed = 0.0f;     // rotation speed, rad/s
       cmd_.reserve = 0;
 
-      nh_.getParam("controller/cycle_rate", cycle_rate_);
+      nh_.getParam("quad_controller/cycle_rate", cycle_rate_);
 
       const auto queue_size = 1000;
       cmd_pub_ = nh_.advertise<unitree_legged_msgs::HighCmd>("high_cmd", queue_size);
@@ -58,9 +57,10 @@ class Controller
 
       start_time_sub_ = nh_.subscribe("start_time", queue_size, &Controller::startTimeCallback, this);
       //TODO topic name for spline_gains
-      spline_gains_sub_ = nh_.subscribe("jetracer/spline_gains", queue_size, &Controller::splineGainsCallback, this);
+      spline_gains_sub_ = nh_.subscribe("quad/spline_gains", queue_size, &Controller::splineGainsCallback, this);
       pose_sub_ = nh_.subscribe("vrpn_client_node/quad/pose", queue_size, &Controller::poseCallback, this);
       twist_sub_ = nh_.subscribe("vrpn_client_node/quad/twist", queue_size, &Controller::twistCallback, this);
+      stop_robot();
     }
 
     double cycle_rate(){return cycle_rate_;}

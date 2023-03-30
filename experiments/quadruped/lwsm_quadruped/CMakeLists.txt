@@ -49,7 +49,15 @@ target_link_libraries(
 	${catkin_LIBRARIES}
 )
 
-install(TARGETS	quad_controller test_quad_control
+add_executable(quad_simulation
+	src/quad_simulation.cpp
+)
+target_link_libraries(
+	quad_simulation
+	${catkin_LIBRARIES}
+)
+
+install(TARGETS	quad_controller test_quad_control quad_simulation
   	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
