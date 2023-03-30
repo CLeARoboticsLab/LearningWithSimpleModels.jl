@@ -5,6 +5,8 @@
 #include <unitree_legged_msgs/HighCmd.h>
 #include "unitree_legged_sdk/unitree_legged_sdk.h"
 
+using namespace UNITREE_LEGGED_SDK;
+
 // Flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
 
@@ -20,7 +22,7 @@ auto main(int argc, char **argv) -> int
   signal(SIGINT, sigIntHandler);
 
   ros::NodeHandle nh;
-  ros::Rate loop_rate(50);
+  ros::Rate rate(50);
 
   ros::Publisher pub = nh.advertise<unitree_legged_msgs::HighCmd>("high_cmd", 1000);
 
@@ -44,6 +46,9 @@ auto main(int argc, char **argv) -> int
 
   // start up in idle
   pub.publish(high_cmd_ros);
+  ROS_INFO_STREAM("Robot in idle");
+
+  ros::Duration(1.0).sleep();
 
   ROS_INFO_STREAM("Robot walking...");
   while (!g_request_shutdown && ros::ok())

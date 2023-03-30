@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(lwsm_jetracer)
+project(lwsm_quadruped)
 
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
@@ -7,45 +7,49 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	message_generation
 	ros_sockets
-)
-
-add_message_files(
-  FILES
-  RolloutData.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
+	unitree_legged_msgs
 )
 
 catkin_package(
 	CATKIN_DEPENDS message_runtime
 )
 
+message("-- CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64.*")
+  set(ARCH amd64)
+else()
+  set(ARCH arm64)
+endif()
+
+link_directories(${CMAKE_SOURCE_DIR}/unitree_legged_sdk/lib/cpp/${ARCH})
+
+set(EXTRA_LIBS -pthread libunitree_legged_sdk.so)
+
+set(CMAKE_CXX_FLAGS "-O3 -fPIC")
+
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
+	${CMAKE_SOURCE_DIR}/unitree_legged_sdk/include
 )
 
-add_executable(controller
-	src/controller.cpp
+add_executable(quad_controller
+	src/quad_controller.cpp
 )
 target_link_libraries(
-	controller
+	quad_controller
 	${catkin_LIBRARIES}
 )
 
-add_executable(rollout_data
-	src/rollout_data.cpp
-	src/rollout_data_server.cpp
+add_executable(test_quad_control
+	src/test_quad_control.cpp
 )
 target_link_libraries(
-	rollout_data
+	test_quad_control
 	${catkin_LIBRARIES}
 )
 
-install(TARGETS	controller rollout_data
+install(TARGETS	quad_controller test_quad_control
   	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
