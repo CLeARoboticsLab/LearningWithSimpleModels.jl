@@ -15,49 +15,45 @@ using Distributions: Uniform, MvNormal
 using BSON: @save, @load
 using LinearAlgebra: diagm
 using GLMakie
+using RosSockets
 import ProgressMeter
+using Rotations
+using LinearAlgebra
+import JSON
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     ControllerParameters, Controller,
     CostParameters, QuadraticCostParameters, Cost,
-    TrainingAlgorithm, WalkingWindowAlgorithm, RandomInitialAlgorithm,
+    WalkingWindowAlgorithm, RandomInitialAlgorithm, HardwareTrainingAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
-    AbstractTask, FigEightCircle, Spline, RolloutData, TrainingData, EvaluationData
+    FigEightCircle, Spline
 
 include("task.jl")
-export to_velocity_and_heading_angle
+export to_velocity_and_heading_angle, wrapped_time
 
 include("spline.jl")
-export evaluate, figure_eight, 
-    end_time, spline_segment, eval_all, evaluate_segment
+export figure_eight
 
 include("fig_eight_circle.jl")
-export wrapped_time
+export evaluate
 
 include("spline_segment.jl")
 include("dynamics.jl")
-export f_simple
-
 include("controller.jl")
-export next_command
-
 include("cost.jl")
-export quadratic_cost, stage_cost
-
 include("model.jl")
-export make_model, call_model
-
 include("gradient_estimate.jl")
-
+include("communication.jl")
+include("policy_update.jl")
 include("train.jl")
-export train, save_model, save_all_data
+export train
 
 include("plot_utils.jl")
-export plot_losses, animate_training, plot_evaluation, animate_evaluation
+export plot_hardware_evaluation
 
 include("evaluate.jl")
-export evaluate_model
+export evaluate_model, evaluate_on_hardware
 
 end

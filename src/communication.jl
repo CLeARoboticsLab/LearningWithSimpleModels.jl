@@ -3,13 +3,6 @@ const STOP_CMD = JSON.json(Dict("action" => "stop_experiment")) * "\n"
 const GET_TIME_CMD = JSON.json(Dict("action" => "get_time_elapsed")) * "\n"
 const GET_ROLLOUT_DATA = JSON.json(Dict("action" => "get_rollout_data")) * "\n"
 
-struct Connections
-    feedback::Connection
-    control::Connection
-    timing::Connection
-    rollout::Connection
-end
-
 function open_connections()
     ip = "192.168.1.223"
     feedback_port = 42422

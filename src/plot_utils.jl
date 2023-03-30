@@ -12,6 +12,64 @@ function plot_losses(training_params::TrainingParameters, losses)
     display(GLMakie.Screen(), fig)
 end
 
+function plot_rollout(
+    r::RolloutData,
+    task::AbstractTask,
+    loss::Float64,
+    losses::Vector{Float64}  
+)
+    xs_task, ys_task, _, _ = eval_all(task, r.ts .+ r.task_t0)
+    T = length(r.ts)
+    segs = length(r.t0_segs)
+
+    fig = Figure(resolution=(1400,800))
+
+    # trajectory
+    ax = Axis(fig[1:3,1:3], title="Loss: $(loss)", xlabel="x", ylabel="y")
+    scatter!(ax, r.xs[1,:], r.xs[2,:], color = range(0.5,1.0, length=T), colormap=:thermal, markersize=7)
+    lines!(ax, xs_task, ys_task, label="Task", linestyle=:dash, color=:black, linewidth=2.0)
+    scatter!(ax, r.setpoints[1,:], r.setpoints[2,:], marker=:xcross, color=range(0.5,1.0, length=segs), colormap=:thermal, markersize=16)
+
+    # control inputs
+    ax1 = Axis(fig[4,1:3], xlabel="t", ylabel="a")
+    ax2 = Axis(fig[5,1:3], xlabel="t", ylabel="ω")
+    lines!(ax1, r.ts, r.us[1,:], label="accel")
+    lines!(ax2, r.ts, r.us[2,:], label="turn rate")
+
+    # gains
+    ax3_1 = Axis(fig[1,4], xlabel="t", ylabel="Δkx")
+    ax3_2 = Axis(fig[2,4], xlabel="t", ylabel="Δky")
+    ax3_3 = Axis(fig[3,4], xlabel="t", ylabel="Δkv")
+    ax3_4 = Axis(fig[4,4], xlabel="t", ylabel="Δkϕ")
+    ax3_5 = Axis(fig[5,4], xlabel="t", ylabel="Δka")
+    lines!(ax3_1, r.t0_segs .- r.task_t0, r.gain_adjs[1,:], label="Δkx")
+    lines!(ax3_2, r.t0_segs .- r.task_t0, r.gain_adjs[2,:], label="Δky")
+    lines!(ax3_3, r.t0_segs .- r.task_t0, r.gain_adjs[3,:], label="Δkv")
+    lines!(ax3_4, r.t0_segs .- r.task_t0, r.gain_adjs[4,:], label="Δkϕ")
+    lines!(ax3_5, r.t0_segs .- r.task_t0, r.gain_adjs[5,:], label="Δka")
+
+    # control setpoints
+    # vs = [sqrt(r.ctrl_setpoints[3,i]^2 + r.ctrl_setpoints[4,i]^2) for i in 1:length(r.ts)]
+    ax4_1 = Axis(fig[1,5], xlabel="t", ylabel="v")
+    ax4_2 = Axis(fig[2,5], xlabel="t", ylabel="Δkω")
+    ax4_3 = Axis(fig[3,5], xlabel="t", ylabel="xdot_des")
+    ax4_4 = Axis(fig[4,5], xlabel="t", ylabel="ydot_des")
+    # ax4_5 = Axis(fig[5,5], xlabel="t", ylabel="v_des")
+    lines!(ax4_1, r.ts, r.xs[3,:], label="v")
+    lines!(ax4_2, r.t0_segs .- r.task_t0, r.gain_adjs[6,:], label="Δkω")
+    lines!(ax4_3, r.ts, r.ctrl_setpoints[3,:], label="xdot_des")
+    lines!(ax4_4, r.ts, r.ctrl_setpoints[4,:], label="ydot_des")
+    ylims!(ax4_3, -3.5, 3.5)
+    ylims!(ax4_4, -3.5, 3.5)
+    # ylims!(ax4_5, 1.25, 2.25)
+
+    # losses
+    ax5 = Axis(fig[5,5], xlabel="Iteration", ylabel="Loss")
+    lines!(ax5, losses, label="loss")
+
+    display(fig)
+end
+
 function plot_evaluation(;
     eval_params::EvaluationParameters,
     eval_data::EvaluationData,
@@ -197,4 +255,40 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
         traj_point[] = Point2f[(eval_data.r.xs[1,i], eval_data.r.xs[2,i])]
         # reset_limits!(ax)
     end
+end
+
+function plot_hardware_evaluation(;
+    eval_params::EvaluationParameters,
+    task::AbstractTask,
+    algo::Union{TrainingAlgorithm, Nothing} = nothing,
+    training_params::Union{TrainingParameters, Nothing} = nothing,
+    sim_params::Union{SimulationParameters, Nothing} = nothing,
+)
+    r_model_filename = eval_params.name * "_rollout_using_model.bson"
+    r_model_path = joinpath(eval_params.path, r_model_filename)
+    @load r_model_path r
+
+    r_no_model_filename = eval_params.name * "_rollout_no_model.bson"
+    r_no_model_path = joinpath(eval_params.path, r_no_model_filename)
+    @load r_no_model_path r_no_model
+
+    xs_task, ys_task, _, _ = eval_all(task, r.ts .+ r.task_t0)
+
+    
+    eval_data = EvaluationData(;
+        r = r,
+        r_no_model = r_no_model,
+        xs_task = xs_task,
+        ys_task = ys_task,
+    )
+
+    plot_evaluation(;
+        eval_params = eval_params,
+        eval_data = eval_data,
+        algo = algo,
+        training_params = training_params,
+        sim_params = sim_params,
+    )
+    # TODO need to fix this. has to do with: color = range(0.5,1.0, length=T)
+    animate_evaluation(eval_params, eval_data)
 end

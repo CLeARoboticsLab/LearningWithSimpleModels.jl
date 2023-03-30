@@ -131,7 +131,7 @@ unicycle_training_parameters() = TrainingParameters(;
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
     learning_rate = 1.0e-3,
-    iters = 15,
+    iters = 2,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -156,9 +156,9 @@ unicycle_evaluation_parameters() = EvaluationParameters(;
 )
 
 function train_unicycle_experiment()
-    model, losses = train(;
-        simple_dynamics = unicycle_simple_dynamics(), 
-        actual_dynamics = unicycle_actual_dynamics(),
+    model, losses = train(
+        unicycle_simple_dynamics(), 
+        unicycle_actual_dynamics();
         controller = unicycle_controller(), 
         cost = unicycle_cost(),
         task = unicycle_figure_eight_task(),

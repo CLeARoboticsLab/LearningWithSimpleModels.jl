@@ -92,7 +92,7 @@ class Controller
         double arc_angle = atan2(y_ - center_y, x_ - center_x);
         double r_des = 1.5;
         double r = sqrt(pow(x_ - center_x, 2.0) + pow(y_ - center_y, 2.0));
-        double arc_length = 2*PI*r_des/10;
+        double arc_length = 2*PI*r_des/12;
         double corr = PI/2 - atan2(arc_length,r-r_des);
         phi_des = x_ < 0.0 ? arc_angle + PI/2 + corr : arc_angle - PI/2 - corr;
       }

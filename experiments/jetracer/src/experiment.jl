@@ -23,7 +23,8 @@ jetracer_cost() = Cost(;
 
         nom_quadrant = Integer(ceil(t/cir.time * 4))
 
-        if nom_quadrant == 1
+        center_x = 0.0
+        if nom_quadrant == 1 || nom_quadrant == 0
             if x[2] > 0.0
                 center_x = cir.r
             else
@@ -39,6 +40,8 @@ jetracer_cost() = Cost(;
             end
         elseif nom_quadrant == 4   
             center_x = -cir.r
+        else
+            println("Warning: invalid nom_quadrant: $(nom_quadrant)")
         end
 
         center_y = 0.0
@@ -83,21 +86,6 @@ jetracer_cost() = Cost(;
 
 jetracer_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 
-Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
-    seconds_per_rollout::Float64 = 12.0
-    n_beginning_segs_to_truncate::Integer = 0
-    use_window::Bool = false
-    segs_in_window::Integer = 10
-    stopping_segments = 0
-end
-Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
-    "Hardware Training Algorithm
-    Seconds per rollout: $(p.seconds_per_rollout)
-    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)
-    Use window: $(p.use_window)
-    Segments in window: $(p.segs_in_window)"
-)
-
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
     seconds_per_rollout = 5 + 5.5*3.00,
     n_beginning_segs_to_truncate = 20*2,
@@ -111,7 +99,7 @@ jetracer_training_parameters() = TrainingParameters(;
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
     learning_rate = 1.0e-3,
-    iters = 15,
+    iters = 3,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,

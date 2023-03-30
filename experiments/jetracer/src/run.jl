@@ -8,8 +8,8 @@ function run()
     controller = jetracer_controller()
     cost = jetracer_cost()
 
-    train(;
-        simple_dynamics = simple_dynamics,
+    train(
+        simple_dynamics;
         controller = controller,
         ctrl_params = ctrl_params,
         cost = cost,

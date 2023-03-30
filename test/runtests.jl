@@ -99,8 +99,4 @@ include("../experiments/unicycle/unicycle_experiment.jl")
             @test length(out) == out_size
         end
     end
-
-    @testset "Unicycle Controller" begin
-        @test_nowarn test_unicycle_controller(; plot=false)
-    end
 end

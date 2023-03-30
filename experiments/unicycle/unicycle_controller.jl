@@ -105,7 +105,7 @@ function test_unicycle_controller(; plot=true)
     ts = 0.0:dt:task_time
     state = state0
     states = zeros(length(state0), length(ts))
-    setpoints = zeros(4, length(ts))
+    setpoints = zeros(6, length(ts))
     us = zeros(2, length(ts))
     for (i,t) in enumerate(ts)
         setpoint = evaluate(task, t)

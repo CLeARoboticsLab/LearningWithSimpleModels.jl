@@ -53,6 +53,21 @@ Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     $(round.(sqrt.(p.variances); digits=4))"
 )
 
+Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
+    seconds_per_rollout::Float64 = 12.0
+    n_beginning_segs_to_truncate::Integer = 0
+    use_window::Bool = false
+    segs_in_window::Integer = 10
+    stopping_segments = 0
+end
+Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
+    "Hardware Training Algorithm
+    Seconds per rollout: $(p.seconds_per_rollout)
+    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)
+    Use window: $(p.use_window)
+    Segments in window: $(p.segs_in_window)"
+)
+
 @enum Optim adam gradient_descent
 @enum LossAgg simulation_timestep model_call
 
@@ -115,6 +130,13 @@ struct FigEightCircle <: AbstractTask
     r::Real
     time::Real
     v::Real
+end
+
+struct Connections
+    feedback::Connection
+    control::Connection
+    timing::Connection
+    rollout::Connection
 end
 
 Base.@kwdef struct RolloutData
