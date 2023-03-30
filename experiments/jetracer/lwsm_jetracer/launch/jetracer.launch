@@ -8,7 +8,7 @@
             server: 192.168.1.100
             port: 3883
 
-            update_frequency: 20.0
+            update_frequency: 100.0
             frame_id: world
 
             # Use the VRPN server's time, or the client's ROS time.
@@ -36,7 +36,7 @@
 
     <!-- spline and gains publisher -->
     <node pkg="ros_sockets" type="array_publisher" name="array_publisher" output="screen">
-        <param name="port" value="42424" type="int" />
+        <param name="port" value="42426" type="int" />
         <param name="topic_name" value="jetracer/spline_gains" type="str" />
     </node>
 
@@ -46,7 +46,12 @@
     </node>
 
     <!-- Controller -->
-    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen" />
+    <node pkg="lwsm_jetracer" type="controller" name="controller"  output="screen">
+        <param name="cycle_rate" value="50.0" type="double" />
+        <param name="max_throttle" value="0.75" type="double" />
+        <param name="min_throttle" value="-0.75" type="double" />
+        <param name="stopping_time" value="2.50" type="double" />
+    </node>
 
     <!-- Servo Controller -->
     <!-- Note: commented out here: will launch on JetRacer via ssh and rosrun -->

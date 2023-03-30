@@ -3,6 +3,8 @@ Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
     ky::Float64
     kv::Float64
     kϕ::Float64
+    ka::Float64
+    kω::Float64
     limit::Bool
     a_limit::Float64
     ω_limit::Float64
@@ -27,11 +29,15 @@ function unicycle_policy(
     y_des = setpoints[2]
     xdot_des = setpoints[3]
     ydot_des = setpoints[4]
+    xddot_des = setpoints[5]
+    yddot_des = setpoints[6]
 
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
     Δkv = gains_adjustment[3]
-    Δkϕ = gains_adjustment[4]    
+    Δkϕ = gains_adjustment[4]
+    Δka = gains_adjustment[5]
+    Δkω = gains_adjustment[6]    
 
     xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
     ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
@@ -55,8 +61,14 @@ function unicycle_policy(
         ϕ_des += 2*π
     end
 
-    a = (controller.params.kv + Δkv)*(v_des - v)
-    ω = (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
+    v_des_og = sqrt(xdot_des^2 + ydot_des^2)
+    ϕ_des_og = atan(ydot_des, xdot_des)
+
+    a_des = cos(ϕ_des_og)*xddot_des + sin(ϕ_des_og)*yddot_des
+    ω_des = -xddot_des/v_des_og*sin(ϕ_des_og) + yddot_des/v_des_og*cos(ϕ_des_og)
+
+    a = (controller.params.ka + Δka)*a_des + (controller.params.kv + Δkv)*(v_des - v)
+    ω = (controller.params.kω + Δkω)*ω_des + (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     if controller.params.limit
         a_lim = controller.params.a_limit
@@ -69,13 +81,15 @@ end
 
 unicycle_controller() = Controller(;
     params = UnicycleControllerParameters(;
-        kx = 2.25,
-        ky = 2.25,
-        kv = 1.25,
-        kϕ = 2.75,
+        kx = 0.45,
+        ky = 0.45,
+        kv = 0.35,
+        kϕ = 0.35,
+        ka = 0.00,
+        kω = 0.00,
         limit = true,
-        a_limit = 4.0,
-        ω_limit = 2.5
+        a_limit = 0.75,
+        ω_limit = 1.0
     ),
     policy = unicycle_policy
 )
@@ -91,7 +105,7 @@ function test_unicycle_controller(; plot=true)
     ts = 0.0:dt:task_time
     state = state0
     states = zeros(length(state0), length(ts))
-    setpoints = zeros(4, length(ts))
+    setpoints = zeros(6, length(ts))
     us = zeros(2, length(ts))
     for (i,t) in enumerate(ts)
         setpoint = evaluate(task, t)
@@ -139,6 +153,6 @@ function test_unicycle_controller(; plot=true)
         ax_ω = Axis(fig[5,2], xlabel="t", ylabel="ω")
         lines!(ax_ω, ts, ωs)
 
-        display(GLMakie.Screen(), fig)
+        display(fig)
     end
 end

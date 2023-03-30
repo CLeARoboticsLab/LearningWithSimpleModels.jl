@@ -1,5 +1,5 @@
 """
-Generate a cubic spline
+Generate a minimum snap (7th order) spline
 # Arguments
 - `xs`, `ys`: x- and y-coordinates
 - `ts`: arrival time at each coordinate (first point must be >= 0.0)
@@ -29,10 +29,10 @@ function Spline(;
     end
 
     n = length(ts)
-    row_length = 4*(n-1)
+    row_length = 8*(n-1)
     A = zeros(0)
-    b_x = zeros(4*(n-1))
-    b_y = zeros(4*(n-1))
+    b_x = zeros(8*(n-1))
+    b_y = zeros(8*(n-1))
     x0 = xs[1]
     y0 = ys[1]
 
@@ -42,48 +42,88 @@ function Spline(;
         x = xs[i+1]
         y = ys[i+1]
 
-        f′ = zeros(row_length)
+        f2 = zeros(row_length)
+        f6 = zeros(row_length)
+        f7 = zeros(row_length)
 
         if i != 0
-            idx = 4*(i-1)+1
+            idx = 8*(i-1)+1
             f = zeros(row_length)
-            f[idx:idx+3] = [t^3, t^2, t, 1]
+            f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
-            f′[idx:idx+2] = [3*t^2, 2*t, 1]
+            if i == n-1
+                f2[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+                f6[idx:idx+1] = [5040*t, 720]
+                f7[idx] = 5040
+                append!(A, f2)
+                append!(A, f6)
+                append!(A, f7)
+            end
         else
-            b_x[j:j+1] = [x, -xdot_0]
-            b_y[j:j+1] = [y, -ydot_0]
-            j += 2
+            b_x[j:j+3] = [x, 0.0, 0.0, 0.0]
+            b_y[j:j+3] = [y, 0.0, 0.0, 0.0]
+            j += 4
         end
 
         if i != n-1
-            idx = 4*i+1
+            idx = 8*i+1
             f = zeros(row_length)
-            f[idx:idx+3] = [t^3, t^2, t, 1]
+            f[idx:idx+7] = [t^7, t^6, t^5, t^4, t^3, t^2, t, 1]
             append!(A, f)
-            f′[idx:idx+2] = [-3*t^2, -2*t, -1]
+            if i == 0
+                f2[idx:idx+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+                f6[idx:idx+1] = [5040*t, 720]
+                f7[idx] = 5040
+                append!(A, f2)
+                append!(A, f6)
+                append!(A, f7)
+            end
         else
-            b_x[j:j+1] = [x, xdot_f]
-            b_y[j:j+1] = [y, ydot_f]
-            j += 2
+            b_x[j:j+3] = [x, 0.0, 0.0, 0.0]
+            b_y[j:j+3] = [y, 0.0, 0.0, 0.0]
+            j += 4
         end
 
-        append!(A, f′)
-
         if i != 0 && i != n-1
-            #second derivative rows
+            #1st order derivative row
+            f′ = zeros(row_length)
+            f′[8*(i-1)+1 : 8*(i-1)+1+6] = [7*t^6, 6*t^5, 5*t^4, 4*t^3, 3*t^2, 2*t, 1]
+            f′[8*(i)+1 : 8*(i)+1+6] = [-7*t^6, -6*t^5, -5*t^4, -4*t^3, -3*t^2, -2*t, -1]
+            append!(A, f′)
+
+            #2nd order derivative row
             f′′ = zeros(row_length)
-            f′′[4*(i-1)+1] = 6*t
-            f′′[4*(i-1) + 1+1] = 2
-
-            f′′[4*i+1] = -6*t
-            f′′[4*i + 1+1] = -2
-
+            f′′[8*(i-1)+1 : 8*(i-1)+1+5] = [42*t^5, 30*t^4, 20*t^3, 12*t^2, 6*t, 2]
+            f′′[8*(i)+1 : 8*(i)+1+5] = [-42*t^5, -30*t^4, -20*t^3, -12*t^2, -6*t, -2]
             append!(A, f′′)
 
-            b_x[j:j+3] = [x, x, 0, 0]
-            b_y[j:j+3] = [y, y, 0, 0]
-            j += 4
+            #3rd order derivative row
+            f′′′ = zeros(row_length)
+            f′′′[8*(i-1)+1 : 8*(i-1)+1+4] = [210*t^4, 120*t^3, 60*t^2, 24*t, 6]
+            f′′′[8*(i)+1 : 8*(i)+1+4] = [-210*t^4, -120*t^3, -60*t^2, -24*t, -6]
+            append!(A, f′′′)
+
+            #4th order derivative row
+            f4 = zeros(row_length)
+            f4[8*(i-1)+1 : 8*(i-1)+1+3] = [840*t^3, 360*t^2, 120*t, 24]
+            f4[8*(i)+1 : 8*(i)+1+3] = [-840*t^3, -360*t^2, -120*t, -24]
+            append!(A, f4)
+
+            #5th order derivative row
+            f5 = zeros(row_length)
+            f5[8*(i-1)+1 : 8*(i-1)+1+2] = [2520*t^2, 720*t, 120]
+            f5[8*(i)+1 : 8*(i)+1+2] = [-2520*t^2, -720*t, -120]
+            append!(A, f5)
+
+            #6th order derivative row
+            f6 = zeros(row_length)
+            f6[8*(i-1)+1 : 8*(i-1)+1+1] = [5040*t, 720]
+            f6[8*(i)+1 : 8*(i)+1+1] = [-5040*t, -720]
+            append!(A, f6)
+
+            b_x[j:j+7] = [x, x, 0, 0, 0, 0, 0, 0]
+            b_y[j:j+7] = [y, y, 0, 0, 0, 0, 0, 0]
+            j += 8
         end
     end
 
@@ -107,27 +147,22 @@ end
 Returns a vector of x, y, xdot, ydot for the Spline at time specified.
 """
 function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
-    t = time
-
-    # wrap time in the case of repeated tasks
-    if wrap_time
-        task_time = end_time(spl)
-        if time > task_time
-            t = time - (time ÷ task_time)*task_time
-        end
-    end
+    t = wrap_time ? wrapped_time(spl, time) : time
 
     seg = time_segment(t, spl.ts)
 
-    idx = 4*(seg-1) + 1
-    coeffs_x = spl.coeffs_x[idx:idx+3]
-    coeffs_y = spl.coeffs_y[idx:idx+3]
+    idx = 8*(seg-1) + 1
+    coeffs_x = spl.coeffs_x[idx:idx+7]
+    coeffs_y = spl.coeffs_y[idx:idx+7]
 
-    x = coeffs_x[1]*t^3 + coeffs_x[2]*t^2 + coeffs_x[3]*t + coeffs_x[4]
-    y = coeffs_y[1]*t^3 + coeffs_y[2]*t^2 + coeffs_y[3]*t + coeffs_y[4]
+    x = coeffs_x[1]*t^7 + coeffs_x[2]*t^6 + coeffs_x[3]*t^5 + coeffs_x[4]*t^4 + coeffs_x[5]*t^3 + coeffs_x[6]*t^2 + coeffs_x[7]*t + coeffs_x[8]
+    y = coeffs_y[1]*t^7 + coeffs_y[2]*t^6 + coeffs_y[3]*t^5 + coeffs_y[4]*t^4 + coeffs_y[5]*t^3 + coeffs_y[6]*t^2 + coeffs_y[7]*t + coeffs_y[8]
 
-    xdot = 3*coeffs_x[1]*t^2 + 2*coeffs_x[2]*t + coeffs_x[3]
-    ydot = 3*coeffs_y[1]*t^2 + 2*coeffs_y[2]*t + coeffs_y[3]
+    xdot = 7*coeffs_x[1]*t^6 + 6*coeffs_x[2]*t^5 + 5*coeffs_x[3]*t^4 + 4*coeffs_x[4]*t^3 + 3*coeffs_x[5]*t^2 + 2*coeffs_x[6]*t + coeffs_x[7]
+    ydot = 7*coeffs_y[1]*t^6 + 6*coeffs_y[2]*t^5 + 5*coeffs_y[3]*t^4 + 4*coeffs_y[4]*t^3 + 3*coeffs_y[5]*t^2 + 2*coeffs_y[6]*t + coeffs_y[7]
+    
+    xddot = 6*7*coeffs_x[1]*t^5 + 5*6*coeffs_x[2]*t^4 + 4*5*coeffs_x[3]*t^3 + 3*4*coeffs_x[4]*t^2 + 2*3*coeffs_x[5]*t + 2*coeffs_x[6]
+    yddot = 6*7*coeffs_y[1]*t^5 + 5*6*coeffs_y[2]*t^4 + 4*5*coeffs_y[3]*t^3 + 3*4*coeffs_y[4]*t^2 + 2*3*coeffs_y[5]*t + 2*coeffs_y[6]
 
     return [x, y, xdot, ydot]
 end
@@ -138,32 +173,17 @@ function eval_all(spl, test_ts)
     ys_spline = zeros(length(test_ts))
     xdots_spline = zeros(length(test_ts))
     ydots_spline = zeros(length(test_ts))
+    xddots_spline = zeros(length(test_ts))
+    yddots_spline = zeros(length(test_ts))
     for (i,t) in enumerate(test_ts)
         xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i] = evaluate(spl, t)
     end
     return xs_spline, ys_spline, xdots_spline, ydots_spline
 end
 
-# tasks in a point evaluated from a task in the form [x, y, xdot, ydot] and
-# replaces xdot and ydot with velocity and heading angle, respectively
-function to_velocity_and_heading_angle(task_point::Vector{Float64})
-    xdot = task_point[3]
-    ydot = task_point[4]
-    
-    v = sqrt(xdot^2 + ydot^2)
-
-    if xdot == 0
-        ϕ = sign(ydot)*π/2
-    else
-        ϕ = atan(ydot,xdot)
-    end
-
-    return [task_point[1], task_point[2], v, ϕ]
-end
-
 end_time(spl::Spline) = last(spl.ts)
 
-function properties(task::Spline, sim_params::SimulationParameters)
+function properties(task::AbstractTask, sim_params::SimulationParameters)
     task_time = end_time(task)
     segment_length = Integer(round(sim_params.model_dt / sim_params.dt))
     return task_time, segment_length
@@ -220,36 +240,17 @@ function figure_eight(;
     )
 end
 
-function spline_segment(
-    t0::Float64, tf::Float64,
-    prev_setpoint::Vector{Float64}, setpoint::Vector{Float64}
-)
-    
-    x0 = prev_setpoint[1]
-    xf = setpoint[1]
-    xdot_0 = prev_setpoint[3]
-    xdot_f = setpoint[3]
-
-    y0 = prev_setpoint[2]
-    yf = setpoint[2]
-    ydot_0 = prev_setpoint[4]
-    ydot_f = setpoint[4]
-
-    A = [
-            t0^3    t0^2    t0  1
-            tf^3    tf^2    tf  1
-            3*t0^2  2*t0    1   0
-            3*tf^2  2*tf    1   0
-        ]
-
-    coeffs_x = A \ [x0, xf, xdot_0, xdot_f]
-    coeffs_y = A \ [y0, yf, ydot_0, ydot_f]
-
-    return Spline(
-        [t0, tf],
-        coeffs_x,
-        coeffs_y,
-        x0,
-        y0
+function test_plot_acceleration()
+    spl = figure_eight(;
+        x0 = 0.0,
+        y0 = 0.0,
+        xdot_0 = nothing,
+        ydot_0 = nothing,
+        xdot_f = nothing,
+        ydot_f = nothing,
+        radius = 3.00,
+        time = 10.0,
+        laps = 1
     )
+    plot_task(spl)
 end

@@ -1,9 +1,5 @@
 name: tests
 on:
-  pull_request:
-  push:
-    branches:
-      - main
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -21,9 +17,7 @@ jobs:
       - uses: julia-actions/cache@v1
         with:
           cache-registries: "true"
-      - run: sudo apt-get update && sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
           annotate: true
-          prefix: xvfb-run

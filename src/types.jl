@@ -53,6 +53,21 @@ Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     $(round.(sqrt.(p.variances); digits=4))"
 )
 
+Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
+    seconds_per_rollout::Float64 = 12.0
+    n_beginning_segs_to_truncate::Integer = 0
+    use_window::Bool = false
+    segs_in_window::Integer = 10
+    stopping_segments = 0
+end
+Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
+    "Hardware Training Algorithm
+    Seconds per rollout: $(p.seconds_per_rollout)
+    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)
+    Use window: $(p.use_window)
+    Segments in window: $(p.segs_in_window)"
+)
+
 @enum Optim adam gradient_descent
 @enum LossAgg simulation_timestep model_call
 
@@ -67,6 +82,7 @@ Base.@kwdef struct TrainingParameters
     save_model::Bool = true
     save_plot::Bool = true
     save_animation::Bool = false
+    save_all_data::Bool = true
 end
 Base.show(io::IO, p::TrainingParameters) = print(io,
     "Training Parameters: 
@@ -82,7 +98,7 @@ Base.@kwdef struct SimulationParameters
     n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
-    model_scale::Float64 = 1.0
+    model_scale::Vector{Float64} = ones(8)
 end
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 
@@ -100,12 +116,27 @@ Base.@kwdef struct EvaluationParameters
     save_animation::Bool = false
 end
 
-struct Spline
+abstract type AbstractTask end
+
+struct Spline <: AbstractTask
     ts::Vector{Float64}
     coeffs_x::Vector{Float64}
     coeffs_y::Vector{Float64}
     x0::Float64
     y0::Float64
+end
+
+struct FigEightCircle <: AbstractTask
+    r::Real
+    time::Real
+    v::Real
+end
+
+struct Connections
+    feedback::Connection
+    control::Connection
+    timing::Connection
+    rollout::Connection
 end
 
 Base.@kwdef struct RolloutData
@@ -121,6 +152,11 @@ Base.@kwdef struct RolloutData
     ctrl_setpoints::Matrix{Float64} # setpoints input into controller
     xf::Vector{Float64}             # final state, at T+1
     loss::Float64
+end
+
+Base.@kwdef struct TrainingData
+    losses::Vector{Float64}
+    rollouts::Vector{RolloutData}
 end
 
 Base.@kwdef struct EvaluationData

@@ -8,8 +8,8 @@ function run()
     controller = jetracer_controller()
     cost = jetracer_cost()
 
-    train(;
-        simple_dynamics = simple_dynamics,
+    train(
+        simple_dynamics;
         controller = controller,
         ctrl_params = ctrl_params,
         cost = cost,
@@ -23,6 +23,7 @@ end
 function evaluate_no_model()
     evaluate_on_hardware(;
         task = jetracer_figure_eight_task(),
+        algo = jetracer_training_algorithm(),
         ctrl_params = jetracer_controller_parameters(),
         sim_params = jetracer_simulation_parameters(),
         eval_params = jetracer_evaluation_parameters(),
@@ -33,6 +34,7 @@ end
 function evaluate_model()
     evaluate_on_hardware(;
         task = jetracer_figure_eight_task(),
+        algo = jetracer_training_algorithm(),
         ctrl_params = jetracer_controller_parameters(),
         sim_params = jetracer_simulation_parameters(),
         eval_params = jetracer_evaluation_parameters(),
