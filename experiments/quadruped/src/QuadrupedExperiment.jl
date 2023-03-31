@@ -11,4 +11,8 @@ module QuadrupedExperiment
 
 using LearningWithSimpleModels
 
+include("experiment.jl")
+include("controller.jl")
+include("run.jl")
+
 end #module
