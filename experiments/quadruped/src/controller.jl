@@ -14,12 +14,12 @@ quadruped_controller_parameters() = QuadrupedControllerParameters(;
     kx = 0.2,
     ky = 0.2,
     kv = 0.00,
-    kϕ = 1.00,
+    kϕ = 2.50,
     ka = 0.00,
     kω = 0.00,
     limit = true,
     v_limit = 1.0,
-    ω_limit = 1.0
+    ω_limit = 3.0
 )
 
 function quadruped_policy(
