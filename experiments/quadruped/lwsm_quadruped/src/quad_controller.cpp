@@ -117,7 +117,7 @@ class Controller
       double phi_des_og = atan2(ydot_des, xdot_des);
       double omg_des = -xddot_des/v_des_og*sin(phi_des_og) + yddot_des/v_des_og*cos(phi_des_og);
 
-      double steering = clamp(komg_*omg_des + kphi_*(phi_des - phi_), -1.0, 1.0);
+      double steering = clamp(komg_*omg_des + kphi_*(phi_des - phi_), -3.0, 3.0);
 
       std::vector<double> command{v_des, steering};
       
