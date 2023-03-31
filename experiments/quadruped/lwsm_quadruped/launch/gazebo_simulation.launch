@@ -36,9 +36,10 @@
 
     <!-- Controller -->
     <node pkg="lwsm_quadruped" type="quad_controller" name="quad_controller"  output="screen">
-        <param name="cycle_rate" value="50.0" type="double" />
+        <param name="cycle_rate" value="10.0" type="double" />
     </node>
 
-    <!-- Servo Controller (simulated) -->
-    <node pkg="lwsm_quadruped" type="quad_simulation" name="quad_simulation"  output="screen" />
+    <!-- Commands the quadruped (simulated) -->
+    <!-- Launch separatley -->
+    <!-- <node pkg="lwsm_quadruped" type="quad_simulation" name="quad_simulation"  output="screen" /> -->
 </launch>

@@ -60,7 +60,9 @@ class Controller
       spline_gains_sub_ = nh_.subscribe("quad/spline_gains", queue_size, &Controller::splineGainsCallback, this);
       pose_sub_ = nh_.subscribe("vrpn_client_node/quad/pose", queue_size, &Controller::poseCallback, this);
       twist_sub_ = nh_.subscribe("vrpn_client_node/quad/twist", queue_size, &Controller::twistCallback, this);
+      ros::Duration(1.0).sleep();
       stop_robot();
+      ROS_INFO_STREAM("Controller ready");
     }
 
     double cycle_rate(){return cycle_rate_;}
@@ -169,6 +171,7 @@ class Controller
       }
       else
       {
+        started_ = started;
         stop_robot();
         publishRolloutData();
         ROS_INFO_STREAM("Rollout data published");
