@@ -46,6 +46,7 @@ function train(
     training_params::TrainingParameters,
     sim_params::SimulationParameters  
 )
+    write_params(algo, training_params, sim_params)
     p = ProgressMeter.Progress(training_params.iters)
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
 
@@ -80,6 +81,24 @@ function train(
     # TODO need to figure out how to animate rollouts of varying lengths
     # (probably need to make arrays of Point2f)
     # animate_training(training_params, rollouts, task)
+end
+
+function write_params(    
+    algo::TrainingAlgorithm,
+    training_params::TrainingParameters,
+    sim_params::SimulationParameters
+)
+    if isnothing(training_params.save_path)
+        return
+    end
+
+    filename = training_params.name * "_params.txt"
+    path = joinpath(training_params.save_path, filename)
+    open(path,"w") do io
+        println(io, algo)
+        println(io, training_params)
+        println(io, sim_params)
+     end
 end
 
 function save_model(training_params::TrainingParameters, model::Chain)

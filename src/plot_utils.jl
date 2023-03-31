@@ -77,28 +77,12 @@ function plot_evaluation(;
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
 )
-    fig = Figure(resolution=(850,600))
+    fig = Figure(resolution=(1250,600))
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
     lines!(ax, eval_data.r.xs[1,:], eval_data.r.xs[2,:], label="Trajectory")
     lines!(ax, eval_data.r_no_model.xs[1,:], eval_data.r_no_model.xs[2,:], label="Trajectory w/o model")
     lines!(ax, eval_data.xs_task, eval_data.ys_task, label="Task", linestyle=:dash, color=:black)
     Legend(fig[1,3], ax)
-    
-    label = string(algo) * "
-    
-    Loss: $(round(eval_data.r.loss; digits=3))"
-    
-    if !isnothing(algo)
-        Label(fig[2,1], label)
-    end
-
-    if !isnothing(training_params)
-        Label(fig[2,2], string(training_params))
-    end
-
-    if !isnothing(sim_params)
-        Label(fig[2,3], string(sim_params))
-    end
 
     #TODO clean this up (control inputs plot) 
     fig2 = Figure(resolution=(600,600))
