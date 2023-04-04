@@ -13,7 +13,7 @@ function policy_update!(
     t0 = 0.0
     x0 = sim_params.x0
     r = rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, cost, sim_params, t0, x0, algo.segs_per_rollout
+        task, model, actual_dynamics, controller, cost, algo, sim_params, t0, x0, algo.segs_per_rollout
     )
     loss, grads = gradient_estimate(
         r, task, model, simple_dynamics, controller, cost, algo, training_params, sim_params
@@ -41,7 +41,7 @@ function policy_update!(
         x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
 
         rs[i] = rollout_actual_dynamics(
-            task, model, actual_dynamics, controller, cost, sim_params, t0, x0, algo.segs_per_rollout
+            task, model, actual_dynamics, controller, cost, algo, sim_params, t0, x0, algo.segs_per_rollout
         )
     end
 

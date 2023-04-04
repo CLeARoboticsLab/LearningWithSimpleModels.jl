@@ -175,7 +175,8 @@ unicycle_training_algorithm() = RandomInitialAlgorithm(;
     n_rollouts_per_update = 1,
     segs_per_rollout = 156,
     segs_in_window = 15*2,
-    to_state = (task_point) -> to_velocity_and_heading_angle(task_point)
+    to_state = (task_point) -> to_velocity_and_heading_angle(task_point),
+    task_time_est = unicycle_fig_eight_task_time_estimate
 )
 
 unicycle_training_parameters() = TrainingParameters(;
