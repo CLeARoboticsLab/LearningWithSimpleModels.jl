@@ -155,8 +155,12 @@ function rollout_actual_dynamics(
             tf_seg = t0_seg + sim_params.model_dt
             x = state(connections)
             setpoint = evaluate(task, tf_seg)
+            t_in = t0_seg
+            if !isnothing(algo.task_time_est)
+                t_in = algo.task_time_est(task, t0_seg, x)
+            end
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
-                                                        model, t0_seg, x, task_time)
+                                                        model, t_in, x, task_time)
             
             # Discard the new_setpoints and gains if not using the model
             if !use_model || j > n_segments

@@ -121,8 +121,12 @@ function gradient_estimate(
                 x = r.x0_segs[:,j]
                 
                 setpoint = evaluate(task, tf_seg)
+                t_in = t0_seg
+                if !isnothing(algo.task_time_est)
+                    t_in = algo.task_time_est(task, t0_seg, x)
+                end
                 new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
-                                                            model, t0_seg, x, task_time)
+                                                            model, t_in, x, task_time)
                 t = t0_seg - r.task_t0
                 spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
                 prev_setpoint = new_setpoint

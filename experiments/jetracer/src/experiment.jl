@@ -84,6 +84,58 @@ jetracer_cost() = Cost(;
     end
 )
 
+function jetracer_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, x::Vector{Float64})
+    center_y = 0.0
+    t = wrapped_time(cir,time)
+    nom_quadrant = Integer(ceil(t/cir.time * 4))
+    if nom_quadrant == 1 || nom_quadrant == 0
+        if x[2] > 0.0
+            # in quadrant 1
+            center_x = cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est = cir.time/4*(π-arc_angle)/π
+        else
+            # in quadrant 4
+            center_x = -cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
+        end
+    elseif nom_quadrant == 2
+        center_x = cir.r
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+        if x[2] > 0.0
+            # in quadrant 1
+            time_est = cir.time/4*(π-arc_angle)/π
+        else
+            # in quadrant 2
+            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
+        end
+    elseif nom_quadrant == 3
+        if x[2] > 0.0
+            # in quadrant 3
+            center_x = -cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
+        else
+            # in quadrant 2
+            center_x = cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
+        end
+    elseif nom_quadrant == 4   
+        center_x = -cir.r
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+        if x[2] > 0.0
+            # in quadrant 3
+            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
+        else
+            # in quadrant 4
+            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
+        end
+    end
+    return time_est
+end
+
 jetracer_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 
 jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
@@ -91,7 +143,8 @@ jetracer_training_algorithm() = HardwareTrainingAlgorithm(;
     n_beginning_segs_to_truncate = 20*2,
     use_window = true,
     segs_in_window = 15*2,
-    stopping_segments = 4*2
+    stopping_segments = 4*2,
+    task_time_est = jetracer_fig_eight_task_time_estimate
 )
 
 jetracer_training_parameters() = TrainingParameters(;

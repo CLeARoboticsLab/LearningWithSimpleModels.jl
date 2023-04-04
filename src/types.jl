@@ -60,6 +60,7 @@ Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
     use_window::Bool = false
     segs_in_window::Integer = 10
     stopping_segments = 0
+    task_time_est::Union{Function, Nothing} = nothing
 end
 Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
     "Hardware Training Algorithm

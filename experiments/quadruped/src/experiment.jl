@@ -84,6 +84,58 @@ quadruped_cost() = Cost(;
     end
 )
 
+function quadruped_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, x::Vector{Float64})
+    center_y = 0.0
+    t = wrapped_time(cir,time)
+    nom_quadrant = Integer(ceil(t/cir.time * 4))
+    if nom_quadrant == 1 || nom_quadrant == 0
+        if x[2] > 0.0
+            # in quadrant 1
+            center_x = cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est = cir.time/4*(π-arc_angle)/π
+        else
+            # in quadrant 4
+            center_x = -cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
+        end
+    elseif nom_quadrant == 2
+        center_x = cir.r
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+        if x[2] > 0.0
+            # in quadrant 1
+            time_est = cir.time/4*(π-arc_angle)/π
+        else
+            # in quadrant 2
+            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
+        end
+    elseif nom_quadrant == 3
+        if x[2] > 0.0
+            # in quadrant 3
+            center_x = -cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
+        else
+            # in quadrant 2
+            center_x = cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
+        end
+    elseif nom_quadrant == 4   
+        center_x = -cir.r
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+        if x[2] > 0.0
+            # in quadrant 3
+            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
+        else
+            # in quadrant 4
+            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
+        end
+    end
+    return time_est
+end
+
 T() = 2*2*π*1.5/0.5
 m_dt() = T()/20.0/2
 
@@ -94,7 +146,8 @@ quadruped_training_algorithm() = HardwareTrainingAlgorithm(;
     n_beginning_segs_to_truncate = Integer(round(0.5*T()/(m_dt()))),
     use_window = true,
     segs_in_window = Integer(round(.75*T()/(m_dt()))),
-    stopping_segments = 0
+    stopping_segments = 0,
+    task_time_est = quadruped_fig_eight_task_time_estimate
 )
 
 quadruped_training_parameters() = TrainingParameters(;
