@@ -81,10 +81,10 @@ end
 
 unicycle_controller() = Controller(;
     params = UnicycleControllerParameters(;
-        kx = 0.45,
-        ky = 0.45,
-        kv = 0.35,
-        kϕ = 0.35,
+        kx = 5.45,
+        ky = 5.45,
+        kv = 5.35,
+        kϕ = 5.35,
         ka = 0.00,
         kω = 0.00,
         limit = true,

@@ -68,12 +68,15 @@ function rollout_actual_dynamics(
 
         x0_segs[:,j] = x
 
-        # setpoint is task evaluated at next model call time (segment end time)
-        setpoint = evaluate(task, tf_seg)
+        
         t_in = t
         if !isnothing(algo.task_time_est)
             t_in = algo.task_time_est(task, t, x)
+            tf_seg = t_in + sim_params.model_dt - sim_params.dt
         end
+
+        # setpoint is task evaluated at next model call time (segment end time)
+        setpoint = evaluate(task, tf_seg)
         new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t_in, x, task_time)
         
         # Discard the new_setpoints and gains if not using the model
