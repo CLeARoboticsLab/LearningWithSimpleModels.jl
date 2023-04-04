@@ -111,6 +111,58 @@ unicycle_cost() = Cost(;
     end
 )
 
+function unicycle_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, x::Vector{Float64})
+    center_y = 0.0
+    t = wrapped_time(cir,time)
+    nom_quadrant = Integer(ceil(t/cir.time * 4))
+    if nom_quadrant == 1 || nom_quadrant == 0
+        if x[2] > 0.0
+            # in quadrant 1
+            center_x = cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est = cir.time/4*(π-arc_angle)/π
+        else
+            # in quadrant 4
+            center_x = -cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
+        end
+    elseif nom_quadrant == 2
+        center_x = cir.r
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+        if x[2] > 0.0
+            # in quadrant 1
+            time_est = cir.time/4*(π-arc_angle)/π
+        else
+            # in quadrant 2
+            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
+        end
+    elseif nom_quadrant == 3
+        if x[2] > 0.0
+            # in quadrant 3
+            center_x = -cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
+        else
+            # in quadrant 2
+            center_x = cir.r
+            arc_angle = atan(x[2]-center_y, x[1]-center_x)
+            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
+        end
+    elseif nom_quadrant == 4   
+        center_x = -cir.r
+        arc_angle = atan(x[2]-center_y, x[1]-center_x)
+        if x[2] > 0.0
+            # in quadrant 3
+            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
+        else
+            # in quadrant 4
+            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
+        end
+    end
+    return time_est
+end
+
 unicycle_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 
 # unicycle_training_algorithm() = WalkingWindowAlgorithm(;
@@ -119,7 +171,7 @@ unicycle_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 # )
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.15^2, .15^2, 0.001^2, .15^2],
+    variances = [.10^2, .10^2, 0.001^2, .02^2],
     n_rollouts_per_update = 1,
     segs_per_rollout = 156,
     segs_in_window = 15*2,
@@ -130,8 +182,8 @@ unicycle_training_parameters() = TrainingParameters(;
     name = "unicycle",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 1.0e-3,
-    iters = 15,
+    learning_rate = 0.75e-3,
+    iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -144,7 +196,7 @@ unicycle_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/50.0,
     model_dt = 5.5/20.0/2,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.25, 0.0, 0.00, 0.11]
+    model_scale = [1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.25, 0.0, 0.00, 0.10]
 )
 
 unicycle_evaluation_parameters() = EvaluationParameters(;
