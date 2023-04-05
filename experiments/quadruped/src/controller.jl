@@ -1,9 +1,9 @@
 Base.@kwdef struct QuadrupedControllerParameters <: ControllerParameters
     kx::Float64
     ky::Float64
-    kv::Float64
+    kvx::Float64
     kϕ::Float64
-    ka::Float64
+    kvy::Float64
     kω::Float64
     limit::Bool
     v_limit::Float64
@@ -13,9 +13,9 @@ end
 quadruped_controller_parameters() = QuadrupedControllerParameters(;
     kx = 0.2,
     ky = 0.2,
-    kv = 0.00,
+    kvx = 0.95,
     kϕ = 2.50,
-    ka = 0.00,
+    kvy = 0.95,
     kω = 0.00,
     limit = true,
     v_limit = 1.0,
@@ -42,13 +42,13 @@ function quadruped_policy(
 
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
-    Δkv = gains_adjustment[3]
+    Δkvx = gains_adjustment[3]
     Δkϕ = gains_adjustment[4]
-    Δka = gains_adjustment[5]
+    Δkvy = gains_adjustment[5]
     Δkω = gains_adjustment[6]    
 
-    xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
-    ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
+    xdot_tilde_des = (controller.params.kvx + Δkvx)*xdot_des + (controller.params.kx + Δkx)*(x_des - x)
+    ydot_tilde_des = (controller.params.kvy + Δkvy)*ydot_des + (controller.params.ky + Δky)*(y_des - y)
     v_des = sqrt(xdot_tilde_des^2 + ydot_tilde_des^2)
 
     if xdot_tilde_des == 0
