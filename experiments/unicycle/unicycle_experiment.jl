@@ -7,7 +7,7 @@ unicycle_simple_dynamics() = Dynamics(;
         return [
             x[1] + x[3]*cos(x[4])*dt,
             x[2] + x[3]*sin(x[4])*dt,
-            x[3] + u[1]*dt,
+            x[3] + (u[1] - .4*x[3]^2)*dt,
             x[4] + x[3]*u[2]*dt
         ]
     end
@@ -184,8 +184,8 @@ unicycle_training_parameters() = TrainingParameters(;
     name = "unicycle",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.00e-3,
-    iters = 10,
+    learning_rate = 3.00e-3,
+    iters = 15,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -198,7 +198,7 @@ unicycle_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/50.0,
     model_dt = 5.5/20.0/2,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.25, 0.1, 0.00, 0.02]
+    model_scale = [1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.25, 0.1, 0.10, 0.02]
 )
 
 unicycle_evaluation_parameters() = EvaluationParameters(;
