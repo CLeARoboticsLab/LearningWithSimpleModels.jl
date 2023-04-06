@@ -43,6 +43,7 @@ Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm
     segs_per_rollout::Integer = 20
     segs_in_window::Integer = 5
     to_state::Function
+    task_time_est::Union{Function, Nothing} = nothing
 end
 Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     "Random Initial Algorithm:
@@ -59,6 +60,7 @@ Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
     use_window::Bool = false
     segs_in_window::Integer = 10
     stopping_segments = 0
+    task_time_est::Union{Function, Nothing} = nothing
 end
 Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
     "Hardware Training Algorithm

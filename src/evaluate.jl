@@ -16,10 +16,10 @@ function evaluate_model(;
         @load model_path model
     end
 
-    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, sim_params, eval_params)
+    r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, algo, sim_params, eval_params)
 
     r_no_model = rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, cost, sim_params, eval_params
+        task, model, actual_dynamics, controller, cost, algo, sim_params, eval_params
         ; use_model = false
     )
 
