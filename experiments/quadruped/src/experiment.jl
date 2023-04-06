@@ -142,8 +142,8 @@ m_dt() = T()/20.0/2
 quadruped_figure_eight_task() = FigEightCircle(; r=1.5, time = T() )
 
 quadruped_training_algorithm() = HardwareTrainingAlgorithm(;
-    seconds_per_rollout = 0.5*T() + 2*T(),
-    n_beginning_segs_to_truncate = Integer(round(0.5*T()/(m_dt()))),
+    seconds_per_rollout = 0.25*T() + 1.35*T(),
+    n_beginning_segs_to_truncate = Integer(round(0.25*T()/(m_dt()))),
     use_window = true,
     segs_in_window = Integer(round(.75*T()/(m_dt()))),
     stopping_segments = 0,
@@ -154,7 +154,7 @@ quadruped_training_parameters() = TrainingParameters(;
     name = "quadruped",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 1.0e-4/4,
+    learning_rate = 2.0e-4,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -169,7 +169,8 @@ quadruped_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/10.0, # should match controller update rate
     model_dt = m_dt(),
-    model_scale = [1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.00, 0.25, 0.00, 0.00]
+    model_scale = [1.0, 1.0, 0.0, 0.0, 0.25, 0.25, 1.00, 0.25, 1.00, 0.35]
+    #                                  kx    ky    kvx   kϕ    kvy   kω
 )
 
 quadruped_evaluation_parameters() = EvaluationParameters(;
