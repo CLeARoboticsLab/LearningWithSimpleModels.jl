@@ -28,7 +28,7 @@ class Controller
 {
   public:
     Controller() : started_(false), control_lock_(false),
-        kx_(0.0), ky_(0.0), kv_(0.0), kphi_(0.0), ka_(0.0), komg_(0.0), spline_coeffs_(8, 0.0)
+        kx_(0.0), ky_(0.0), kvx_(0.0), kphi_(0.0), kvy_(0.0), komg_(0.0), spline_coeffs_(8, 0.0)
     {
       ROS_INFO_STREAM("Starting controller");
 
@@ -91,8 +91,8 @@ class Controller
 
       control_lock_ = true;
 
-      double xdot_tilde_des = xdot_des + kx_*(x_des - x_);
-      double ydot_tilde_des = ydot_des + ky_*(y_des - y_);
+      double xdot_tilde_des = kvx_*xdot_des + kx_*(x_des - x_);
+      double ydot_tilde_des = kvy_*ydot_des + ky_*(y_des - y_);
       double v_des = sqrt(pow(xdot_tilde_des,2.0) + pow(ydot_tilde_des,2.0));
       v_des = clamp(v_des, -1.0, 1.0);
 
@@ -143,7 +143,7 @@ class Controller
     double cycle_rate_;
     ros::Time start_time_;
     double t_;
-    double kx_, ky_, kv_, kphi_, ka_, komg_;
+    double kx_, ky_, kvx_, kphi_, kvy_, komg_;
     double x_, y_, v_, phi_;
     std::vector<double> spline_coeffs_;
     bool started_, control_lock_;
@@ -206,9 +206,9 @@ class Controller
         spline_coeffs_[i] = spline_gains.data[i];
       kx_ = spline_gains.data[6];
       ky_ = spline_gains.data[7];
-      kv_ = spline_gains.data[8];
+      kvx_ = spline_gains.data[8];
       kphi_ = spline_gains.data[9];
-      ka_ = spline_gains.data[10];
+      kvy_ = spline_gains.data[10];
       komg_ = spline_gains.data[11];
       seg_idxs_.push_back(ts_.size());
       ROS_INFO_STREAM("New spline and gains loaded");
