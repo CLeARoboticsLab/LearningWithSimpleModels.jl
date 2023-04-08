@@ -31,6 +31,12 @@ function train(
     
     save_model(training_params, model)
     plot_losses(training_params, losses)
+    save_all_data(training_params, 
+        TrainingData(;
+            losses = losses,
+            rollouts = rollouts
+        )
+    )
     animate_training(training_params, rollouts, task)
 
     return model, losses
@@ -108,7 +114,7 @@ function save_model(training_params::TrainingParameters, model::Chain)
 
     filename = training_params.name * "_train_model.bson"
     path = joinpath(training_params.save_path, filename)
-    @save path model
+    BSON.@save path model
 end
 
 function save_all_data(training_params::TrainingParameters, data::TrainingData)
@@ -118,5 +124,5 @@ function save_all_data(training_params::TrainingParameters, data::TrainingData)
 
     filename = training_params.name * "_training_data.bson"
     path = joinpath(training_params.save_path, filename)
-    @save path data
+    BSON.@save path data
 end

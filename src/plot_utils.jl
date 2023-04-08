@@ -250,11 +250,11 @@ function plot_hardware_evaluation(;
 )
     r_model_filename = eval_params.name * "_rollout_using_model.bson"
     r_model_path = joinpath(eval_params.path, r_model_filename)
-    @load r_model_path r
+    BSON.@load r_model_path r
 
     r_no_model_filename = eval_params.name * "_rollout_no_model.bson"
     r_no_model_path = joinpath(eval_params.path, r_no_model_filename)
-    @load r_no_model_path r_no_model
+    BSON.@load r_no_model_path r_no_model
 
     xs_task, ys_task, _, _ = eval_all(task, r.ts .+ r.task_t0)
 
@@ -275,4 +275,36 @@ function plot_hardware_evaluation(;
     )
     # TODO need to fix this. has to do with: color = range(0.5,1.0, length=T)
     animate_evaluation(eval_params, eval_data)
+end
+
+function multi_training_plot(runs::Vector{TrainingData}, path, w, h)
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="Episode", ylabel="Loss")
+    for (i,run) in enumerate(runs)
+        lines!(ax, run.losses, label="Epoch $(i)", color=(Makie.wong_colors()[i], 1.0))
+        scatter!(ax, run.losses)
+    end
+    axislegend(ax)
+    display(fig)
+    save(path, fig)
+end
+
+function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w, h, start_perc, finish_perc, task_finish_perc)
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+    s = Integer(round(start_perc*length(r.ts)))
+    f = Integer(round(finish_perc*length(r.ts)))
+    f_task = Integer(round(task_finish_perc*length(r.ts)))
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)")
+    lines!(ax, xs_task[1:f_task], ys_task[1:f_task], label="Task", 
+            color=:black, linewidth=6, linestyle=:dash)
+
+    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Untrained", 
+            color=(Makie.wong_colors()[2], .6), linewidth=4)
+            lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Trained", 
+            color=(Makie.wong_colors()[1], .6), linewidth=4)
+    
+    axislegend(ax, position = :rb)
+    display(fig)
+    save(path, fig)
 end

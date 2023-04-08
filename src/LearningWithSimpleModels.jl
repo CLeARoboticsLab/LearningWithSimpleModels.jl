@@ -12,7 +12,7 @@ using Flux:
     Descent,
     f64
 using Distributions: Uniform, MvNormal
-using BSON: @save, @load
+using BSON
 using LinearAlgebra: diagm
 using CairoMakie
 using RosSockets
@@ -52,7 +52,7 @@ include("train.jl")
 export train
 
 include("plot_utils.jl")
-export plot_hardware_evaluation
+export plot_hardware_evaluation, multi_training_plot, final_eval_plot
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware
