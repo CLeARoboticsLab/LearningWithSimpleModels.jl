@@ -1,22 +1,20 @@
-Base.@kwdef struct JetsonControllerParameters <: ControllerParameters
-    kx::Float64
-    ky::Float64
-    kv::Float64
-    kϕ::Float64
-    ka::Float64
-    kω::Float64
+Base.@kwdef struct JetracerControllerParameters <: ControllerParameters
+    gains::Vector{Float64}
+    gains_names::Vector{String} = ["kx","ky","kv","kϕ","ka","kω"]
     limit::Bool
     a_limit::Float64
     ω_limit::Float64
 end
 
-jetracer_controller_parameters() = JetsonControllerParameters(;
-    kx = 0.45,
-    ky = 0.45,
-    kv = 0.35,
-    kϕ = 0.35,
-    ka = 0.00,
-    kω = 0.00,
+jetracer_controller_parameters() = JetracerControllerParameters(;
+    gains = [
+        0.45, # kx
+        0.45, # ky
+        0.35, # kv
+        0.35, # kϕ
+        0.00, # ka
+        0.00, # kω
+    ],
     limit = true,
     a_limit = 0.75,
     ω_limit = 1.0
@@ -40,6 +38,13 @@ function jetracer_policy(
     xddot_des = setpoints[5]
     yddot_des = setpoints[6]
 
+    kx = controller.params.gains[1]
+    ky = controller.params.gains[2]
+    kv = controller.params.gains[3]
+    kϕ = controller.params.gains[4]
+    ka = controller.params.gains[5]
+    kω = controller.params.gains[6]
+
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
     Δkv = gains_adjustment[3]
@@ -47,8 +52,8 @@ function jetracer_policy(
     Δka = gains_adjustment[5]
     Δkω = gains_adjustment[6]    
 
-    xdot_tilde_des = xdot_des + (controller.params.kx + Δkx)*(x_des - x)
-    ydot_tilde_des = ydot_des + (controller.params.ky + Δky)*(y_des - y)
+    xdot_tilde_des = xdot_des + (kx + Δkx)*(x_des - x)
+    ydot_tilde_des = ydot_des + (ky + Δky)*(y_des - y)
     v_des = sqrt(xdot_tilde_des^2 + ydot_tilde_des^2)
 
     if xdot_tilde_des == 0
@@ -75,8 +80,8 @@ function jetracer_policy(
     a_des = cos(ϕ_des_og)*xddot_des + sin(ϕ_des_og)*yddot_des
     ω_des = -xddot_des/v_des_og*sin(ϕ_des_og) + yddot_des/v_des_og*cos(ϕ_des_og)
 
-    a = (controller.params.ka + Δka)*a_des + (controller.params.kv + Δkv)*(v_des - v)
-    ω = (controller.params.kω + Δkω)*ω_des + (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
+    a = (ka + Δka)*a_des + (kv + Δkv)*(v_des - v)
+    ω = (kω + Δkω)*ω_des + (kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     if controller.params.limit
         a_lim = controller.params.a_limit

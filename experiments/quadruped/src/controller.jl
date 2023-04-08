@@ -1,22 +1,20 @@
 Base.@kwdef struct QuadrupedControllerParameters <: ControllerParameters
-    kx::Float64
-    ky::Float64
-    kvx::Float64
-    kϕ::Float64
-    kvy::Float64
-    kω::Float64
+    gains::Vector{Float64}
+    gains_names::Vector{String} = ["kx","ky","kvx","kϕ","kvy","kω"]
     limit::Bool
     v_limit::Float64
     ω_limit::Float64
 end
 
 quadruped_controller_parameters() = QuadrupedControllerParameters(;
-    kx = 0.2,
-    ky = 0.2,
-    kvx = 0.95,
-    kϕ = 2.50,
-    kvy = 0.95,
-    kω = 0.00,
+    gains = [
+        0.20, # kx
+        0.20, # ky
+        0.95, # kvx
+        2.50, # kϕ
+        0.95, # kvy
+        0.00, # kω
+    ],
     limit = true,
     v_limit = 1.0,
     ω_limit = 3.0
@@ -40,6 +38,13 @@ function quadruped_policy(
     xddot_des = setpoints[5]
     yddot_des = setpoints[6]
 
+    kx = controller.params.gains[1]
+    ky = controller.params.gains[2]
+    kvx = controller.params.gains[3]
+    kϕ = controller.params.gains[4]
+    kvy = controller.params.gains[5]
+    kω = controller.params.gains[6]
+
     Δkx = gains_adjustment[1]
     Δky = gains_adjustment[2]
     Δkvx = gains_adjustment[3]
@@ -47,8 +52,8 @@ function quadruped_policy(
     Δkvy = gains_adjustment[5]
     Δkω = gains_adjustment[6]    
 
-    xdot_tilde_des = (controller.params.kvx + Δkvx)*xdot_des + (controller.params.kx + Δkx)*(x_des - x)
-    ydot_tilde_des = (controller.params.kvy + Δkvy)*ydot_des + (controller.params.ky + Δky)*(y_des - y)
+    xdot_tilde_des = (kvx + Δkvx)*xdot_des + (kx + Δkx)*(x_des - x)
+    ydot_tilde_des = (kvy + Δkvy)*ydot_des + (ky + Δky)*(y_des - y)
     v_des = sqrt(xdot_tilde_des^2 + ydot_tilde_des^2)
 
     if xdot_tilde_des == 0
@@ -73,7 +78,7 @@ function quadruped_policy(
     ϕ_des_og = atan(ydot_des, xdot_des)
     ω_des = -xddot_des/v_des_og*sin(ϕ_des_og) + yddot_des/v_des_og*cos(ϕ_des_og)
 
-    ω = (controller.params.kω + Δkω)*ω_des + (controller.params.kϕ + Δkϕ)*(ϕ_des - ϕ)
+    ω = (kω + Δkω)*ω_des + (kϕ + Δkϕ)*(ϕ_des - ϕ)
     
     if controller.params.limit
         v_lim = controller.params.v_limit
