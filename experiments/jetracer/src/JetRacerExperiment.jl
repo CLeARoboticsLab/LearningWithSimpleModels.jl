@@ -10,9 +10,12 @@
 module JetRacerExperiment
 
 using LearningWithSimpleModels
+using BSON
+using CairoMakie
 
 include("experiment.jl")
 include("controller.jl")
 include("run.jl")
+include("plots.jl")
 
 end #module

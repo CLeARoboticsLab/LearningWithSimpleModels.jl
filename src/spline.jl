@@ -167,20 +167,6 @@ function evaluate(spl::Spline, time::Real; wrap_time::Bool=true)
     return [x, y, xdot, ydot]
 end
 
-# evaluate the spline at all the test_ts and return arrays of the results
-function eval_all(spl, test_ts)
-    xs_spline = zeros(length(test_ts))
-    ys_spline = zeros(length(test_ts))
-    xdots_spline = zeros(length(test_ts))
-    ydots_spline = zeros(length(test_ts))
-    xddots_spline = zeros(length(test_ts))
-    yddots_spline = zeros(length(test_ts))
-    for (i,t) in enumerate(test_ts)
-        xs_spline[i], ys_spline[i], xdots_spline[i], ydots_spline[i] = evaluate(spl, t)
-    end
-    return xs_spline, ys_spline, xdots_spline, ydots_spline
-end
-
 end_time(spl::Spline) = last(spl.ts)
 
 function properties(task::AbstractTask, sim_params::SimulationParameters)
