@@ -1,6 +1,6 @@
 Base.@kwdef struct QuadrupedControllerParameters <: ControllerParameters
     gains::Vector{Float64}
-    gains_names::Vector{String} = ["kx","ky","kvx","kϕ","kvy","kω"]
+    gains_names::Vector{String} = ["Kx","Ky","Kvx","Kϕ","Kvy","Kω"]
     limit::Bool
     v_limit::Float64
     ω_limit::Float64

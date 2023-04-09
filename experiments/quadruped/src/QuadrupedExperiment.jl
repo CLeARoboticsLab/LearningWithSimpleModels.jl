@@ -10,9 +10,11 @@
 module QuadrupedExperiment
 
 using LearningWithSimpleModels
+using BSON
 
 include("experiment.jl")
 include("controller.jl")
 include("run.jl")
+include("plots.jl")
 
 end #module
