@@ -1,6 +1,6 @@
 Base.@kwdef struct UnicycleControllerParameters <: ControllerParameters
     gains::Vector{Float64}
-    gains_names::Vector{String} = ["kx","ky","kv","kϕ","ka","kω"]
+    gains_names::Vector{String} = ["Kx","Ky","Kv","Kϕ","Ka","Kω"]
     limit::Bool
     a_limit::Float64
     ω_limit::Float64
@@ -82,20 +82,22 @@ function unicycle_policy(
     end
 end
 
+unicycle_controller_parameters() = UnicycleControllerParameters(;
+    gains = [
+        0.45, # kx
+        0.45, # ky
+        0.35, # kv
+        0.35, # kϕ
+        0.00, # ka
+        0.00, # kω
+    ],
+    limit = true,
+    a_limit = 0.75,
+    ω_limit = 1.0
+)
+
 unicycle_controller() = Controller(;
-    params = UnicycleControllerParameters(;
-        gains = [
-            0.45, # kx
-            0.45, # ky
-            0.35, # kv
-            0.35, # kϕ
-            0.00, # ka
-            0.00, # kω
-        ],
-        limit = true,
-        a_limit = 0.75,
-        ω_limit = 1.0
-    ),
+    params = unicycle_controller_parameters(),
     policy = unicycle_policy
 )
 
