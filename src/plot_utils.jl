@@ -310,7 +310,8 @@ function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w,
 end
 
 function final_model_outputs_plot(
-    path, r::RolloutData, task::AbstractTask, ctrl_params::ControllerParameters, 
+    path, r::RolloutData, task::AbstractTask, 
+    ctrl_params::ControllerParameters, gain_order::Vector{<:Integer},
     w, h, start_perc, finish_perc
 )
     # trajectory
@@ -332,20 +333,24 @@ function final_model_outputs_plot(
     scatter!(ax, r.setpoints[1,s_points:f_points], r.setpoints[2,s_points:f_points], marker=:xcross, color=f_pts_range, colormap=cm, markersize=16, colorrange=clrrng)
 
     # gains
-    ax3_1 = Axis(fig[1,4], xlabel="t (sec)", ylabel="ΔKx (%)")
-    ax3_2 = Axis(fig[2,4], xlabel="t (sec)", ylabel="ΔKy (%)")
-    ax3_3 = Axis(fig[3,4], xlabel="t (sec)", ylabel="ΔKv (%)")
-    ax3_4 = Axis(fig[1,5], xlabel="t (sec)", ylabel="ΔKϕ (%)")
-    # ax3_5 = Axis(fig[2,5], xlabel="t (sec)", ylabel="ΔKa (%)")
-    ax3_6 = Axis(fig[2,5], xlabel="t (sec)", ylabel="ΔKω (%)")
-    tsegs = (r.t0_segs .- r.task_t0)[1:f_points]
-    lines!(ax3_1, tsegs[s_points:f_points].-tsegs[s_points], r.gain_adjs[1,s_points:f_points] ./ ctrl_params.gains[1] .* 100, color=f_pts_range, colormap=cm, colorrange=clrrng)
-    lines!(ax3_2, tsegs[s_points:f_points].-tsegs[s_points], r.gain_adjs[2,s_points:f_points] ./ ctrl_params.gains[2] .* 100, color=f_pts_range, colormap=cm, colorrange=clrrng)
-    lines!(ax3_3, tsegs[s_points:f_points].-tsegs[s_points], r.gain_adjs[3,s_points:f_points] ./ ctrl_params.gains[3] .* 100, color=f_pts_range, colormap=cm, colorrange=clrrng)
-    lines!(ax3_4, tsegs[s_points:f_points].-tsegs[s_points], r.gain_adjs[4,s_points:f_points] ./ ctrl_params.gains[4] .* 100, color=f_pts_range, colormap=cm, colorrange=clrrng)
-    # lines!(ax3_5, tsegs[s_points:f_points].-tsegs[s_points], r.gain_adjs[5,s_points:f_points] .* 100, color=f_pts_range, colormap=cm, colorrange=clrrng)
-    lines!(ax3_6, tsegs[s_points:f_points].-tsegs[s_points], r.gain_adjs[6,s_points:f_points] .* 100, color=f_pts_range, colormap=cm, colorrange=clrrng)
-
+    i=0
+    for pos in gain_order
+        i += 1
+        if pos == 0
+            continue
+        end
+        vpos, hpos = pos in 1:3 ? (pos, 4) : (pos-3, 5)
+        tsegs = (r.t0_segs .- r.task_t0)[1:f_points]
+        ts = tsegs[s_points:f_points].-tsegs[s_points]
+        if ctrl_params.gains[i] != 0.0
+            Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+        else
+            Ks = r.gain_adjs[i,s_points:f_points] .* 100
+        end
+        ax = Axis(fig[vpos,hpos], xlabel="t (sec)", ylabel="Δ "*ctrl_params.gains_names[i]*" (%)")
+        lines!(ax, ts, Ks, color=f_pts_range, colormap=cm, colorrange=clrrng)
+    end
+    
     display(fig)
     save(path, fig)
 end

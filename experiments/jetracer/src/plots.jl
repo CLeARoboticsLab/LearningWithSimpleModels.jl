@@ -30,5 +30,7 @@ function make_model_outputs_plot()
     task = jetracer_figure_eight_task()
 
     path = ".data/results/JetRacer/model_outputs_one_lap.png"
-    final_model_outputs_plot(path, r, task, jetracer_controller_parameters(), 1500, 600, 4.77/6, 5.687/6)
+    final_model_outputs_plot(path, r, task, 
+        jetracer_controller_parameters(), [1,2,3,4,0,5],
+        1500, 600, 4.77/6, 5.687/6)
 end

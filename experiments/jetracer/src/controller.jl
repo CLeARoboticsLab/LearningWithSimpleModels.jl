@@ -1,6 +1,6 @@
 Base.@kwdef struct JetracerControllerParameters <: ControllerParameters
     gains::Vector{Float64}
-    gains_names::Vector{String} = ["kx","ky","kv","kϕ","ka","kω"]
+    gains_names::Vector{String} = ["Kx","Ky","Kv","Kϕ","Ka","Kω"]
     limit::Bool
     a_limit::Float64
     ω_limit::Float64
