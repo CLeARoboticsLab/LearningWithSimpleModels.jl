@@ -20,6 +20,7 @@ import ProgressMeter
 using Rotations
 using LinearAlgebra
 import JSON
+using LaTeXStrings
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
@@ -52,7 +53,8 @@ include("train.jl")
 export train
 
 include("plot_utils.jl")
-export plot_hardware_evaluation, multi_training_plot, final_eval_plot
+export plot_hardware_evaluation, multi_training_plot, final_eval_plot,
+    final_model_outputs_plot
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware

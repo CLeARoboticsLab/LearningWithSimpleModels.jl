@@ -308,3 +308,40 @@ function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w,
     display(fig)
     save(path, fig)
 end
+
+function final_model_outputs_plot(path, r::RolloutData, task::AbstractTask, ctrl_params::ControllerParameters, w, h, finish_perc)
+    # trajectory
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+    # T = length(r.ts)
+    f = Integer(round(finish_perc*length(r.ts)))
+    f_points = Integer(round(finish_perc*length(r.setpoints[1,:])))
+
+    cm = :thermal
+    clrrng = (-0.2,1.2)
+    f_range = range(0,1,length=f)
+    f_pts_range = range(0,1,length=f_points)
+
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1:3,1:3], xlabel="x (m)", ylabel="y (m)")
+    scatter!(ax, r.xs[1,1:f], r.xs[2,1:f], color=f_range, colormap=cm, markersize=7, colorrange=clrrng)
+    lines!(ax, xs_task[1:f], ys_task[1:f], label="Task", linestyle=:solid, color=:black, linewidth=2.0)
+    scatter!(ax, r.setpoints[1,1:f_points], r.setpoints[2,1:f_points], marker=:xcross, color=f_pts_range, colormap=cm, markersize=16, colorrange=clrrng)
+
+    # gains
+    ax3_1 = Axis(fig[1,4], xlabel="t", ylabel="ΔKx (%)")
+    ax3_2 = Axis(fig[2,4], xlabel="t", ylabel="ΔKy (%)")
+    ax3_3 = Axis(fig[3,4], xlabel="t", ylabel="ΔKv (%)")
+    ax3_4 = Axis(fig[1,5], xlabel="t", ylabel="ΔKϕ (%)")
+    # ax3_5 = Axis(fig[2,5], xlabel="t", ylabel="ΔKa (%)")
+    ax3_6 = Axis(fig[2,5], xlabel="t", ylabel="ΔKω (%)")
+    tsegs = (r.t0_segs .- r.task_t0)[1:f_points]
+    lines!(ax3_1, tsegs, r.gain_adjs[1,1:f_points] ./ ctrl_params.gains[1] .* 100, label="ΔKx (%)", color=f_pts_range, colormap=cm, colorrange=clrrng)
+    lines!(ax3_2, tsegs, r.gain_adjs[2,1:f_points] ./ ctrl_params.gains[2] .* 100, label="ΔKy (%)", color=f_pts_range, colormap=cm, colorrange=clrrng)
+    lines!(ax3_3, tsegs, r.gain_adjs[3,1:f_points] ./ ctrl_params.gains[3] .* 100, label="ΔKv (%)", color=f_pts_range, colormap=cm, colorrange=clrrng)
+    lines!(ax3_4, tsegs, r.gain_adjs[4,1:f_points] ./ ctrl_params.gains[4] .* 100, label="ΔKϕ (%)", color=f_pts_range, colormap=cm, colorrange=clrrng)
+    # lines!(ax3_5, tsegs, r.gain_adjs[5,1:f_points] .* 100, label="ΔKa (%)", color=f_pts_range, colormap=cm, colorrange=clrrng)
+    lines!(ax3_6, tsegs, r.gain_adjs[6,1:f_points] .* 100, label="ΔKω (%)", color=f_pts_range, colormap=cm, colorrange=clrrng)
+
+    display(fig)
+    save(path, fig)
+end
