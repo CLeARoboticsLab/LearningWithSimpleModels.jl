@@ -8,11 +8,11 @@ end
 
 quadruped_controller_parameters() = QuadrupedControllerParameters(;
     gains = [
-        0.20, # kx
-        0.20, # ky
-        0.95, # kvx
+        0.50, # kx
+        0.50, # ky
+        0.0, # kvx
         2.50, # kϕ
-        0.95, # kvy
+        0.0, # kvy
         0.00, # kω
     ],
     limit = true,

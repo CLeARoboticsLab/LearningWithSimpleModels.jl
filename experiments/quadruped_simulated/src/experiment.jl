@@ -11,7 +11,7 @@ quadruped_simple_dynamics() = Dynamics(;
 
 quadruped_actual_dynamics() = Dynamics(;
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
-        v = 1.19*u[1]
+        v = 1.18*u[1]
         return [
             x[1] + v*cos(x[4])*dt,
             x[2] + v*sin(x[4])*dt,
@@ -148,7 +148,7 @@ function quadruped_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real,
     return time_est
 end
 
-T() = 2*2*π*1.5/0.5
+T() = 2*2*π*1.5/0.75
 m_dt() = T()/20.0/2
 
 quadruped_figure_eight_task() = FigEightCircle(; r=1.5, time = T() )
@@ -166,7 +166,7 @@ quadruped_training_algorithm() = RandomInitialAlgorithm(;
     variances = [.010^2, .010^2, 0.001^2, .002^2],
     n_rollouts_per_update = 1,
     n_beginning_segs_to_truncate = Integer(round(0.25*T()/(m_dt()))),
-    segs_per_rollout = Integer(round((0.25*T() + 1.35*T())*m_dt())),
+    segs_per_rollout = Integer(round((0.25*T() + 1.35*T())/m_dt())),
     segs_in_window = Integer(round(.75*T()/(m_dt()))),
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point),
     task_time_est = quadruped_fig_eight_task_time_estimate
@@ -176,7 +176,7 @@ quadruped_training_parameters() = TrainingParameters(;
     name = "quadruped_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 2.0e-4,
+    learning_rate = 4.0e-4,
     iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -191,7 +191,7 @@ quadruped_simulation_parameters() = SimulationParameters(;
     n_inputs = 2,
     dt = 1.0/10.0, # should match controller update rate
     model_dt = m_dt(),
-    model_scale = [1.0, 1.0, 0.0, 0.0, 0.25, 0.25, 1.00, 0.25, 1.00, 0.35]
+    model_scale = [1.0, 1.0, 0.0, 0.0, 1.00, 1.00, 0.025, 0.25, 0.025, 0.35]
     #                                  kx    ky    kvx   kϕ    kvy   kω
 )
 
