@@ -174,6 +174,7 @@ unicycle_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
     variances = [.010^2, .010^2, 0.001^2, .002^2],
     n_rollouts_per_update = 1,
+    n_beginning_segs_to_truncate = 20*2,
     segs_per_rollout = 156,
     segs_in_window = 15*2,
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point),

@@ -33,7 +33,7 @@ function gradient_estimate(
         loss = 0.0
         for r in rs
             n_segments = length(r.t0_segs)
-            window_start_idx = 1 #+ 20*2 #TODO make param
+            window_start_idx = 1 + algo.n_beginning_segs_to_truncate #+ 20*2 #TODO make param
             window_end_idx = window_start_idx + algo.segs_in_window - 1
             while window_end_idx <= n_segments
                 window = window_start_idx:window_end_idx
