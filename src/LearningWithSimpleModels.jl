@@ -54,7 +54,7 @@ export train
 
 include("plot_utils.jl")
 export plot_hardware_evaluation, multi_training_plot, final_eval_plot,
-    final_model_outputs_plot
+    final_model_outputs_plot, animate_final_evaluation
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware
