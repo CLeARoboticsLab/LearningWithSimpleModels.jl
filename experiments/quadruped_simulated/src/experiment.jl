@@ -153,15 +153,6 @@ m_dt() = T()/20.0/2
 
 quadruped_figure_eight_task() = FigEightCircle(; r=1.5, time = T() )
 
-# quadruped_training_algorithm() = HardwareTrainingAlgorithm(;
-#     seconds_per_rollout = 0.25*T() + 1.35*T(),
-#     n_beginning_segs_to_truncate = Integer(round(0.25*T()/(m_dt()))),
-#     use_window = true,
-#     segs_in_window = Integer(round(.75*T()/(m_dt()))),
-#     stopping_segments = 0,
-#     task_time_est = quadruped_fig_eight_task_time_estimate
-# )
-
 quadruped_training_algorithm() = RandomInitialAlgorithm(;
     variances = [.010^2, .010^2, 0.001^2, .002^2],
     n_rollouts_per_update = 1,

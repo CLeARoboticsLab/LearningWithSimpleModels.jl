@@ -1,5 +1,5 @@
 function make_training_plot()
-    base_path = ".data/results/quadruped_preliminary2/data"
+    base_path = ".data/results/quadruped_preliminary/data"
     paths = [
         joinpath(base_path, "quadruped_training_data.bson")
     ]
@@ -9,8 +9,8 @@ function make_training_plot()
         push!(runs, run[:data])
     end
 
-    multi_training_plot(runs,".data/results/quadruped_preliminary2/losses_large.png",800,600)
-    multi_training_plot(runs,".data/results/quadruped_preliminary2/losses_small.png",600,400)
+    multi_training_plot(runs,".data/results/quadruped_preliminary/losses_large.png",800,600)
+    multi_training_plot(runs,".data/results/quadruped_preliminary/losses_small.png",600,400)
 end
 
 function make_final_eval_plot()
@@ -23,11 +23,11 @@ function make_final_eval_plot()
 end
 
 function make_model_outputs_plot()
-    base_path = ".data/results/quadruped_preliminary2/data"
+    base_path = ".data/results/quadruped_preliminary/data"
     r = BSON.load(joinpath(base_path,"quadruped_rollout_using_model.bson"))[:r]
     task = quadruped_figure_eight_task()
 
-    path = ".data/results/quadruped_preliminary2/model_outputs_one_lap.png"
+    path = ".data/results/quadruped_preliminary/model_outputs_one_lap.png"
     final_model_outputs_plot(path, r, task, 
         quadruped_controller_parameters(), [1,2,4,3,5,6],
         1500, 500, 1.99/3, 2.95/3)
