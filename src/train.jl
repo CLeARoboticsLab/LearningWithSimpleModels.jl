@@ -31,6 +31,12 @@ function train(
     
     save_model(training_params, model)
     plot_losses(training_params, losses)
+    save_all_data(training_params, 
+        TrainingData(;
+            losses = losses,
+            rollouts = rollouts
+        )
+    )
     animate_training(training_params, rollouts, task)
 
     return model, losses
@@ -46,6 +52,7 @@ function train(
     training_params::TrainingParameters,
     sim_params::SimulationParameters  
 )
+    write_params(algo, training_params, sim_params)
     p = ProgressMeter.Progress(training_params.iters)
     model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
 
@@ -82,6 +89,24 @@ function train(
     # animate_training(training_params, rollouts, task)
 end
 
+function write_params(    
+    algo::TrainingAlgorithm,
+    training_params::TrainingParameters,
+    sim_params::SimulationParameters
+)
+    if isnothing(training_params.save_path)
+        return
+    end
+
+    filename = training_params.name * "_params.txt"
+    path = joinpath(training_params.save_path, filename)
+    open(path,"w") do io
+        println(io, algo)
+        println(io, training_params)
+        println(io, sim_params)
+     end
+end
+
 function save_model(training_params::TrainingParameters, model::Chain)
     if isnothing(training_params.save_path) || !training_params.save_model
         return
@@ -89,7 +114,7 @@ function save_model(training_params::TrainingParameters, model::Chain)
 
     filename = training_params.name * "_train_model.bson"
     path = joinpath(training_params.save_path, filename)
-    @save path model
+    BSON.@save path model
 end
 
 function save_all_data(training_params::TrainingParameters, data::TrainingData)
@@ -99,5 +124,5 @@ function save_all_data(training_params::TrainingParameters, data::TrainingData)
 
     filename = training_params.name * "_training_data.bson"
     path = joinpath(training_params.save_path, filename)
-    @save path data
+    BSON.@save path data
 end

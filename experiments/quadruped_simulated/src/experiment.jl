@@ -1,58 +1,41 @@
-using LearningWithSimpleModels
-
-include("unicycle_controller.jl")
-
-unicycle_simple_dynamics() = Dynamics(;
+quadruped_simple_dynamics() = Dynamics(;
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         return [
-            x[1] + x[3]*cos(x[4])*dt,
-            x[2] + x[3]*sin(x[4])*dt,
-            x[3] + (u[1] - .4*x[3]^2)*dt,
-            x[4] + x[3]*u[2]*dt
+            x[1] + u[1]*cos(x[4])*dt,
+            x[2] + u[1]*sin(x[4])*dt,
+            u[1],
+            x[4] + u[2]*dt
         ]
     end
 )
 
-Base.@kwdef struct UnicycleActualParameters <: DyanmicsParameters 
-    vel_drag::Float64
-    turn_drag::Float64
-    accel_scale::Float64
-    turn_rate_scale::Float64
-    turn_rate_bias::Float64
-end
-
-unicycle_actual_dynamics() = Dynamics(;
-    params = UnicycleActualParameters(;
-        vel_drag = 0.55,
-        turn_drag = 0.0,
-        accel_scale = 11.25,
-        turn_rate_scale = 6.50,
-        turn_rate_bias = -0.1,
-    ),
+quadruped_actual_dynamics() = Dynamics(;
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
+        v = 1.18*u[1]
         return [
-            x[1] + x[3]*cos(x[4])*dt,
-            x[2] + x[3]*sin(x[4])*dt,
-            x[3] + (dyn.params.accel_scale*u[1] - dyn.params.vel_drag*x[3]^2)*dt,
-            x[4] + (dyn.params.turn_rate_scale*u[2] - dyn.params.turn_rate_bias)*x[3]*dt
+            x[1] + v*cos(x[4])*dt,
+            x[2] + v*sin(x[4])*dt,
+            v,
+            x[4] + (u[2] + 0.1)*dt
         ]
     end
 )
 
-Base.@kwdef struct UnicycleCostParameters <: CostParameters
+Base.@kwdef struct QuadrupedCostParameters <: CostParameters
     vel_weight::Float64 = 0.1
     angle_weight::Float64 = 0.1
     input_weight::Float64 = 0.0
 end
 
-unicycle_cost() = Cost(;
-    params = UnicycleCostParameters(; vel_weight=1/30, angle_weight=10/30, input_weight = 0.000),
+quadruped_cost() = Cost(;
+    params = QuadrupedCostParameters(; vel_weight=1/30, angle_weight=10/30, input_weight = 0.00),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
         t = wrapped_time(cir,time)
         extra_weight = 1.0        
 
         nom_quadrant = Integer(ceil(t/cir.time * 4))
 
+        center_x = 0.0
         if nom_quadrant == 1 || nom_quadrant == 0
             if x[2] > 0.0
                 center_x = cir.r
@@ -69,6 +52,8 @@ unicycle_cost() = Cost(;
             end
         elseif nom_quadrant == 4   
             center_x = -cir.r
+        else
+            println("Warning: invalid nom_quadrant: $(nom_quadrant)")
         end
 
         center_y = 0.0
@@ -106,13 +91,12 @@ unicycle_cost() = Cost(;
             extra_weight*(r - cir.r)^2
             + cost.params.vel_weight*(v - cir.v)^2
             + cost.params.angle_weight*(ϕ - ϕ_des)^2
-            # + cost.params.input_weight*(sum(u.^2))
-            + cost.params.input_weight*(u[1]^2)
+            + cost.params.input_weight*(sum(u.^2))
         )
     end
 )
 
-function unicycle_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, x::Vector{Float64})
+function quadruped_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, x::Vector{Float64})
     center_y = 0.0
     t = wrapped_time(cir,time)
     nom_quadrant = Integer(ceil(t/cir.time * 4))
@@ -164,75 +148,48 @@ function unicycle_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, 
     return time_est
 end
 
-unicycle_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
+T() = 2*2*π*1.5/0.75
+m_dt() = T()/20.0/2
 
-# unicycle_training_algorithm() = WalkingWindowAlgorithm(;
-#     segs_per_rollout = 60,    
-#     segs_in_window = 5
-# )
+quadruped_figure_eight_task() = FigEightCircle(; r=1.5, time = T() )
 
-unicycle_training_algorithm() = RandomInitialAlgorithm(;
+quadruped_training_algorithm() = RandomInitialAlgorithm(;
     variances = [.010^2, .010^2, 0.001^2, .002^2],
     n_rollouts_per_update = 1,
-    n_beginning_segs_to_truncate = 20*2,
-    segs_per_rollout = 156,
-    segs_in_window = 15*2,
+    n_beginning_segs_to_truncate = Integer(round(0.25*T()/(m_dt()))),
+    segs_per_rollout = Integer(round((0.25*T() + 1.35*T())/m_dt())),
+    segs_in_window = Integer(round(.75*T()/(m_dt()))),
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point),
-    task_time_est = unicycle_fig_eight_task_time_estimate
+    task_time_est = quadruped_fig_eight_task_time_estimate
 )
 
-unicycle_training_parameters() = TrainingParameters(;
-    name = "unicycle",
+quadruped_training_parameters() = TrainingParameters(;
+    name = "quadruped_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 3.00e-3,
-    iters = 15,
+    learning_rate = 4.0e-4,
+    iters = 10,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
     save_plot = true,
-    save_animation = true
+    save_animation = true,
+    save_all_data = true
 )
 
-unicycle_simulation_parameters() = SimulationParameters(;
+quadruped_simulation_parameters() = SimulationParameters(;
     x0 = [0.0, 0.0, 0.0, π/2],
     n_inputs = 2,
-    dt = 1.0/50.0,
-    model_dt = 5.5/20.0/2,
-    model_scale = [1.0, 1.0, 1.0, 1.0, 0.25, 0.25, 0.25, 0.1, 0.10, 0.02]
+    dt = 1.0/10.0, # should match controller update rate
+    model_dt = m_dt(),
+    model_scale = [1.0, 1.0, 0.0, 0.0, 1.00, 1.00, 0.025, 0.25, 0.025, 0.35]
+    #                                  kx    ky    kvx   kϕ    kvy   kω
 )
 
-unicycle_evaluation_parameters() = EvaluationParameters(;
-    name = "unicycle",
+quadruped_evaluation_parameters() = EvaluationParameters(;
+    name = "quadruped_sim",
     path = ".data",    
-    n_task_executions = 6,
+    n_task_executions = 3,
     save_plot = true,
     save_animation = true
 )
-
-function train_unicycle_experiment()
-    model, losses = train(
-        unicycle_simple_dynamics(), 
-        unicycle_actual_dynamics();
-        controller = unicycle_controller(), 
-        cost = unicycle_cost(),
-        task = unicycle_figure_eight_task(),
-        algo = unicycle_training_algorithm(),
-        training_params = unicycle_training_parameters(),
-        sim_params = unicycle_simulation_parameters()
-    )
-end
-
-function evaluate_unicycle_experiment()
-    eval_data = evaluate_model(;
-        actual_dynamics = unicycle_actual_dynamics(),
-        controller = unicycle_controller(),
-        cost = unicycle_cost(),
-        task = unicycle_figure_eight_task(),
-        algo = unicycle_training_algorithm(),
-        training_params = unicycle_training_parameters(),
-        sim_params = unicycle_simulation_parameters(),
-        eval_params = unicycle_evaluation_parameters(),
-        model = nothing
-    )
-end

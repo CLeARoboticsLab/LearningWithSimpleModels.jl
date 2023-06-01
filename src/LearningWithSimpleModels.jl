@@ -12,7 +12,7 @@ using Flux:
     Descent,
     f64
 using Distributions: Uniform, MvNormal
-using BSON: @save, @load
+using BSON
 using LinearAlgebra: diagm
 using CairoMakie
 using RosSockets
@@ -20,6 +20,7 @@ import ProgressMeter
 using Rotations
 using LinearAlgebra
 import JSON
+using LaTeXStrings
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
@@ -28,10 +29,11 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     WalkingWindowAlgorithm, RandomInitialAlgorithm, HardwareTrainingAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
-    FigEightCircle, Spline
+    FigEightCircle, Spline,
+    TrainingData
 
 include("task.jl")
-export to_velocity_and_heading_angle, wrapped_time
+export to_velocity_and_heading_angle, wrapped_time, eval_all
 
 include("spline.jl")
 export figure_eight
@@ -51,7 +53,8 @@ include("train.jl")
 export train
 
 include("plot_utils.jl")
-export plot_hardware_evaluation
+export plot_hardware_evaluation, multi_training_plot, final_eval_plot,
+    final_model_outputs_plot, animate_final_evaluation
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware

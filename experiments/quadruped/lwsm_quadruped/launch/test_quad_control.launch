@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="lwsm_quadruped" type="test_quad_control" name="test_quad_control" output="screen" />
+</launch>

@@ -1,5 +1,4 @@
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
-CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 LearningWithSimpleModels = "50f1fcde-fbed-4ab2-866a-fe2e6235a732"
 RosSockets = "f2b1035b-1fed-4502-a057-be66ed18c291"

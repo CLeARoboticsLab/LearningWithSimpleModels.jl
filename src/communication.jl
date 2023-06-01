@@ -67,16 +67,9 @@ function send_command(
     spline_seg::Spline, 
     gains_adjustment::Vector{Float64}
 )
-    
     payload = spline_seg.coeffs_x
     append!(payload, spline_seg.coeffs_y)
-    append!(payload, [
-        ctrl_params.kx,
-        ctrl_params.ky,
-        ctrl_params.kv,
-        ctrl_params.kϕ,
-        ctrl_params.ka,
-        ctrl_params.kω] + gains_adjustment)
+    append!(payload, ctrl_params.gains + gains_adjustment)
     command = JSON.json(Dict("array" => payload)) * "\n"
     send(connections.control, command)
 end

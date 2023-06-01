@@ -1,17 +1,16 @@
 # To use with Revise.jl:
 # using Revise
-# push!(LOAD_PATH, joinpath(pwd(), "experiments\\jetracer\\src"))
-# ] activate experiments\\jetracer\\
+# push!(LOAD_PATH, joinpath(pwd(), "experiments\\quadruped\\src"))
+# ] activate experiments\\quadruped\\
 ## First time only:
 ## dev .
 ## instantiate
-# using JetRacerExperiment
+# using QuadrupedExperiment
 
-module JetRacerExperiment
+module QuadrupedExperiment
 
 using LearningWithSimpleModels
 using BSON
-using CairoMakie
 
 include("experiment.jl")
 include("controller.jl")

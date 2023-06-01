@@ -7,6 +7,18 @@ function wrapped_time(task::AbstractTask, time::Real)
     return t
 end
 
+# evaluate the task at all the test_ts and return arrays of the results
+function eval_all(task::AbstractTask, test_ts)
+    xs_task = zeros(length(test_ts))
+    ys_task = zeros(length(test_ts))
+    xdots_task = zeros(length(test_ts))
+    ydots_task = zeros(length(test_ts))
+    for (i,t) in enumerate(test_ts)
+        xs_task[i], ys_task[i], xdots_task[i], ydots_task[i] = evaluate(task, t)
+    end
+    return xs_task, ys_task, xdots_task, ydots_task
+end
+
 # tasks in a point evaluated from a task in the form [x, y, xdot, ydot] and
 # replaces xdot and ydot with velocity and heading angle, respectively
 function to_velocity_and_heading_angle(task_point::Vector{Float64})

@@ -77,28 +77,12 @@ function plot_evaluation(;
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
 )
-    fig = Figure(resolution=(850,600))
+    fig = Figure(resolution=(1250,600))
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
     lines!(ax, eval_data.r.xs[1,:], eval_data.r.xs[2,:], label="Trajectory")
     lines!(ax, eval_data.r_no_model.xs[1,:], eval_data.r_no_model.xs[2,:], label="Trajectory w/o model")
     lines!(ax, eval_data.xs_task, eval_data.ys_task, label="Task", linestyle=:dash, color=:black)
     Legend(fig[1,3], ax)
-    
-    label = string(algo) * "
-    
-    Loss: $(round(eval_data.r.loss; digits=3))"
-    
-    if !isnothing(algo)
-        Label(fig[2,1], label)
-    end
-
-    if !isnothing(training_params)
-        Label(fig[2,2], string(training_params))
-    end
-
-    if !isnothing(sim_params)
-        Label(fig[2,3], string(sim_params))
-    end
 
     #TODO clean this up (control inputs plot) 
     fig2 = Figure(resolution=(600,600))
@@ -257,6 +241,40 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
     end
 end
 
+function animate_final_evaluation(
+    path, r::RolloutData, task::AbstractTask, start_perc, finish_perc, traj_color
+)
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+
+    s = Integer(ceil(start_perc*length(r.ts)))
+    s_points = Integer(ceil(start_perc*length(r.setpoints[1,:])))
+    f = Integer(ceil(finish_perc*length(r.ts)))
+    f_points = Integer(ceil(finish_perc*length(r.setpoints[1,:])))
+
+    traj_points = Observable(Point2f[(r.xs[1,s], r.xs[2,s])])
+    set_points = Observable(Point2f[(r.setpoints[1,s_points], r.setpoints[2,s_points])])
+    traj_point = Observable(Point2f[(r.xs[1,s], r.xs[2,s])])
+    T = length(r.ts)
+
+    fig = Figure(resolution=(900,600))
+    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)")
+    lines!(ax, xs_task, ys_task, label="Task", linestyle=:dash, color=:black)
+    scatter!(ax, traj_points, color=traj_color, markersize=7)
+    scatter!(ax, set_points, colormap=:thermal, markersize=16, marker=:xcross, color=:black)
+    scatter!(ax, traj_point, color=traj_color, markersize=16)
+    limits!(ax, -3.5, 3.5, -2.5, 2.5)
+
+    j = s_points
+    record(fig, path, s:f; framterate = 100) do i
+        traj_points[] = push!(traj_points[], Point2f(r.xs[1,i], r.xs[2,i]))
+        if j <= length(r.idx_segs) && i >= r.idx_segs[j]
+            set_points[] = push!(set_points[], Point2f(r.setpoints[1,j], r.setpoints[2,j]))
+            j += 1
+        end
+        traj_point[] = Point2f[(r.xs[1,i], r.xs[2,i])]
+    end
+end
+
 function plot_hardware_evaluation(;
     eval_params::EvaluationParameters,
     task::AbstractTask,
@@ -266,11 +284,11 @@ function plot_hardware_evaluation(;
 )
     r_model_filename = eval_params.name * "_rollout_using_model.bson"
     r_model_path = joinpath(eval_params.path, r_model_filename)
-    @load r_model_path r
+    BSON.@load r_model_path r
 
     r_no_model_filename = eval_params.name * "_rollout_no_model.bson"
     r_no_model_path = joinpath(eval_params.path, r_no_model_filename)
-    @load r_no_model_path r_no_model
+    BSON.@load r_no_model_path r_no_model
 
     xs_task, ys_task, _, _ = eval_all(task, r.ts .+ r.task_t0)
 
@@ -291,4 +309,98 @@ function plot_hardware_evaluation(;
     )
     # TODO need to fix this. has to do with: color = range(0.5,1.0, length=T)
     animate_evaluation(eval_params, eval_data)
+end
+
+function multi_training_plot(runs::Vector{TrainingData}, path, w, h)
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="Training Iteration", ylabel="Cost")
+    for (i,run) in enumerate(runs)
+        lines!(ax, run.losses, label="Trial $(i)", color=(Makie.wong_colors()[i], 1.0))
+        scatter!(ax, run.losses)
+    end
+    axislegend(ax)
+    display(fig)
+    save(path, fig)
+end
+
+function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w, h, start_perc, finish_perc, task_finish_perc)
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+    s = Integer(round(start_perc*length(r.ts)))
+    f = Integer(round(finish_perc*length(r.ts)))
+    f_task = Integer(round(task_finish_perc*length(r.ts)))
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)")
+    lines!(ax, xs_task[1:f_task], ys_task[1:f_task], label="Task", 
+            color=:black, linewidth=6, linestyle=:solid)
+
+    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Initial Controller", 
+            color=(Makie.wong_colors()[2], .6), linewidth=4)
+            lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Controller", 
+            color=(Makie.wong_colors()[1], .6), linewidth=4)
+    
+    Legend(fig[1,2], ax)
+    display(fig)
+    save(path, fig)
+end
+
+function final_model_outputs_plot(
+    path, r::RolloutData, task::AbstractTask, 
+    ctrl_params::ControllerParameters, gain_order::Vector{<:Integer},
+    w, h, start_perc, finish_perc;
+    leg = nothing, gains_color=nothing
+)
+    # trajectory
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+    s = Integer(ceil(start_perc*length(r.ts)))
+    s_points = Integer(ceil(start_perc*length(r.setpoints[1,:])))
+    f = Integer(ceil(finish_perc*length(r.ts)))
+    f_points = Integer(ceil(finish_perc*length(r.setpoints[1,:])))
+
+    cm = :thermal
+    clrrng = (-0.2,1.4)
+    f_range = range(0,1,length=f-s+1)
+    f_pts_range = range(0,1,length=f_points-s_points+1)
+
+    if isnothing(gains_color)
+        g_clr = f_pts_range
+    else
+        g_clr = gains_color
+    end
+
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1:3,1:3], xlabel="x (m)", ylabel="y (m)")
+    scatter!(ax, r.xs[1,s:f], r.xs[2,s:f], color=f_range, colormap=cm, markersize=9, colorrange=clrrng,
+            label="Trajectory")
+    lines!(ax, xs_task, ys_task, label="Task", linestyle=:solid, color=:black, linewidth=2.0,)
+    scatter!(ax, r.setpoints[1,s_points:f_points], r.setpoints[2,s_points:f_points], 
+            marker=:xcross, color=f_pts_range, colormap=cm, markersize=16, colorrange=clrrng,
+            label="Corrected setpoints")
+    # axislegend(ax)
+
+    # gains
+    i=0
+    for pos in gain_order
+        i += 1
+        if pos == 0
+            continue
+        end
+        vpos, hpos = pos in 1:3 ? (pos, 4) : (pos-3, 5)
+        tsegs = (r.t0_segs .- r.task_t0)[1:f_points]
+        ts = tsegs[s_points:f_points].-tsegs[s_points]
+        if ctrl_params.gains[i] != 0.0
+            Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+        else
+            Ks = r.gain_adjs[i,s_points:f_points] .* 100
+        end
+        ax2 = Axis(fig[vpos,hpos], xlabel="t (sec)", ylabel="Δ "*ctrl_params.gains_names[i]*" (%)")
+        lines!(ax2, ts, Ks, color=g_clr, colormap=cm, colorrange=clrrng)
+    end
+    
+    if !isnothing(leg)
+        v,h = leg
+        Legend(fig[v,h], ax)
+    end
+
+    display(fig)
+    save(path, fig)
 end

@@ -1,0 +1,45 @@
+<launch>
+    <!-- Add node name to console output to identify which node is talking -->
+    <env name="ROSCONSOLE_FORMAT" value="[${severity}] [${time}] [${node}]: ${message}"/>
+
+    <!-- Use simulation time in gazebo instead of actual time -->
+    <param name="/use_sim_time" value="true"/>
+
+    <!-- gazebo motion capture simulation -->
+    <node pkg="ros_sockets" type="gazebo_tracker" name="gazebo_tracker"  output="screen">
+        <param name="tracker_name" value="vrpn_client_node/quad" type="str" />
+        <param name="model_name" value="turtlebot3_burger" type="str" />
+        <param name="update_frequency" value="100.0" type="double" />
+    </node>
+
+    <!-- state feedback server -->
+    <node pkg="ros_sockets" type="state_feedback" name="state_feedback" output="screen">
+        <param name="tracker_name" value="vrpn_client_node/quad" type="str" />
+        <param name="port" value="42422" type="int" />
+    </node>
+
+    <!-- experiment time (for synchronization) -->
+    <node pkg="ros_sockets" type="experiment_time" name="experiment_time" output="screen">
+        <param name="port" value="42423" type="int" />
+    </node>
+
+    <!-- spline and gains publisher -->
+    <node pkg="ros_sockets" type="array_publisher" name="array_publisher" output="screen">
+        <param name="port" value="42426" type="int" />
+        <param name="topic_name" value="quad/spline_gains" type="str" />
+    </node>
+
+    <!-- rollout data server -->
+    <node pkg="lwsm_jetracer" type="rollout_data" name="rollout_data" output="screen">
+        <param name="port" value="42425" type="int" />
+    </node>
+
+    <!-- Controller -->
+    <node pkg="lwsm_quadruped" type="quad_controller" name="quad_controller"  output="screen">
+        <param name="cycle_rate" value="10.0" type="double" />
+    </node>
+
+    <!-- Commands the quadruped (simulated) -->
+    <!-- Launch separatley -->
+    <!-- <node pkg="lwsm_quadruped" type="quad_simulation" name="quad_simulation"  output="screen" /> -->
+</launch>

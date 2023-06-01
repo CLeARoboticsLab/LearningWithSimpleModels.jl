@@ -30,24 +30,29 @@ abstract type TrainingAlgorithm end
 Base.@kwdef struct WalkingWindowAlgorithm <:TrainingAlgorithm
     segs_per_rollout = 60
     segs_in_window::Integer = 5
+    n_beginning_segs_to_truncate::Integer = 0
 end
 Base.show(io::IO, p::WalkingWindowAlgorithm) = print(io,
     "Walking Window Algorithm
     Segments per rollout: $(p.segs_per_rollout)
-    Segments in window: $(p.segs_in_window)"
+    Segments in window: $(p.segs_in_window)
+    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)"
 )
 
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
     variances::Vector{Float64}
     n_rollouts_per_update::Integer = 1
+    n_beginning_segs_to_truncate::Integer = 0
     segs_per_rollout::Integer = 20
     segs_in_window::Integer = 5
     to_state::Function
+    task_time_est::Union{Function, Nothing} = nothing
 end
 Base.show(io::IO, p::RandomInitialAlgorithm) = print(io,
     "Random Initial Algorithm:
     Num of rollouts per update: $(p.n_rollouts_per_update)
     Num segments per rollout: $(p.segs_per_rollout)
+    Skipped beginning segments: $(p.n_beginning_segs_to_truncate)
     Segments in window: $(p.segs_in_window)
     Standard Deviations:
     $(round.(sqrt.(p.variances); digits=4))"
@@ -59,6 +64,7 @@ Base.@kwdef struct HardwareTrainingAlgorithm <:TrainingAlgorithm
     use_window::Bool = false
     segs_in_window::Integer = 10
     stopping_segments = 0
+    task_time_est::Union{Function, Nothing} = nothing
 end
 Base.show(io::IO, p::HardwareTrainingAlgorithm) = print(io,
     "Hardware Training Algorithm

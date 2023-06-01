@@ -9,6 +9,7 @@ function rollout_actual_dynamics(
     actual_dynamics::Dynamics, 
     controller::Controller,
     cost::Cost,
+    algo::TrainingAlgorithm,
     sim_params::SimulationParameters,
     eval_params::EvaluationParameters,
     ; use_model = true
@@ -19,7 +20,7 @@ function rollout_actual_dynamics(
     x0 = sim_params.x0
 
     return rollout_actual_dynamics(
-        task, model, actual_dynamics, controller, cost, sim_params, t0, x0, n_segments
+        task, model, actual_dynamics, controller, cost, algo, sim_params, t0, x0, n_segments
         ; use_model
     )  
 end
@@ -30,7 +31,8 @@ function rollout_actual_dynamics(
     model::Chain,
     actual_dynamics::Dynamics, 
     controller::Controller,
-    cost::Cost, 
+    cost::Cost,
+    algo::TrainingAlgorithm,
     sim_params::SimulationParameters,
     t0::Float64,
     x0::Vector{Float64},
@@ -68,7 +70,11 @@ function rollout_actual_dynamics(
 
         # setpoint is task evaluated at next model call time (segment end time)
         setpoint = evaluate(task, tf_seg)
-        new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t, x, task_time)
+        t_in = t
+        if !isnothing(algo.task_time_est)
+            t_in = algo.task_time_est(task, t, x)
+        end
+        new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t_in, x, task_time)
         
         # Discard the new_setpoints and gains if not using the model
         if !use_model
@@ -149,8 +155,12 @@ function rollout_actual_dynamics(
             tf_seg = t0_seg + sim_params.model_dt
             x = state(connections)
             setpoint = evaluate(task, tf_seg)
+            t_in = t0_seg
+            if !isnothing(algo.task_time_est)
+                t_in = algo.task_time_est(task, t0_seg, x)
+            end
             new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
-                                                        model, t0_seg, x, task_time)
+                                                        model, t_in, x, task_time)
             
             # Discard the new_setpoints and gains if not using the model
             if !use_model || j > n_segments
