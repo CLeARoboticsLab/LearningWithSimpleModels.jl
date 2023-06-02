@@ -37,7 +37,11 @@ function policy_update!(
 
     rs = Vector{RolloutData}(undef,algo.n_rollouts_per_update)
     for i in 1:algo.n_rollouts_per_update
-        t0 = rand(Uniform(0.0, end_time(task)))
+        if algo.perc_of_task_to_sample == 0
+            t0 = 0.0
+        else
+            t0 = rand(Uniform(0.0, end_time(task)*algo.perc_of_task_to_sample))
+        end
         x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
 
         rs[i] = rollout_actual_dynamics(

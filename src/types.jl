@@ -41,6 +41,7 @@ Base.show(io::IO, p::WalkingWindowAlgorithm) = print(io,
 
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
     variances::Vector{Float64}
+    perc_of_task_to_sample::Real = 1.0
     n_rollouts_per_update::Integer = 1
     n_beginning_segs_to_truncate::Integer = 0
     segs_per_rollout::Integer = 20

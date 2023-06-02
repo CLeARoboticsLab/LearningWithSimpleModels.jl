@@ -75,11 +75,17 @@ dp_cost() = Cost(;
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
         
+        # trace a circle
+        a = 0.7
+        b = π/2
+        x_task = 0.5*cos(a*time + b)
+        y_task = 1.5 + 0.5*sin(a*time + b)
+
         p = simple_dynamics.params
         x_end_eff = p.l1*sin(x[1]) + p.l2*sin(x[1] + x[2])
         y_end_eff = -p.l1*cos(x[1]) - p.l2*cos(x[1] + x[2])
     
-        return 0.0 # TODO
+        return (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
     end
 )
 
@@ -89,7 +95,8 @@ m_dt() = 0.1
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
 
 dp_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.001^2, .001^2, 0.001^2, .001^2],
+    variances = [.01^2, .01^2, 0.0001^2, .0001^2],
+    perc_of_task_to_sample = 0, # starting point is always beginning
     n_rollouts_per_update = 1,
     n_beginning_segs_to_truncate = 0,
     segs_per_rollout = Integer(round(T()/m_dt())),
@@ -102,8 +109,8 @@ dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 4.0e-4,
-    iters = 1,
+    learning_rate = 5.0e-4,
+    iters = 40,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -113,12 +120,22 @@ dp_training_parameters() = TrainingParameters(; # TODO
 )
 
 dp_simulation_parameters() = SimulationParameters(;
-    x0 = [0.0, π/2, 0.0, 0.0],
+    x0 = [π, 0.0, 0.0, 0.0],
     n_inputs = 2,
     dt = 0.01, # should match controller update rate
     model_dt = m_dt(),
-    model_scale = [1.0, 1.0, 0.0, 0.0, 1.00, 1.00, 0.025, 0.25, 0.025, 0.35] # TODO
-    #                                  kx    ky    kvx   kϕ    kvy   kω
+    model_scale = [
+        π/2, 
+        π/2, 
+        1.0, 
+        1.0, 
+        controller_gains()[1,1],
+        controller_gains()[2,2], 
+        controller_gains()[1,3],  
+        controller_gains()[2,4],
+        0.0, 
+        0.0
+    ]
 )
 
 dp_evaluation_parameters() = EvaluationParameters(; #add here
