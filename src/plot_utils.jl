@@ -441,7 +441,7 @@ function plot_hardware_evaluation(;
         sim_params = sim_params,
     )
     # TODO need to fix this. has to do with: color = range(0.5,1.0, length=T)
-    animate_evaluation(eval_params, eval_data)
+    animate_evaluation(eval_params.type, eval_params, eval_data)
 end
 
 function multi_training_plot(runs::Vector{TrainingData}, path, w, h)
