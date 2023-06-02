@@ -85,12 +85,15 @@ dp_cost() = Cost(;
         x_end_eff = p.l1*sin(x[1]) + p.l2*sin(x[1] + x[2])
         y_end_eff = -p.l1*cos(x[1]) - p.l2*cos(x[1] + x[2])
     
-        return (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
+        return (
+            (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
+            + 0.0*(sum(u.^2))
+        )
     end
 )
 
 T() = 10.0
-m_dt() = 0.1
+m_dt() = 0.5
 
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
 
@@ -109,9 +112,9 @@ dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 5.0e-4,
+    learning_rate = 1.0e-3,
     iters = 50,
-    optim = gradient_descent,
+    optim = adam,
     loss_aggregation = simulation_timestep,
     save_model = true,
     save_plot = true,
@@ -136,7 +139,7 @@ dp_simulation_parameters() = SimulationParameters(;
         0.0, 
         0.0
     ],
-    spline_seg_type = NoSpline()
+    spline_seg_type = CubicSpline()
 )
 
 dp_evaluation_parameters() = EvaluationParameters(; #add here

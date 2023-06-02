@@ -102,6 +102,7 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
 
 abstract type SplineSegmentType end
 struct QuadraticSpline <: SplineSegmentType end
+struct CubicSpline <: SplineSegmentType end
 struct NoSpline <: SplineSegmentType end
 
 Base.@kwdef struct SimulationParameters

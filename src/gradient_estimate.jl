@@ -61,7 +61,7 @@ function gradient_estimate(
 
                     for i in 0:segment_length-1
                         overall_idx = seg_start_idx + i
-                        ctrl_setpoint = evaluate_segment(spline_seg, t+sim_params.dt)
+                        ctrl_setpoint = evaluate_segment(sim_params.spline_seg_type, spline_seg, t+sim_params.dt)
                         u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
                         if training_params.loss_aggregation == simulation_timestep
                             loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u, simple_dynamics)
@@ -135,7 +135,7 @@ function gradient_estimate(
                 x = r.xs[:,idx_seg]
                 for i in r.idx_segs[j]:r.idx_segs[j+1]-1
                     t = r.ts[i]
-                    ctrl_setpoint = evaluate_segment(spline_seg, t)
+                    ctrl_setpoint = evaluate_segment(sim_params.spline_seg_type, spline_seg, t)
                     u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
                     loss = loss + stage_cost(cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u, simple_dynamics)
                     x_actual_next = r.xs[:,i+1]
