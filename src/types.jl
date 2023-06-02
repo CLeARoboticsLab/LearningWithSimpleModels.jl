@@ -138,6 +138,11 @@ struct FigEightCircle <: AbstractTask
     v::Real
 end
 
+struct ConstantTask <: AbstractTask
+    xd::Vector{Float64}
+    time::Real
+end
+
 struct Connections
     feedback::Connection
     control::Connection

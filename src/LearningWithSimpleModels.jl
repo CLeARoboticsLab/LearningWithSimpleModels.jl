@@ -29,7 +29,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     WalkingWindowAlgorithm, RandomInitialAlgorithm, HardwareTrainingAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
-    FigEightCircle, Spline,
+    ConstantTask, FigEightCircle, Spline,
     TrainingData
 
 include("task.jl")

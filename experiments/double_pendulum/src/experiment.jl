@@ -43,67 +43,15 @@ end
 
 dp_cost() = Cost(;
     params = DpCostParameters(),
-    g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, cir::FigEightCircle, u::Vector{Float64}) -> begin
+    g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, task::ConstantTask, u::Vector{Float64}) -> begin
         return 0.0 # TODO
     end
 )
 
-function dp_fig_eight_task_time_estimate(cir::FigEightCircle, time::Real, x::Vector{Float64})
-    center_y = 0.0
-    t = wrapped_time(cir,time)
-    nom_quadrant = Integer(ceil(t/cir.time * 4))
-    if nom_quadrant == 1 || nom_quadrant == 0
-        if x[2] > 0.0
-            # in quadrant 1
-            center_x = cir.r
-            arc_angle = atan(x[2]-center_y, x[1]-center_x)
-            time_est = cir.time/4*(π-arc_angle)/π
-        else
-            # in quadrant 4
-            center_x = -cir.r
-            arc_angle = atan(x[2]-center_y, x[1]-center_x)
-            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
-        end
-    elseif nom_quadrant == 2
-        center_x = cir.r
-        arc_angle = atan(x[2]-center_y, x[1]-center_x)
-        if x[2] > 0.0
-            # in quadrant 1
-            time_est = cir.time/4*(π-arc_angle)/π
-        else
-            # in quadrant 2
-            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
-        end
-    elseif nom_quadrant == 3
-        if x[2] > 0.0
-            # in quadrant 3
-            center_x = -cir.r
-            arc_angle = atan(x[2]-center_y, x[1]-center_x)
-            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
-        else
-            # in quadrant 2
-            center_x = cir.r
-            arc_angle = atan(x[2]-center_y, x[1]-center_x)
-            time_est =  1/4*cir.time + cir.time/4*(-arc_angle)/π
-        end
-    elseif nom_quadrant == 4   
-        center_x = -cir.r
-        arc_angle = atan(x[2]-center_y, x[1]-center_x)
-        if x[2] > 0.0
-            # in quadrant 3
-            time_est =  1/2*cir.time + cir.time/4*(arc_angle)/π
-        else
-            # in quadrant 4
-            time_est =  3/4*cir.time + cir.time/4*(π+arc_angle)/π
-        end
-    end
-    return time_est
-end
-
 T() = 5.0
 m_dt() = 0.1
 
-dp_figure_eight_task() = FigEightCircle(; r=1.5, time = T() ) # TODO
+dp_task() = ConstantTask([π/2, π/2, 0.0, 0.0], T())
 
 dp_training_algorithm() = RandomInitialAlgorithm(; # TODO
     variances = [.010^2, .010^2, 0.001^2, .002^2],
@@ -111,7 +59,7 @@ dp_training_algorithm() = RandomInitialAlgorithm(; # TODO
     n_beginning_segs_to_truncate = Integer(round(0.25*T()/(m_dt()))),
     segs_per_rollout = Integer(round((0.25*T() + 1.35*T())/m_dt())),
     segs_in_window = Integer(round(.75*T()/(m_dt()))),
-    to_state = (task_point) -> to_velocity_and_heading_angle(task_point),
+    to_state = (task_point) -> task_point, # used to convert task point to state
     task_time_est = nothing
 )
 

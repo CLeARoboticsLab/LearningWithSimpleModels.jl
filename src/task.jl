@@ -1,3 +1,6 @@
+evaluate(task::ConstantTask, ::Real) = task.xd
+end_time(task::ConstantTask) = task.time
+
 function wrapped_time(task::AbstractTask, time::Real)
     t = time
     task_time = end_time(task)

@@ -1,5 +1,5 @@
 function run()
-    task = dp_figure_eight_task()
+    task = dp_task()
     algo = dp_training_algorithm()
     training_params = dp_training_parameters()
     sim_params = dp_simulation_parameters()
