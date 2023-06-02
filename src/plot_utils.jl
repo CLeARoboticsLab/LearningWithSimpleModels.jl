@@ -346,15 +346,18 @@ function animate_evaluation(
 
     rod   = Observable([Point2f(0, 0), Point2f(x1s[1], y1s[1]), Point2f(x2s[1], y2s[1])])
     balls = Observable([Point2f(x1s[1], y1s[1]), Point2f(x2s[1], y2s[1])])
+    end_eff_points = Observable([Point2f(x2s[1], y2s[1])])
+    colors = Observable([1])
 
     fig = Figure(resolution=(800,800))
     ax = Axis(fig[1,1])
    
-    lines!(ax, rod; linewidth = 4, color = :purple)
+    lines!(ax, rod; linewidth = 6, color = :purple)
     scatter!(ax, balls; marker = :circle, strokewidth = 2, 
         strokecolor = :purple,
-        color = :black, markersize = [8, 12]
+        color = :black, markersize = [14, 14]
     )
+    s = scatter!(ax, end_eff_points, color=colors, colormap=:thermal, markersize=7)
 
     ax.title = "Double Pendulum"
     ax.aspect = DataAspect()
@@ -365,6 +368,8 @@ function animate_evaluation(
     record(fig, path, 1:T; framerate = 100) do i
         rod[] = [Point2f(0, 0), Point2f(x1s[i], y1s[i]), Point2f(x2s[i], y2s[i])]
         balls[] = [Point2f(x1s[i], y1s[i]), Point2f(x2s[i], y2s[i])]
+        end_eff_points[] = push!(end_eff_points[], Point2f(x2s[i], y2s[i]))
+        colors[] = push!(colors[], i)
     end
 
 end

@@ -77,7 +77,7 @@ dp_cost() = Cost(;
     end
 )
 
-T() = 5.0
+T() = 10.0
 m_dt() = 0.1
 
 dp_task() = ConstantTask([π/2, π/2, 0.0, 0.0], T())
