@@ -11,6 +11,9 @@ module DoublePendulumExperiment
 
 using LearningWithSimpleModels
 using BSON
+using ForwardDiff: jacobian
+using LinearAlgebra: diagm
+using MatrixEquations: arec
 
 include("experiment.jl")
 include("controller.jl")

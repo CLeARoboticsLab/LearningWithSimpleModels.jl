@@ -80,7 +80,7 @@ dp_cost() = Cost(;
 T() = 10.0
 m_dt() = 0.1
 
-dp_task() = ConstantTask([π/2, π/2, 0.0, 0.0], T())
+dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
 
 dp_training_algorithm() = RandomInitialAlgorithm(; # TODO
     variances = [.010^2, .010^2, 0.001^2, .002^2],
