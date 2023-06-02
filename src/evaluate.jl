@@ -47,7 +47,7 @@ function evaluate_model(;
         sim_params = sim_params,
         actual_dynamics = actual_dynamics
     )
-    animate_evaluation(eval_params, eval_data)
+    animate_evaluation(eval_params, eval_data, actual_dynamics)
 
     return eval_data
 end

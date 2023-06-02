@@ -259,7 +259,20 @@ function animate_training(training_params::TrainingParameters, rollouts::Vector{
     end
 end
 
-function animate_evaluation(eval_params::EvaluationParameters, eval_data::EvaluationData)
+function animate_evaluation(
+    eval_params::EvaluationParameters, 
+    eval_data::EvaluationData, 
+    actual_dynamics::Dynamics
+)
+    animate_evaluation(eval_params.type, eval_params, eval_data, actual_dynamics)
+end
+
+function animate_evaluation(
+    ::UnicycleEvalType, 
+    eval_params::EvaluationParameters, 
+    eval_data::EvaluationData, 
+    actual_dynamics::Dynamics
+)
     if isnothing(eval_params.path) || !eval_params.save_animation
         return
     end
@@ -303,6 +316,57 @@ function animate_evaluation(eval_params::EvaluationParameters, eval_data::Evalua
         traj_point[] = Point2f[(eval_data.r.xs[1,i], eval_data.r.xs[2,i])]
         # reset_limits!(ax)
     end
+end
+
+function animate_evaluation(
+    ::DoublePendulumEvalType, 
+    eval_params::EvaluationParameters, 
+    eval_data::EvaluationData, 
+    actual_dynamics::Dynamics
+)
+    if isnothing(eval_params.path) || !eval_params.save_animation
+        return
+    end
+
+    filename = eval_params.name * "_eval_animation.mp4"
+    path = joinpath(eval_params.path, filename)
+
+    T = length(eval_data.r.ts)
+    x1s = zeros(T)
+    y1s = zeros(T)
+    x2s = zeros(T)
+    y2s = zeros(T)
+    p = actual_dynamics.params
+    for i in 1:T
+        x1s[i] = p.l1*sin(eval_data.r.xs[1,i])
+        y1s[i] = -p.l1*cos(eval_data.r.xs[1,i]) 
+        x2s[i] = p.l1*sin(eval_data.r.xs[1,i]) + p.l2*sin(eval_data.r.xs[1,i] + eval_data.r.xs[2,i])
+        y2s[i] = -p.l1*cos(eval_data.r.xs[1,i]) - p.l2*cos(eval_data.r.xs[1,i] + eval_data.r.xs[2,i])
+    end
+
+    rod   = Observable([Point2f(0, 0), Point2f(x1s[1], y1s[1]), Point2f(x2s[1], y2s[1])])
+    balls = Observable([Point2f(x1s[1], y1s[1]), Point2f(x2s[1], y2s[1])])
+
+    fig = Figure(resolution=(800,800))
+    ax = Axis(fig[1,1])
+   
+    lines!(ax, rod; linewidth = 4, color = :purple)
+    scatter!(ax, balls; marker = :circle, strokewidth = 2, 
+        strokecolor = :purple,
+        color = :black, markersize = [8, 12]
+    )
+
+    ax.title = "Double Pendulum"
+    ax.aspect = DataAspect()
+    l = 1.05*(p.l1 + p.l2)
+    xlims!(ax, -l, l)
+    ylims!(ax, -l, l)
+
+    record(fig, path, 1:T; framerate = 100) do i
+        rod[] = [Point2f(0, 0), Point2f(x1s[i], y1s[i]), Point2f(x2s[i], y2s[i])]
+        balls[] = [Point2f(x1s[i], y1s[i]), Point2f(x2s[i], y2s[i])]
+    end
+
 end
 
 function animate_final_evaluation(

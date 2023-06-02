@@ -121,5 +121,5 @@ dp_evaluation_parameters() = EvaluationParameters(; #add here
     path = ".data",    
     n_task_executions = 1,
     save_plot = true,
-    save_animation = false
+    save_animation = true
 )
