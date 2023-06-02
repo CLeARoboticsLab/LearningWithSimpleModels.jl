@@ -1,4 +1,5 @@
 function spline_segment(
+    ::QuadraticSpline,
     t0::Float64, tf::Float64,
     prev_setpoint::Vector{Float64}, setpoint::Vector{Float64}
 )
@@ -34,6 +35,17 @@ function spline_segment(
     )
 end
 
+function spline_segment(
+    ::NoSpline,
+    t0::Float64, tf::Float64,
+    prev_setpoint::Vector{Float64}, setpoint::Vector{Float64}
+)
+    return ConstantTask(
+        setpoint,
+        tf
+    ) 
+end
+
 function evaluate_segment(spl::Spline, time::Real)
     t = time
 
@@ -50,6 +62,10 @@ function evaluate_segment(spl::Spline, time::Real)
     yddot = 2*coeffs_y[1]
 
     return [x, y, xdot, ydot, xddot, yddot]
+end
+
+function evaluate_segment(seg::ConstantTask, time::Real)
+    return [seg.xd; [0,0]]
 end
 
 function spline_segment_cubic(

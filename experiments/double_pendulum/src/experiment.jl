@@ -95,7 +95,7 @@ m_dt() = 0.1
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
 
 dp_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.01^2, .01^2, 0.0001^2, .0001^2],
+    variances = [.0001^2, .0001^2, 0.0001^2, .0001^2],
     perc_of_task_to_sample = 0, # starting point is always beginning
     n_rollouts_per_update = 1,
     n_beginning_segs_to_truncate = 0,
@@ -110,7 +110,7 @@ dp_training_parameters() = TrainingParameters(; # TODO
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
     learning_rate = 5.0e-4,
-    iters = 40,
+    iters = 50,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -135,7 +135,8 @@ dp_simulation_parameters() = SimulationParameters(;
         controller_gains()[2,4],
         0.0, 
         0.0
-    ]
+    ],
+    spline_seg_type = NoSpline()
 )
 
 dp_evaluation_parameters() = EvaluationParameters(; #add here

@@ -100,12 +100,17 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
     Loss Aggregation: $(p.loss_aggregation)"
 )
 
+abstract type SplineSegmentType end
+struct QuadraticSpline <: SplineSegmentType end
+struct NoSpline <: SplineSegmentType end
+
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     model_scale::Vector{Float64} = ones(8)
+    spline_seg_type::SplineSegmentType = QuadraticSpline()
 end
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 

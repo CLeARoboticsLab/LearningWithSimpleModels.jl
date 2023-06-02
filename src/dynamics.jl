@@ -88,7 +88,7 @@ function rollout_actual_dynamics(
         # Generate a spline from the current point to the new setpoint that the
         # low level controller will track
         prev_setpoint = j > 1 ? setpoints[:,j-1] : evaluate(task, t)
-        spline_seg = spline_segment(t, tf_seg, prev_setpoint, new_setpoint)
+        spline_seg = spline_segment(sim_params.spline_seg_type, t, tf_seg, prev_setpoint, new_setpoint)
 
         # rollout on this segment
         for _ in 1:segment_length
@@ -169,7 +169,7 @@ function rollout_actual_dynamics(
             end 
             
             prev_setpoint = j in 2:n_segments ? setpoints[:,j-1] : starting_setpoint(x)
-            spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
+            spline_seg = spline_segment(sim_params.spline_seg_type, t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
             send_command(connections, ctrl_params, spline_seg, gains_adjustment)
 
             if j == n_segments
