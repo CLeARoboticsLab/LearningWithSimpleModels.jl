@@ -77,6 +77,24 @@ function plot_evaluation(;
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
 )
+    plot_evaluation(
+        eval_params.type;
+        eval_params = eval_params,
+        eval_data = eval_data,
+        algo = algo,
+        training_params = training_params,
+        sim_params = sim_params,
+    )
+end
+
+function plot_evaluation(
+    ::UnicycleEvalType;
+    eval_params::EvaluationParameters,
+    eval_data::EvaluationData,
+    algo::Union{TrainingAlgorithm, Nothing} = nothing,
+    training_params::Union{TrainingParameters, Nothing} = nothing,
+    sim_params::Union{SimulationParameters, Nothing} = nothing,
+)
     fig = Figure(resolution=(1250,600))
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
     lines!(ax, eval_data.r.xs[1,:], eval_data.r.xs[2,:], label="Trajectory")
@@ -90,7 +108,7 @@ function plot_evaluation(;
     ax2 = Axis(fig2[2,1], xlabel="t", ylabel="ω")
     lines!(ax1, eval_data.r.ts, eval_data.r.us[1,:], label="accel")
     lines!(ax2, eval_data.r.ts, eval_data.r.us[2,:], label="turn rate")
-    
+
     fig3 = Figure(resolution=(1000,1200))
     ax3_1 = Axis(fig3[1,1], xlabel="t", ylabel="Δkx")
     ax3_2 = Axis(fig3[2,1], xlabel="t", ylabel="Δky")
@@ -120,7 +138,7 @@ function plot_evaluation(;
         eval_plot_filename = eval_params.name * "_eval_plot.png"
         eval_plot_path = joinpath(eval_params.path, eval_plot_filename)
         save(eval_plot_path, fig)
-    
+
         inputs_plot_filename = eval_params.name * "_eval_control_inputs.png"
         inputs_plot_path = joinpath(eval_params.path, inputs_plot_filename)
         save(inputs_plot_path, fig2)
@@ -135,6 +153,17 @@ function plot_evaluation(;
     display(fig3)
 
     plot_ctrl_setpoints(eval_data.r)
+end
+
+function plot_evaluation(
+    ::DoublePendulumEvalType;
+    eval_params::EvaluationParameters,
+    eval_data::EvaluationData,
+    algo::Union{TrainingAlgorithm, Nothing} = nothing,
+    training_params::Union{TrainingParameters, Nothing} = nothing,
+    sim_params::Union{SimulationParameters, Nothing} = nothing,
+)
+    @info "dp plot eval"
 end
 
 function plot_ctrl_setpoints(r::RolloutData)

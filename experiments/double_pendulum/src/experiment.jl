@@ -117,6 +117,7 @@ dp_simulation_parameters() = SimulationParameters(;
 
 dp_evaluation_parameters() = EvaluationParameters(; #add here
     name = "dp_sim",
+    type = DoublePendulumEvalType(),
     path = ".data",    
     n_task_executions = 1,
     save_plot = true,

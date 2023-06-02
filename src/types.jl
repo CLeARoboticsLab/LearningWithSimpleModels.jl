@@ -114,8 +114,13 @@ Base.show(io::IO, p::SimulationParameters) = print(io,
     Model scale: $(p.model_scale)"
 )
 
+abstract type AbstractEvalType end
+struct UnicycleEvalType <: AbstractEvalType end
+struct DoublePendulumEvalType <: AbstractEvalType end
+
 Base.@kwdef struct EvaluationParameters
     name::String = "experiment"
+    type::AbstractEvalType = UnicycleEvalType()
     path = ".data"
     n_task_executions::Integer = 1
     save_plot::Bool = true

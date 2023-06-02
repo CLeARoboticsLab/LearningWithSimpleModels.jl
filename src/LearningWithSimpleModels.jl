@@ -29,6 +29,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     WalkingWindowAlgorithm, RandomInitialAlgorithm, HardwareTrainingAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
+    UnicycleEvalType, DoublePendulumEvalType,
     ConstantTask, FigEightCircle, Spline,
     TrainingData
 
