@@ -45,6 +45,7 @@ function evaluate_model(;
         algo = algo,
         training_params = training_params,
         sim_params = sim_params,
+        actual_dynamics = actual_dynamics
     )
     animate_evaluation(eval_params, eval_data)
 

@@ -107,7 +107,7 @@ dp_training_parameters() = TrainingParameters(; # TODO
 )
 
 dp_simulation_parameters() = SimulationParameters(;
-    x0 = [π/8, π/8, 0.0, 0.0],
+    x0 = [π/2.1, π/2.1, 0.0, 0.0],
     n_inputs = 2,
     dt = 0.01, # should match controller update rate
     model_dt = m_dt(),

@@ -76,6 +76,7 @@ function plot_evaluation(;
     algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
+    actual_dynamics::Dynamics
 )
     plot_evaluation(
         eval_params.type;
@@ -84,6 +85,7 @@ function plot_evaluation(;
         algo = algo,
         training_params = training_params,
         sim_params = sim_params,
+        actual_dynamics = actual_dynamics
     )
 end
 
@@ -94,6 +96,7 @@ function plot_evaluation(
     algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
+    actual_dynamics::Dynamics
 )
     fig = Figure(resolution=(1250,600))
     ax = Axis(fig[1,1:2], xlabel="x", ylabel="y")
@@ -162,8 +165,40 @@ function plot_evaluation(
     algo::Union{TrainingAlgorithm, Nothing} = nothing,
     training_params::Union{TrainingParameters, Nothing} = nothing,
     sim_params::Union{SimulationParameters, Nothing} = nothing,
+    actual_dynamics::Dynamics
 )
-    @info "dp plot eval"
+    # plot end effector position
+    T = length(eval_data.r.ts)
+    xs_end_eff = zeros(T)
+    ys_end_eff = zeros(T)
+    p = actual_dynamics.params
+    for i in 1:T
+        xs_end_eff[i] = p.l1*sin(eval_data.r.xs[1,i]) + p.l2*sin(eval_data.r.xs[1,i] + eval_data.r.xs[2,i])
+        ys_end_eff[i] = -p.l1*cos(eval_data.r.xs[1,i]) - p.l2*cos(eval_data.r.xs[1,i] + eval_data.r.xs[2,i])
+    end
+    fig_end_eff = Figure(resolution=(800,800))
+    ax_end_eff = Axis(fig_end_eff[1,1], xlabel="x", ylabel="y")
+    lines!(ax_end_eff, xs_end_eff, ys_end_eff, label="End Effector Trajectory")
+
+    # plot control inputs
+    fig_us = Figure(resolution=(600,600))
+    ax_u1 = Axis(fig_us[1,1], xlabel="t", ylabel="u1")
+    ax_u2 = Axis(fig_us[2,1], xlabel="t", ylabel="u2")
+    lines!(ax_u1, eval_data.r.ts, eval_data.r.us[1,:], label="u1")
+    lines!(ax_u2, eval_data.r.ts, eval_data.r.us[2,:], label="u2")
+
+    if !isnothing(eval_params.path) && eval_params.save_plot
+        eval_plot_filename = eval_params.name * "_eval_plot.png"
+        eval_plot_path = joinpath(eval_params.path, eval_plot_filename)
+        save(eval_plot_path, fig_end_eff)
+
+        inputs_plot_filename = eval_params.name * "_eval_control_inputs.png"
+        inputs_plot_path = joinpath(eval_params.path, inputs_plot_filename)
+        save(inputs_plot_path, fig_us)
+    end
+
+    display(fig_end_eff)
+    display(fig_us)
 end
 
 function plot_ctrl_setpoints(r::RolloutData)
