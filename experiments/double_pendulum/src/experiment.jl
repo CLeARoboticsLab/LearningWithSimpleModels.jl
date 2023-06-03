@@ -75,16 +75,24 @@ dp_cost() = Cost(;
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
         
+        # constant point
+        # x_task = 0.1
+        # y_task = 1.0
+
         # trace a circle
-        a = 0.7
+        a = 0.63
         b = π/2
         x_task = 0.5*cos(a*time + b)
         y_task = 1.5 + 0.5*sin(a*time + b)
 
-        p = simple_dynamics.params
-        x_end_eff = p.l1*sin(x[1]) + p.l2*sin(x[1] + x[2])
-        y_end_eff = -p.l1*cos(x[1]) - p.l2*cos(x[1] + x[2])
-    
+        # star (Hypotrochoid)
+        # c = 0.25
+        # d = 0.73
+        # x_task = c*sin(time) - d*sin(2*time/3)
+        # y_task = c*cos(time) + d*cos(2*time/3) + 1
+
+        x_end_eff, y_end_eff = end_effector_position(simple_dynamics.params, x[1], x[2])
+
         return (
             (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
             + 0.0*(sum(u.^2))
@@ -93,12 +101,13 @@ dp_cost() = Cost(;
 )
 
 T() = 10.0
-m_dt() = 0.5
+# T() = 18.7
+m_dt() = 0.1
 
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
 
 dp_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.0001^2, .0001^2, 0.0001^2, .0001^2],
+    variances = [.1^2, .1^2, 0.01^2, .01^2],
     perc_of_task_to_sample = 0, # starting point is always beginning
     n_rollouts_per_update = 1,
     n_beginning_segs_to_truncate = 0,
@@ -111,10 +120,10 @@ dp_training_algorithm() = RandomInitialAlgorithm(;
 dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
-    hidden_layer_sizes = [64, 64],
-    learning_rate = 1.0e-3,
-    iters = 50,
-    optim = adam,
+    hidden_layer_sizes = [16, 16],
+    learning_rate = 5.0e-5, #.8e-5,
+    iters = 100,
+    optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
     save_plot = true,
@@ -128,18 +137,18 @@ dp_simulation_parameters() = SimulationParameters(;
     dt = 0.01, # should match controller update rate
     model_dt = m_dt(),
     model_scale = [
-        π/2, 
-        π/2, 
+        2*π, 
+        2*π, 
         1.0, 
         1.0, 
-        controller_gains()[1,1],
-        controller_gains()[2,2], 
-        controller_gains()[1,3],  
-        controller_gains()[2,4],
+        .5*controller_gains()[1,1],
+        .5*controller_gains()[2,2], 
+        .5*controller_gains()[1,3],  
+        .5*controller_gains()[2,4],
         0.0, 
         0.0
     ],
-    spline_seg_type = CubicSpline()
+    spline_seg_type = NoSpline()
 )
 
 dp_evaluation_parameters() = EvaluationParameters(; #add here

@@ -173,12 +173,34 @@ function plot_evaluation(
     ys_end_eff = zeros(T)
     p = actual_dynamics.params
     for i in 1:T
-        xs_end_eff[i] = p.l1*sin(eval_data.r.xs[1,i]) + p.l2*sin(eval_data.r.xs[1,i] + eval_data.r.xs[2,i])
-        ys_end_eff[i] = -p.l1*cos(eval_data.r.xs[1,i]) - p.l2*cos(eval_data.r.xs[1,i] + eval_data.r.xs[2,i])
+        x, y = end_effector_position(p, eval_data.r.xs[1,i], eval_data.r.xs[2,i])
+        xs_end_eff[i] = x
+        ys_end_eff[i] = y
     end
     fig_end_eff = Figure(resolution=(800,800))
     ax_end_eff = Axis(fig_end_eff[1,1], xlabel="x", ylabel="y")
     lines!(ax_end_eff, xs_end_eff, ys_end_eff, label="End Effector Trajectory")
+
+    N = size(eval_data.r.setpoints, 2)
+    xds_end_eff = zeros(N)
+    yds_end_eff = zeros(N)
+    for i in 1:N
+        x, y = end_effector_position(p, eval_data.r.setpoints[1,i], eval_data.r.setpoints[2,i])
+        xds_end_eff[i] = x
+        yds_end_eff[i] = y
+    end
+    scatter!(ax_end_eff, xds_end_eff, yds_end_eff, label="Setpoints")
+
+    # TODO should accept a function or something
+    task_x = zeros(T)
+    task_y = zeros(T)
+    for (i,t) in enumerate(eval_data.r.ts)
+        a = 0.7
+        b = π/2
+        task_x[i] = 0.5*cos(a*t + b)
+        task_y[i] = 1.5 + 0.5*sin(a*t + b)  
+    end
+    lines!(ax_end_eff, task_x, task_y, label="Task", linestyle=:dash, color=:black)
 
     # plot control inputs
     fig_us = Figure(resolution=(600,600))
@@ -187,6 +209,22 @@ function plot_evaluation(
     lines!(ax_u1, eval_data.r.ts, eval_data.r.us[1,:], label="u1")
     lines!(ax_u2, eval_data.r.ts, eval_data.r.us[2,:], label="u2")
 
+    # plot gain adjs
+    fig3 = Figure(resolution=(1000,1200))
+    ax3_1 = Axis(fig3[1,1], xlabel="t", ylabel="Δkx")
+    ax3_2 = Axis(fig3[2,1], xlabel="t", ylabel="Δky")
+    ax3_3 = Axis(fig3[3,1], xlabel="t", ylabel="Δkv")
+    ax3_4 = Axis(fig3[4,1], xlabel="t", ylabel="Δkϕ")
+    ax3_5 = Axis(fig3[5,1], xlabel="t", ylabel="Δka")
+    ax3_5_2 = Axis(fig3[6,1], xlabel="t", ylabel="Δkω")
+    lines!(ax3_1, eval_data.r.t0_segs, eval_data.r.gain_adjs[1,:], label="Δkx")
+    lines!(ax3_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[2,:], label="Δky")
+    lines!(ax3_3, eval_data.r.t0_segs, eval_data.r.gain_adjs[3,:], label="Δkv")
+    lines!(ax3_4, eval_data.r.t0_segs, eval_data.r.gain_adjs[4,:], label="Δkϕ")
+    lines!(ax3_5, eval_data.r.t0_segs, eval_data.r.gain_adjs[5,:], label="Δka")
+    lines!(ax3_5_2, eval_data.r.t0_segs, eval_data.r.gain_adjs[6,:], label="Δkω")
+
+    # save plots
     if !isnothing(eval_params.path) && eval_params.save_plot
         eval_plot_filename = eval_params.name * "_eval_plot.png"
         eval_plot_path = joinpath(eval_params.path, eval_plot_filename)
@@ -195,10 +233,16 @@ function plot_evaluation(
         inputs_plot_filename = eval_params.name * "_eval_control_inputs.png"
         inputs_plot_path = joinpath(eval_params.path, inputs_plot_filename)
         save(inputs_plot_path, fig_us)
+
+        gains_plot_filename = eval_params.name * "_eval_gains.png"
+        gains_plot_path = joinpath(eval_params.path, gains_plot_filename)
+        save(gains_plot_path, fig3)
     end
 
+    # display plots
     display(fig_end_eff)
     display(fig_us)
+    display(fig3)
 end
 
 function plot_ctrl_setpoints(r::RolloutData)
@@ -348,7 +392,9 @@ function animate_evaluation(
     balls = Observable([Point2f(x1s[1], y1s[1]), Point2f(x2s[1], y2s[1])])
     end_eff_points = Observable([Point2f(x2s[1], y2s[1])])
     colors = Observable([1])
-
+    colors_setpoints = Observable([1])
+    set_points = Observable(Point2f[end_effector_position(actual_dynamics.params, eval_data.r.setpoints[1,1], eval_data.r.setpoints[2,1])])
+    
     fig = Figure(resolution=(800,800))
     ax = Axis(fig[1,1])
    
@@ -357,7 +403,8 @@ function animate_evaluation(
         strokecolor = :purple,
         color = :black, markersize = [14, 14]
     )
-    s = scatter!(ax, end_eff_points, color=colors, colormap=:thermal, markersize=7)
+    scatter!(ax, end_eff_points, color=colors, colormap=:thermal, markersize=5)
+    scatter!(ax, set_points, color=colors_setpoints, colormap=:thermal, markersize=10, marker=:xcross)
 
     ax.title = "Double Pendulum"
     ax.aspect = DataAspect()
@@ -365,11 +412,17 @@ function animate_evaluation(
     xlims!(ax, -l, l)
     ylims!(ax, -l, l)
 
+    j = 1
     record(fig, path, 1:T; framerate = 100) do i
         rod[] = [Point2f(0, 0), Point2f(x1s[i], y1s[i]), Point2f(x2s[i], y2s[i])]
         balls[] = [Point2f(x1s[i], y1s[i]), Point2f(x2s[i], y2s[i])]
         end_eff_points[] = push!(end_eff_points[], Point2f(x2s[i], y2s[i]))
         colors[] = push!(colors[], i)
+        if j <= length(eval_data.r.idx_segs) && i >= eval_data.r.idx_segs[j]
+            set_points[] = push!(set_points[], Point2f(end_effector_position(actual_dynamics.params, eval_data.r.setpoints[1,j], eval_data.r.setpoints[2,j])))
+            j += 1
+            colors_setpoints[] = push!(colors_setpoints[], j)
+        end
     end
 
 end

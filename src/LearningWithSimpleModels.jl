@@ -35,7 +35,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     TrainingData
 
 include("task.jl")
-export to_velocity_and_heading_angle, wrapped_time, eval_all
+export to_velocity_and_heading_angle, wrapped_time, eval_all, end_effector_position
 
 include("spline.jl")
 export figure_eight

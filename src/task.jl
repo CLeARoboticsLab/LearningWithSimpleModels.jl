@@ -39,6 +39,12 @@ function to_velocity_and_heading_angle(task_point::Vector{Float64})
     return [task_point[1], task_point[2], v, ϕ]
 end
 
+function end_effector_position(p::DyanmicsParameters, θ1, θ2)
+    x_end_eff = p.l1*sin(θ1) + p.l2*sin(θ1 + θ2)
+    y_end_eff = -p.l1*cos(θ1) - p.l2*cos(θ1 + θ2)
+    return x_end_eff, y_end_eff
+end
+
 function plot_task(task)
     ts = 0.0:0.01:30.0
     xs, ys, xdots, ydots = eval_all(task, ts)
