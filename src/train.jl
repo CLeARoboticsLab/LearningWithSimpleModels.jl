@@ -10,7 +10,7 @@ function train(
     sim_params::SimulationParameters  
 )
     p = ProgressMeter.Progress(training_params.iters)
-    model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
+    model = make_model(sim_params.model_in_dim, training_params.hidden_layer_sizes)
     
     if training_params.optim == gradient_descent
         optimizer = setup(Descent(training_params.learning_rate), model)
@@ -56,7 +56,7 @@ function train(
 )
     write_params(algo, training_params, sim_params)
     p = ProgressMeter.Progress(training_params.iters)
-    model = make_model(length(sim_params.x0), training_params.hidden_layer_sizes)
+    model = make_model(sim_params.model_in_dim, training_params.hidden_layer_sizes)
 
     if training_params.optim == gradient_descent
         optimizer = setup(Descent(training_params.learning_rate), model)

@@ -139,6 +139,23 @@ dp_training_parameters() = TrainingParameters(; # TODO
     save_all_data = true
 )
 
+function dp_model_input_function(
+    t::Real,
+    task_time::Real,
+    x::Vector{<:Real},
+)
+    t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
+    # x_task, y_task = circle(t)
+    x_transformed = [
+        cos(x[1]),
+        sin(x[1]),
+        cos(x[2]),
+        sin(x[2])
+    ]
+    # return vcat(x_transformed, [x_task, y_task])
+    return vcat(x_transformed, t_transformed)
+end
+
 dp_simulation_parameters() = SimulationParameters(;
     x0 = [π, 0.0, 0.0, 0.0],
     n_inputs = 2,
@@ -156,6 +173,8 @@ dp_simulation_parameters() = SimulationParameters(;
         0.0, 
         0.0
     ],
+    model_in_dim = 6,
+    model_input_function = dp_model_input_function,
     spline_seg_type = NoSpline()
 )
 

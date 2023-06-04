@@ -105,12 +105,29 @@ struct QuadraticSpline <: SplineSegmentType end
 struct CubicSpline <: SplineSegmentType end
 struct NoSpline <: SplineSegmentType end
 
+function default_model_input_function(
+    t::Real,
+    task_time::Real,
+    x::Vector{<:Real},
+)
+    t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
+    x_transformed = [
+        x[1],
+        x[2],
+        x[3]*cos(x[4]),
+        x[3]*sin(x[4])
+    ]
+    return vcat(x_transformed, t_transformed)
+end
+
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     model_scale::Vector{Float64} = ones(8)
+    model_in_dim::Integer = 6
+    model_input_function::Function = default_model_input_function
     spline_seg_type::SplineSegmentType = QuadraticSpline()
 end
 Base.show(io::IO, p::SimulationParameters) = print(io,
