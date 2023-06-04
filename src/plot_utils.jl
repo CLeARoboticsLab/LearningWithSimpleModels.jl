@@ -191,14 +191,10 @@ function plot_evaluation(
     end
     scatter!(ax_end_eff, xds_end_eff, yds_end_eff, label="Setpoints")
 
-    # TODO should accept a function or something
     task_x = zeros(T)
     task_y = zeros(T)
-    for (i,t) in enumerate(eval_data.r.ts)
-        a = 0.7
-        b = π/2
-        task_x[i] = 0.5*cos(a*t + b)
-        task_y[i] = 1.5 + 0.5*sin(a*t + b)  
+    for (i,t) in enumerate(eval_data.r.ts) 
+        task_x[i], task_y[i] = eval_params.f(t)
     end
     lines!(ax_end_eff, task_x, task_y, label="Task", linestyle=:dash, color=:black)
 
