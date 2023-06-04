@@ -73,16 +73,17 @@ end
 # go to a point and stay
 const_point(time) = (0.1, 1.0)
 
+center_x() = 0.25
+center_y() = 1.25
+radius() = 0.3
+
 # trace a circle
 function circle(time)
-    radius = 0.3
-    center_x = 0.25
-    center_y = 1.25
-    reps = 1
+    reps = 2
     a = reps*2*π/T()
     b = π/2
-    x_task = center_x + radius*cos(a*time + b)
-    y_task = center_y + radius*sin(a*time + b)
+    x_task = center_x() + radius()*cos(a*time + b)
+    y_task = center_y() + radius()*sin(a*time + b)
     return x_task, y_task
 end
 
@@ -90,8 +91,8 @@ end
 function star(time)
     c = 0.25
     d = 0.73
-    x_task = c*sin(time) - d*sin(2*time/3)
-    y_task = c*cos(time) + d*cos(2*time/3) + 1
+    x_task = c*sin(time) - d*sin(2*time/3) + center_x()
+    y_task = c*cos(time) + d*cos(2*time/3) + center_y()
     return x_task, y_task
 end
 
@@ -129,8 +130,8 @@ dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 1.0e-4, #.8e-5,
-    iters = 50,
+    learning_rate = .75e-4, #.8e-5,
+    iters = 35,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -144,16 +145,27 @@ function dp_model_input_function(
     task_time::Real,
     x::Vector{<:Real},
 )
-    t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
-    # x_task, y_task = circle(t)
+    # t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
+    x_task, y_task = circle(t)
     x_transformed = [
         cos(x[1]),
         sin(x[1]),
         cos(x[2]),
         sin(x[2])
     ]
+    # x_task_transformed = [
+    #     cos(2*π*(x_task-center_x)/radius),
+    #     sin(2*π*(x_task-center_x)/radius),
+    #     cos(2*π*(y_task-center_y)/radius),
+    #     sin(2*π*(y_task-center_y)/radius),
+    # ]
+    # return vcat(x_transformed, x_task_transformed)
+
+    # return vcat(x_transformed, [cos(x_task), sin(x_task), cos(y_task), sin(y_task)])
+    # return vcat(x_transformed, [x_task^2 + y_task^2, atan(y_task,x_task)])
     # return vcat(x_transformed, [x_task, y_task])
-    return vcat(x_transformed, t_transformed)
+    return vcat(x_transformed, [(x_task-center_x())/radius(), (y_task-center_y())/radius()])
+    # return vcat(x_transformed, t_transformed)
 end
 
 dp_simulation_parameters() = SimulationParameters(;
