@@ -9,7 +9,7 @@ dp_controller_parameters() = DpControllerParameters(;
 
 function controller_gains()
     # LQR cost weighting matrices
-    Q = diagm([50000, 50000, 100, 100])
+    Q = diagm([5000, 5000, 10, 10])
     R = diagm([1.0, 1.0])
     p = dp_simple_dynamics_params()
     

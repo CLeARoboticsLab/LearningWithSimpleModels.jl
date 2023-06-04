@@ -6,7 +6,7 @@ struct DoublePendulumDynamicsParameters <: DyanmicsParameters
     g
 end
 
-dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(1, 1, 1, 1, 9.81)
+dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(.1, .1, 1, 1, 9.81)
 dp_simple_dynamics_params() = dp_actual_dynamics_params()
 
 H(q, p::DoublePendulumDynamicsParameters) = [
@@ -75,11 +75,14 @@ const_point(time) = (0.1, 1.0)
 
 # trace a circle
 function circle(time)
+    radius = 0.3
+    center_x = 0.25
+    center_y = 1.25
     reps = 1
     a = reps*2*π/T()
     b = π/2
-    x_task = 0.5*cos(a*time + b)
-    y_task = 1.5 + 0.5*sin(a*time + b)
+    x_task = center_x + radius*cos(a*time + b)
+    y_task = center_y + radius*sin(a*time + b)
     return x_task, y_task
 end
 
