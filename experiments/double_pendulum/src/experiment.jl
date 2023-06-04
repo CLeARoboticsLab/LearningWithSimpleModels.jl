@@ -6,8 +6,20 @@ struct DoublePendulumDynamicsParameters <: DyanmicsParameters
     g
 end
 
-dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(.1, .1, 1, 1, 9.81)
-dp_simple_dynamics_params() = dp_actual_dynamics_params()
+act_m1() = 0.1
+act_m2() = 0.1
+act_l1() = 1.0
+act_l2() = 1.0
+act_g() = 9.81
+
+dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
+dp_simple_dynamics_params() = DoublePendulumDynamicsParameters(
+    1.05*act_m1(), 
+    1.1*act_m2(), 
+    1.0*act_l1(), 
+    1.0*act_l2(), 
+    act_g()
+)
 
 H(q, p::DoublePendulumDynamicsParameters) = [
     (p.m1 + p.m2)*p.l1^2 + p.m2*p.l2^2 + 2*p.m2*p.l1*p.l2*cos(q[2])     p.m2*p.l2^2 + p.m2*p.l1*p.l2*cos(q[2])
@@ -30,10 +42,7 @@ B(q, p::DoublePendulumDynamicsParameters) = [
 ]
 
 function dp_actual_dynamics_f(dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64})
-    # x[1] = θ₁
-    # x[2] = θ₂
-    # x[3] = θ₁_dot
-    # x[4] = θ₂_dot
+    # x[1] = θ₁; # x[2] = θ₂; x[3] = θ₁_dot; x[4] = θ₂_dot
     
     q = [ x[1], x[2] ]
     qdot = [ x[3], x[4] ]
@@ -103,6 +112,7 @@ dp_cost() = Cost(;
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
         x_end_eff, y_end_eff = end_effector_position(simple_dynamics.params, x[1], x[2])
+        # x_end_eff, y_end_eff = end_effector_position(dp_actual_dynamics_params(), x[1], x[2])
         x_task, y_task = star(time)
         return (
             (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
@@ -112,7 +122,6 @@ dp_cost() = Cost(;
 )
 
 T() = 10.0
-# T() = 18.7 # for star
 m_dt() = 0.1
 
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
@@ -155,17 +164,6 @@ function dp_model_input_function(
         cos(x[2]),
         sin(x[2])
     ]
-    # x_task_transformed = [
-    #     cos(2*π*(x_task-center_x)/radius),
-    #     sin(2*π*(x_task-center_x)/radius),
-    #     cos(2*π*(y_task-center_y)/radius),
-    #     sin(2*π*(y_task-center_y)/radius),
-    # ]
-    # return vcat(x_transformed, x_task_transformed)
-
-    # return vcat(x_transformed, [cos(x_task), sin(x_task), cos(y_task), sin(y_task)])
-    # return vcat(x_transformed, [x_task^2 + y_task^2, atan(y_task,x_task)])
-    # return vcat(x_transformed, [x_task, y_task])
     return vcat(x_transformed, [(x_task-center_x())/radius(), (y_task-center_y())/radius()])
     # return vcat(x_transformed, t_transformed)
 end
