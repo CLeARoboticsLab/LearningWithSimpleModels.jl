@@ -46,9 +46,11 @@ function gradient_estimate(
                     # Here we are repeating the process found in rollout_actual_dynamics
                     # so that we can take derivatives through the simple_dynamics
                     seg_start_idx = r.idx_segs[j]
-                    t = r.t0_segs[j]
-                    x = r.x0_segs[:,j]
-                    u = 0.0
+                    if segment_length != 1 || j == 1
+                        t = r.t0_segs[j]
+                        x = r.x0_segs[:,j]
+                        u = 0.0
+                    end
                     tf_seg = t + sim_params.model_dt - sim_params.dt
                     setpoint = evaluate(task, tf_seg)
                     t_in = t

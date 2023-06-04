@@ -14,8 +14,8 @@ act_g() = 9.81
 
 dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
 dp_simple_dynamics_params() = DoublePendulumDynamicsParameters(
-    1.05*act_m1(), 
-    1.1*act_m2(), 
+    1.0*act_m1(), 
+    1.0*act_m2(), 
     1.0*act_l1(), 
     1.0*act_l2(), 
     act_g()
@@ -168,10 +168,12 @@ function dp_model_input_function(
     # return vcat(x_transformed, t_transformed)
 end
 
+sim_dt() = 0.01
+
 dp_simulation_parameters() = SimulationParameters(;
     x0 = [π, 0.0, 0.0, 0.0],
     n_inputs = 2,
-    dt = 0.01, # should match controller update rate
+    dt = sim_dt(),
     model_dt = m_dt(),
     model_scale = [
         π, 

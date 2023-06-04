@@ -16,8 +16,10 @@ using LinearAlgebra: diagm
 using MatrixEquations: arec
 
 include("experiment.jl")
+include("experiment_open_loop.jl")
 include("controller.jl")
+include("controller_open_loop.jl")
 include("run.jl")
-# include("plots.jl")
+include("run_open_loop.jl")
 
 end #module

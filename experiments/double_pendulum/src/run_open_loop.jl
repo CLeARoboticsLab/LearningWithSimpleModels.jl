@@ -1,13 +1,13 @@
-function run()
-    task = dp_task()
-    algo = dp_training_algorithm()
-    training_params = dp_training_parameters()
-    sim_params = dp_simulation_parameters()
+function run_open_loop()
+    task = dp_task_open_loop()
+    algo = dp_training_algorithm_open_loop()
+    training_params = dp_training_parameters_open_loop()
+    sim_params = dp_simulation_parameters_open_loop()
     simple_dynamics = dp_simple_dynamics()
     actual_dynamics = dp_actual_dynamics()
-    controller = dp_controller()
+    controller = dp_controller_open_loop()
     cost = dp_cost()
-    eval_params = dp_evaluation_parameters()
+    eval_params = dp_evaluation_parameters_open_loop()
 
     train(
         simple_dynamics,

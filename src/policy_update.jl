@@ -42,7 +42,11 @@ function policy_update!(
         else
             t0 = rand(Uniform(0.0, end_time(task)*algo.perc_of_task_to_sample))
         end
-        x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
+        if all(algo.variances .== 0)
+            x0 = algo.to_state(evaluate(task,t0))
+        else
+            x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
+        end
 
         rs[i] = rollout_actual_dynamics(
             task, model, actual_dynamics, controller, cost, algo, sim_params, t0, x0, algo.segs_per_rollout
