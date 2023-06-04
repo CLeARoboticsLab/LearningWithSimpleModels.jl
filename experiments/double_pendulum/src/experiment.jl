@@ -73,8 +73,8 @@ end
 # go to a point and stay
 const_point(time) = (0.1, 1.0)
 
-center_x() = 0.25
-center_y() = 1.25
+center_x() = 0.35
+center_y() = 1.5
 radius() = 0.3
 
 # trace a circle
@@ -89,10 +89,12 @@ end
 
 # trace a star (Hypotrochoid)
 function star(time)
-    c = 0.25
-    d = 0.73
-    x_task = c*sin(time) - d*sin(2*time/3) + center_x()
-    y_task = c*cos(time) + d*cos(2*time/3) + center_y()
+    reps = 1
+    a = reps*2*π/T()
+    c = 0.25*radius()
+    d = 0.75*radius()
+    x_task = c*sin(3*a*time) - d*sin(2*a*time) + center_x()
+    y_task = c*cos(3*a*time) + d*cos(2*a*time) + center_y()
     return x_task, y_task
 end
 
@@ -101,7 +103,7 @@ dp_cost() = Cost(;
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
         x_end_eff, y_end_eff = end_effector_position(simple_dynamics.params, x[1], x[2])
-        x_task, y_task = circle(time)
+        x_task, y_task = star(time)
         return (
             (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
             + 0.0*(sum(u.^2))
@@ -130,8 +132,8 @@ dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = .75e-4, #.8e-5,
-    iters = 35,
+    learning_rate = .65e-4, #.8e-5,
+    iters = 50,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -146,7 +148,7 @@ function dp_model_input_function(
     x::Vector{<:Real},
 )
     # t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
-    x_task, y_task = circle(t)
+    x_task, y_task = star(t)
     x_transformed = [
         cos(x[1]),
         sin(x[1]),
@@ -193,7 +195,7 @@ dp_simulation_parameters() = SimulationParameters(;
 dp_evaluation_parameters() = EvaluationParameters(; #add here
     name = "dp_sim",
     type = DoublePendulumEvalType(),
-    f = circle,
+    f = star,
     path = ".data",    
     n_task_executions = 1,
     save_plot = true,
