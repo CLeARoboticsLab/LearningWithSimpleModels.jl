@@ -403,7 +403,10 @@ function animate_evaluation(
     colors_setpoints = Observable([1])
     set_points = Observable(Point2f[end_effector_position(actual_dynamics.params, eval_data.r.setpoints[1,1], eval_data.r.setpoints[2,1])])
     
-    fig = Figure(resolution=(800,800))
+    task_point = Observable(Point2f[eval_params.f(eval_data.r.ts[1])])
+    task_points = Observable(Point2f[eval_params.f(eval_data.r.ts[1])])
+
+    fig = Figure(resolution=(1000,800))
     ax = Axis(fig[1,1])
    
     lines!(ax, rod; linewidth = 6, color = :purple)
@@ -411,14 +414,16 @@ function animate_evaluation(
         strokecolor = :purple,
         color = :black, markersize = [14, 14]
     )
-    scatter!(ax, end_eff_points, color=colors, colormap=:thermal, markersize=5)
-    scatter!(ax, set_points, color=colors_setpoints, colormap=:thermal, markersize=10, marker=:xcross)
+    scatter!(ax, end_eff_points, color=colors, colormap=:thermal, markersize=3)
+    scatter!(ax, set_points, color=colors_setpoints, colormap=:thermal, markersize=12, marker='x')
+    scatter!(ax, task_point, color=:red, markersize=16)
+    lines!(ax, task_points, label="Task", linestyle=:dash, color=:black)
 
     ax.title = "Double Pendulum"
     ax.aspect = DataAspect()
     l = 1.05*(p.l1 + p.l2)
     xlims!(ax, -l, l)
-    ylims!(ax, -l, l)
+    ylims!(ax, -0.5*l, l)
 
     j = 1
     record(fig, path, 1:T; framerate = 100) do i
@@ -431,6 +436,8 @@ function animate_evaluation(
             j += 1
             colors_setpoints[] = push!(colors_setpoints[], j)
         end
+        task_point[] = Point2f[eval_params.f(eval_data.r.ts[i])]
+        task_points[] = push!(task_points[], Point2f(eval_params.f(eval_data.r.ts[i])))
     end
 
 end

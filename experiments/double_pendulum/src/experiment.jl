@@ -70,29 +70,34 @@ dp_actual_dynamics() = Dynamics(;
 Base.@kwdef struct DpCostParameters <: CostParameters
 end
 
+# go to a point and stay
+const_point(time) = (0.1, 1.0)
+
+# trace a circle
+function circle(time)
+    reps = 1
+    a = reps*2*π/T()
+    b = π/2
+    x_task = 0.5*cos(a*time + b)
+    y_task = 1.5 + 0.5*sin(a*time + b)
+    return x_task, y_task
+end
+
+# trace a star (Hypotrochoid)
+function star(time)
+    c = 0.25
+    d = 0.73
+    x_task = c*sin(time) - d*sin(2*time/3)
+    y_task = c*cos(time) + d*cos(2*time/3) + 1
+    return x_task, y_task
+end
+
 dp_cost() = Cost(;
     params = DpCostParameters(),
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
-        
-        # constant point
-        # x_task = 0.1
-        # y_task = 1.0
-
-        # trace a circle
-        a = 2*π/T()
-        b = π/2
-        x_task = 0.5*cos(a*time + b)
-        y_task = 1.5 + 0.5*sin(a*time + b)
-
-        # star (Hypotrochoid)
-        # c = 0.25
-        # d = 0.73
-        # x_task = c*sin(time) - d*sin(2*time/3)
-        # y_task = c*cos(time) + d*cos(2*time/3) + 1
-
         x_end_eff, y_end_eff = end_effector_position(simple_dynamics.params, x[1], x[2])
-
+        x_task, y_task = circle(time)
         return (
             (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
             + 0.0*(sum(u.^2))
@@ -101,7 +106,7 @@ dp_cost() = Cost(;
 )
 
 T() = 10.0
-# T() = 18.7
+# T() = 18.7 # for star
 m_dt() = 0.1
 
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
@@ -121,7 +126,7 @@ dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 4.0e-5, #.8e-5,
+    learning_rate = 1.0e-4, #.8e-5,
     iters = 50,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -137,8 +142,8 @@ dp_simulation_parameters() = SimulationParameters(;
     dt = 0.01, # should match controller update rate
     model_dt = m_dt(),
     model_scale = [
-        2*π, 
-        2*π, 
+        π, 
+        π, 
         1.0, 
         1.0, 
         .5*controller_gains()[1,1],
@@ -154,6 +159,7 @@ dp_simulation_parameters() = SimulationParameters(;
 dp_evaluation_parameters() = EvaluationParameters(; #add here
     name = "dp_sim",
     type = DoublePendulumEvalType(),
+    f = circle,
     path = ".data",    
     n_task_executions = 1,
     save_plot = true,

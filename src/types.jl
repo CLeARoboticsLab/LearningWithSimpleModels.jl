@@ -128,6 +128,7 @@ struct DoublePendulumEvalType <: AbstractEvalType end
 Base.@kwdef struct EvaluationParameters
     name::String = "experiment"
     type::AbstractEvalType = UnicycleEvalType()
+    f::Union{Nothing, Function} = nothing
     path = ".data"
     n_task_executions::Integer = 1
     save_plot::Bool = true
