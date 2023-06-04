@@ -1,3 +1,4 @@
+# training on a simulated system
 function train(
     simple_dynamics::Dynamics,
     actual_dynamics::Dynamics
@@ -42,6 +43,7 @@ function train(
     return model, losses
 end
 
+# training on hardware
 function train(
     simple_dynamics::Dynamics
     ; controller::Controller,

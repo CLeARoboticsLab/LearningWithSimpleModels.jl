@@ -80,7 +80,7 @@ dp_cost() = Cost(;
         # y_task = 1.0
 
         # trace a circle
-        a = 0.63
+        a = 2*π/T()
         b = π/2
         x_task = 0.5*cos(a*time + b)
         y_task = 1.5 + 0.5*sin(a*time + b)
