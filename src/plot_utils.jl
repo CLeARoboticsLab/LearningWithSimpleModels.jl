@@ -177,8 +177,8 @@ function plot_evaluation(
         xs_end_eff[i] = x
         ys_end_eff[i] = y
     end
-    fig_end_eff = Figure(resolution=(800,800))
-    ax_end_eff = Axis(fig_end_eff[1,1], xlabel="x", ylabel="y")
+    fig_main = Figure(resolution=(800,1100))
+    ax_end_eff = Axis(fig_main[1:3,1], xlabel="x", ylabel="y")
     lines!(ax_end_eff, xs_end_eff, ys_end_eff, label="End Effector Trajectory")
 
     N = size(eval_data.r.setpoints, 2)
@@ -201,6 +201,14 @@ function plot_evaluation(
         task_y[i] = 1.5 + 0.5*sin(a*t + b)  
     end
     lines!(ax_end_eff, task_x, task_y, label="Task", linestyle=:dash, color=:black)
+
+    # states
+    ax_theta = Axis(fig_main[4,1], xlabel="t", ylabel="angle")
+    lines!(ax_theta, eval_data.r.ts, eval_data.r.xs[1,:], label="θ1")
+    lines!(ax_theta, eval_data.r.ts, eval_data.r.xs[2,:], label="θ2")
+    ax_theta_dot = Axis(fig_main[5,1], xlabel="t", ylabel="angle rate")
+    lines!(ax_theta_dot, eval_data.r.ts, eval_data.r.xs[3,:], label="θ1_dot")
+    lines!(ax_theta_dot, eval_data.r.ts, eval_data.r.xs[4,:], label="θ2_dot")
 
     # plot control inputs
     fig_us = Figure(resolution=(600,600))
@@ -228,7 +236,7 @@ function plot_evaluation(
     if !isnothing(eval_params.path) && eval_params.save_plot
         eval_plot_filename = eval_params.name * "_eval_plot.png"
         eval_plot_path = joinpath(eval_params.path, eval_plot_filename)
-        save(eval_plot_path, fig_end_eff)
+        save(eval_plot_path, fig_main)
 
         inputs_plot_filename = eval_params.name * "_eval_control_inputs.png"
         inputs_plot_path = joinpath(eval_params.path, inputs_plot_filename)
@@ -240,7 +248,7 @@ function plot_evaluation(
     end
 
     # display plots
-    display(fig_end_eff)
+    display(fig_main)
     display(fig_us)
     display(fig3)
 end

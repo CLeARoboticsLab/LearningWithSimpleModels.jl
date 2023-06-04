@@ -29,10 +29,10 @@ function call_model(
 )
     t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
     x_transformed = [
-        x[1],
-        x[2],
-        x[3]*cos(x[4]),
-        x[3]*sin(x[4])
+        x[1]/sim_params.model_scale[1],
+        x[2]/sim_params.model_scale[2],
+        x[3]/sim_params.model_scale[3],#x[3]*cos(x[4]),
+        x[4]/sim_params.model_scale[4]#x[3]*sin(x[4])
     ] #TODO make this more robust to arbitrary state definitions
     model_out = model(vcat(x_transformed, t_transformed)) .* sim_params.model_scale
     setpoint_correction = model_out[1:4]
