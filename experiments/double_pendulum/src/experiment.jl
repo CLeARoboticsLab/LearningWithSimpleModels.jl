@@ -14,8 +14,8 @@ act_g() = 9.81
 
 dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
 dp_simple_dynamics_params() = DoublePendulumDynamicsParameters(
-    1.0*act_m1(), 
-    1.0*act_m2(), 
+    1.05*act_m1(), 
+    1.1*act_m2(), 
     1.0*act_l1(), 
     1.0*act_l2(), 
     act_g()
@@ -112,7 +112,6 @@ dp_cost() = Cost(;
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
         x_end_eff, y_end_eff = end_effector_position(simple_dynamics.params, x[1], x[2])
-        # x_end_eff, y_end_eff = end_effector_position(dp_actual_dynamics_params(), x[1], x[2])
         x_task, y_task = star(time)
         return (
             (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
