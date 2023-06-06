@@ -2,7 +2,6 @@ function plot_losses(training_params::TrainingParameters, losses)
     fig = Figure()
     ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Loss")
     lines!(ax, losses)
-
     if !isnothing(training_params.save_path) && training_params.save_plot
         filename = training_params.name * "_train_loss.png"
         path = joinpath(training_params.save_path, filename)
@@ -601,3 +600,34 @@ function final_model_outputs_plot(
     display(fig)
     save(path, fig)
 end
+
+function loss_statistics(training_datas::Vector{TrainingData}, num_iters::Integer)
+    N = min(num_iters, length(training_datas[1].losses))
+    mean_losses = zeros(N)
+    std_losses = zeros(N)
+    for iter in 1:min(num_iters, length(training_datas[1].losses))
+        losses = [training_datas[i].losses[iter] for i in 1:length(training_datas)]
+        mean_losses[iter] = mean(losses)
+        std_losses[iter] = std(losses)
+    end
+    return mean_losses, std_losses
+end
+
+function plot_variances(path, training_datas1::Vector{TrainingData}, training_datas2::Vector{TrainingData}, num_iters::Integer)
+    mean_losses1, std_losses1 = loss_statistics(training_datas1, num_iters)
+    mean_losses2, std_losses2 = loss_statistics(training_datas2, num_iters)
+    
+    fig = Figure(resolution=(1000,800))
+    ax = Axis(fig[1,1], xlabel="Training Iteration", ylabel="Cost")
+    lines!(ax, 1:num_iters, mean_losses1, label="Closed Loop", color=color=(Makie.wong_colors()[1], 1.0))
+    band!(ax, 1:num_iters, mean_losses1-std_losses1, mean_losses1+std_losses1, color=(Makie.wong_colors()[1], 0.3))
+
+    lines!(ax, 1:num_iters, mean_losses2, label="Open Loop", color=color=(Makie.wong_colors()[2], 1.0))
+    band!(ax, 1:num_iters, mean_losses2-std_losses2, mean_losses2+std_losses2, color=(Makie.wong_colors()[2], 0.3))
+    ylims!(ax, 0, 500)
+    axislegend(ax)
+
+    display(fig)
+    save(path, fig)
+end
+

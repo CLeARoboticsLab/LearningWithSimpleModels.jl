@@ -21,5 +21,6 @@ include("controller.jl")
 include("controller_open_loop.jl")
 include("run.jl")
 include("run_open_loop.jl")
+include("plots.jl")
 
 end #module

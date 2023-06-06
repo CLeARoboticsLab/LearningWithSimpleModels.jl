@@ -21,6 +21,7 @@ using Rotations
 using LinearAlgebra
 import JSON
 using LaTeXStrings
+using Statistics: mean, std
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
@@ -56,7 +57,7 @@ export train
 
 include("plot_utils.jl")
 export plot_hardware_evaluation, multi_training_plot, final_eval_plot,
-    final_model_outputs_plot, animate_final_evaluation
+    final_model_outputs_plot, animate_final_evaluation, plot_variances
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware

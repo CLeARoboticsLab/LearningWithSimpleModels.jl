@@ -10,12 +10,12 @@ act_m1() = 0.1
 act_m2() = 0.1
 act_l1() = 1.0
 act_l2() = 1.0
-act_g() = 9.81
+act_g() = 0.1
 
 dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
 dp_simple_dynamics_params() = DoublePendulumDynamicsParameters(
-    1.05*act_m1(), 
-    1.1*act_m2(), 
+    1.0*act_m1(), 
+    1.0*act_m2(), 
     1.0*act_l1(), 
     1.0*act_l2(), 
     act_g()
@@ -80,7 +80,8 @@ Base.@kwdef struct DpCostParameters <: CostParameters
 end
 
 # go to a point and stay
-const_point(time) = (0.1, 1.0)
+# const_point(time) = ((act_l1()+act_l2())*sin(5*π/8), -(act_l1()+act_l2())*cos(5*π/8))
+const_point(time) = (1.70, -(act_l1()+act_l2())*cos(5*π/8))
 
 center_x() = 0.35
 center_y() = 1.5
@@ -112,7 +113,8 @@ dp_cost() = Cost(;
     g = (cost::Cost, time::Real, x::Vector{Float64}, x_des::Vector{Float64}, 
     task::ConstantTask, u::Vector{Float64}, simple_dynamics::Dynamics) -> begin
         x_end_eff, y_end_eff = end_effector_position(simple_dynamics.params, x[1], x[2])
-        x_task, y_task = star(time)
+        # x_task, y_task = star(time)
+        x_task, y_task = const_point(time)
         return (
             (x_end_eff - x_task)^2 + (y_end_eff - y_task)^2
             + 0.0*(sum(u.^2))
@@ -120,19 +122,20 @@ dp_cost() = Cost(;
     end
 )
 
-T() = 10.0
+T() = 3.0
 m_dt() = 0.1
 
 dp_task() = ConstantTask([π, 0.0, 0.0, 0.0], T())
+start_state() = [5*π/8, 0.0, 0.0, 0.0]
 
 dp_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.1^2, .1^2, 0.01^2, .01^2],
+    variances = [π/8, 0, 0, 0],
     perc_of_task_to_sample = 0, # starting point is always beginning
-    n_rollouts_per_update = 1,
+    n_rollouts_per_update = 5,
     n_beginning_segs_to_truncate = 0,
     segs_per_rollout = Integer(round(T()/m_dt())),
     segs_in_window = Integer(round(T()/m_dt())),
-    to_state = (task_point) -> task_point, # used to convert task point to state
+    to_state = (task_point) -> start_state(), # used to convert task point to state
     task_time_est = nothing
 )
 
@@ -140,8 +143,8 @@ dp_training_parameters() = TrainingParameters(; # TODO
     name = "dp_sim",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = .65e-4, #.8e-5,
-    iters = 50,
+    learning_rate = .25e-4, #.8e-5,
+    iters = 250,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
@@ -155,22 +158,33 @@ function dp_model_input_function(
     task_time::Real,
     x::Vector{<:Real},
 )
+    # # t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
+    # x_task, y_task = star(t)
+    # x_transformed = [
+    #     cos(x[1]),
+    #     sin(x[1]),
+    #     cos(x[2]),
+    #     sin(x[2])
+    # ]
+    # return vcat(x_transformed, [(x_task-center_x())/radius(), (y_task-center_y())/radius()])
+    # # return vcat(x_transformed, t_transformed)
+
     # t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
-    x_task, y_task = star(t)
+    # x_task, y_task = star(t)
     x_transformed = [
         cos(x[1]),
         sin(x[1]),
         cos(x[2]),
         sin(x[2])
     ]
-    return vcat(x_transformed, [(x_task-center_x())/radius(), (y_task-center_y())/radius()])
+    return x_transformed
     # return vcat(x_transformed, t_transformed)
 end
 
 sim_dt() = 0.01
 
 dp_simulation_parameters() = SimulationParameters(;
-    x0 = [π, 0.0, 0.0, 0.0],
+    x0 = [5*π/8, 0.0, 0.0, 0.0],
     n_inputs = 2,
     dt = sim_dt(),
     model_dt = m_dt(),
@@ -186,7 +200,7 @@ dp_simulation_parameters() = SimulationParameters(;
         0.0, 
         0.0
     ],
-    model_in_dim = 6,
+    model_in_dim = 4,
     model_input_function = dp_model_input_function,
     spline_seg_type = NoSpline()
 )
@@ -194,7 +208,7 @@ dp_simulation_parameters() = SimulationParameters(;
 dp_evaluation_parameters() = EvaluationParameters(; #add here
     name = "dp_sim",
     type = DoublePendulumEvalType(),
-    f = star,
+    f = const_point,
     path = ".data",    
     n_task_executions = 1,
     save_plot = true,

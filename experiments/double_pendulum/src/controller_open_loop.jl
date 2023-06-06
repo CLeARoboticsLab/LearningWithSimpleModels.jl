@@ -6,7 +6,9 @@ function dp_open_loop_policy(
     setpoints::Vector{Float64}, 
     gains_adjustment::Vector{Float64}
 )
-    return setpoints[1:2]
+    start_state = start_state_open_loop()
+    u_nom = G(start_state[1:2], dp_actual_dynamics_params_open_loop())
+    return u_nom + setpoints[1:2]
 end
 
 dp_controller_open_loop() = Controller(;

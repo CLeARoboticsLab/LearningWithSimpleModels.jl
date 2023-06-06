@@ -31,6 +31,5 @@ function call_model(
     model_out = model(inputs) .* sim_params.model_scale
     setpoint_correction = model_out[1:4]
     gains_adjustment = model_out[5:10]
-    # println("inputs: ", inputs, " outputs: ", model_out)
     return setpoint + setpoint_correction, gains_adjustment
 end

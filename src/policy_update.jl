@@ -45,7 +45,16 @@ function policy_update!(
         if all(algo.variances .== 0)
             x0 = algo.to_state(evaluate(task,t0))
         else
-            x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances)))
+            #x0 = algo.to_state(evaluate(task,t0)) + rand(MvNormal(diagm(algo.variances))) # TODO make configurable to use MvNormal
+            x0 = algo.to_state(evaluate(task,t0))
+            r = zeros(length(x0))
+            for i in 1:length(x0)
+                if algo.variances[i] == 0
+                    continue
+                end
+                r[i] = rand(Uniform(-algo.variances[i], algo.variances[i]))
+            end
+            x0 = x0 + r
         end
 
         rs[i] = rollout_actual_dynamics(
