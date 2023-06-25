@@ -17,7 +17,8 @@ function rollout_actual_dynamics(
     task_time, _ = properties(task, sim_params)
     n_segments = eval_params.n_task_executions * Integer(round(task_time/sim_params.model_dt))
     t0 = 0.0
-    x0 = sim_params.x0
+    # x0 = sim_params.x0
+    x0 = [π/2, 0.0, 0.0, 0.0] # TODO: make this an input into eval params
 
     return rollout_actual_dynamics(
         task, model, actual_dynamics, controller, cost, algo, sim_params, t0, x0, n_segments
@@ -88,17 +89,16 @@ function rollout_actual_dynamics(
         # Generate a spline from the current point to the new setpoint that the
         # low level controller will track
         prev_setpoint = j > 1 ? setpoints[:,j-1] : evaluate(task, t)
-        spline_seg = spline_segment(t, tf_seg, prev_setpoint, new_setpoint)
+        spline_seg = spline_segment(sim_params.spline_seg_type, t, tf_seg, prev_setpoint, new_setpoint)
 
         # rollout on this segment
         for _ in 1:segment_length
             ts_actual[overall_idx] = t
             xs_actual[:,overall_idx] = x
-            ctrl_setpoints[:,overall_idx] = evaluate_segment(spline_seg, t+sim_params.dt)
+            ctrl_setpoints[:,overall_idx] = evaluate_segment(sim_params.spline_seg_type, spline_seg, t+sim_params.dt)
             u = next_command(controller, x, ctrl_setpoints[:,overall_idx], gains_adjustment)
             us_actual[:,overall_idx] = u
-            loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u)
-
+            loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u, actual_dynamics)
             overall_idx += 1
             t += sim_params.dt
             x = f_actual(actual_dynamics, t, sim_params.dt, x, u)
@@ -169,7 +169,7 @@ function rollout_actual_dynamics(
             end 
             
             prev_setpoint = j in 2:n_segments ? setpoints[:,j-1] : starting_setpoint(x)
-            spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
+            spline_seg = spline_segment(sim_params.spline_seg_type, t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
             send_command(connections, ctrl_params, spline_seg, gains_adjustment)
 
             if j == n_segments

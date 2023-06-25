@@ -17,7 +17,7 @@ function evaluate_model(;
     end
 
     r = rollout_actual_dynamics(task, model, actual_dynamics, controller, cost, algo, sim_params, eval_params)
-
+    println("Evaluation loss: ", r.loss)
     r_no_model = rollout_actual_dynamics(
         task, model, actual_dynamics, controller, cost, algo, sim_params, eval_params
         ; use_model = false
@@ -45,8 +45,9 @@ function evaluate_model(;
         algo = algo,
         training_params = training_params,
         sim_params = sim_params,
+        actual_dynamics = actual_dynamics
     )
-    animate_evaluation(eval_params, eval_data)
+    animate_evaluation(eval_params, eval_data, actual_dynamics)
 
     return eval_data
 end

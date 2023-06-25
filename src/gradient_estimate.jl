@@ -46,9 +46,11 @@ function gradient_estimate(
                     # Here we are repeating the process found in rollout_actual_dynamics
                     # so that we can take derivatives through the simple_dynamics
                     seg_start_idx = r.idx_segs[j]
-                    t = r.t0_segs[j]
-                    x = r.x0_segs[:,j]
-                    u = 0.0
+                    if segment_length != 1 || j == 1
+                        t = r.t0_segs[j]
+                        x = r.x0_segs[:,j]
+                        u = 0.0
+                    end
                     tf_seg = t + sim_params.model_dt - sim_params.dt
                     setpoint = evaluate(task, tf_seg)
                     t_in = t
@@ -56,15 +58,15 @@ function gradient_estimate(
                         t_in = algo.task_time_est(task, t, x)
                     end
                     new_setpoint, gains_adjustment = call_model(sim_params, setpoint, model, t_in, x, task_time)
-                    spline_seg = spline_segment(t, tf_seg, prev_setpoint, new_setpoint)
+                    spline_seg = spline_segment(sim_params.spline_seg_type ,t, tf_seg, prev_setpoint, new_setpoint)
                     prev_setpoint = new_setpoint
 
                     for i in 0:segment_length-1
                         overall_idx = seg_start_idx + i
-                        ctrl_setpoint = evaluate_segment(spline_seg, t+sim_params.dt)
+                        ctrl_setpoint = evaluate_segment(sim_params.spline_seg_type, spline_seg, t+sim_params.dt)
                         u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
                         if training_params.loss_aggregation == simulation_timestep
-                            loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u)
+                            loss = loss + stage_cost(cost, t, x, evaluate(task, t), task, u, simple_dynamics)
                         end
                         t = t + sim_params.dt
                         x_actual_next = overall_idx+1 <= size(r.xs,2) ? r.xs[:,overall_idx+1] : r.xf
@@ -80,7 +82,7 @@ function gradient_estimate(
                         end
                     end
                     if training_params.loss_aggregation == model_call
-                        loss = loss + stage_cost(cost, t, x, setpoint, task, u)
+                        loss = loss + stage_cost(cost, t, x, setpoint, task, u, simple_dynamics)
                     end
                 end
                 window_start_idx += 1
@@ -128,16 +130,16 @@ function gradient_estimate(
                 new_setpoint, gains_adjustment = call_model(sim_params, setpoint, 
                                                             model, t_in, x, task_time)
                 t = t0_seg - r.task_t0
-                spline_seg = spline_segment(t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
+                spline_seg = spline_segment(sim_params.spline_seg_type, t, t + sim_params.model_dt, prev_setpoint, new_setpoint)
                 prev_setpoint = new_setpoint
 
                 idx_seg = r.idx_segs[j]
                 x = r.xs[:,idx_seg]
                 for i in r.idx_segs[j]:r.idx_segs[j+1]-1
                     t = r.ts[i]
-                    ctrl_setpoint = evaluate_segment(spline_seg, t)
+                    ctrl_setpoint = evaluate_segment(sim_params.spline_seg_type, spline_seg, t)
                     u = next_command(controller, x, ctrl_setpoint, gains_adjustment)
-                    loss = loss + stage_cost(cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u)
+                    loss = loss + stage_cost(cost, r.task_t0 + t, x, evaluate(task, r.task_t0 + t), task, u, simple_dynamics)
                     x_actual_next = r.xs[:,i+1]
                     x = (
                         f_simple(simple_dynamics, t, sim_params.dt, x, u)

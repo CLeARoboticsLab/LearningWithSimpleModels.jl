@@ -41,6 +41,7 @@ Base.show(io::IO, p::WalkingWindowAlgorithm) = print(io,
 
 Base.@kwdef struct RandomInitialAlgorithm <:TrainingAlgorithm 
     variances::Vector{Float64}
+    perc_of_task_to_sample::Real = 1.0
     n_rollouts_per_update::Integer = 1
     n_beginning_segs_to_truncate::Integer = 0
     segs_per_rollout::Integer = 20
@@ -99,12 +100,35 @@ Base.show(io::IO, p::TrainingParameters) = print(io,
     Loss Aggregation: $(p.loss_aggregation)"
 )
 
+abstract type SplineSegmentType end
+struct QuadraticSpline <: SplineSegmentType end
+struct CubicSpline <: SplineSegmentType end
+struct NoSpline <: SplineSegmentType end
+
+function default_model_input_function(
+    t::Real,
+    task_time::Real,
+    x::Vector{<:Real},
+)
+    t_transformed = [cos(2*π*t/task_time), sin(2*π*t/task_time)]
+    x_transformed = [
+        x[1],
+        x[2],
+        x[3]*cos(x[4]),
+        x[3]*sin(x[4])
+    ]
+    return vcat(x_transformed, t_transformed)
+end
+
 Base.@kwdef struct SimulationParameters
     x0::Vector{Float64}
     n_inputs::Integer
     dt::Float64 = 0.01
     model_dt::Float64 = 0.5
     model_scale::Vector{Float64} = ones(8)
+    model_in_dim::Integer = 6
+    model_input_function::Function = default_model_input_function
+    spline_seg_type::SplineSegmentType = QuadraticSpline()
 end
 Base.show(io::IO, p::SimulationParameters) = print(io,
     "Simulation Parameters: 
@@ -114,8 +138,14 @@ Base.show(io::IO, p::SimulationParameters) = print(io,
     Model scale: $(p.model_scale)"
 )
 
+abstract type AbstractEvalType end
+struct UnicycleEvalType <: AbstractEvalType end
+struct DoublePendulumEvalType <: AbstractEvalType end
+
 Base.@kwdef struct EvaluationParameters
     name::String = "experiment"
+    type::AbstractEvalType = UnicycleEvalType()
+    f::Union{Nothing, Function} = nothing
     path = ".data"
     n_task_executions::Integer = 1
     save_plot::Bool = true
@@ -136,6 +166,11 @@ struct FigEightCircle <: AbstractTask
     r::Real
     time::Real
     v::Real
+end
+
+struct ConstantTask <: AbstractTask
+    xd::Vector{Float64}
+    time::Real
 end
 
 struct Connections

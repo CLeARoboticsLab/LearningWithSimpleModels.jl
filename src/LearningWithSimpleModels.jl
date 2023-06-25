@@ -21,6 +21,7 @@ using Rotations
 using LinearAlgebra
 import JSON
 using LaTeXStrings
+using Statistics: mean, std
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
@@ -29,11 +30,13 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     WalkingWindowAlgorithm, RandomInitialAlgorithm, HardwareTrainingAlgorithm,
     simulation_timestep, model_call, adam, gradient_descent,
     TrainingParameters, SimulationParameters, EvaluationParameters,
-    FigEightCircle, Spline,
+    QuadraticSpline, CubicSpline, NoSpline,
+    UnicycleEvalType, DoublePendulumEvalType,
+    ConstantTask, FigEightCircle, Spline,
     TrainingData
 
 include("task.jl")
-export to_velocity_and_heading_angle, wrapped_time, eval_all
+export to_velocity_and_heading_angle, wrapped_time, eval_all, end_effector_position
 
 include("spline.jl")
 export figure_eight
@@ -54,7 +57,7 @@ export train
 
 include("plot_utils.jl")
 export plot_hardware_evaluation, multi_training_plot, final_eval_plot,
-    final_model_outputs_plot, animate_final_evaluation
+    final_model_outputs_plot, animate_final_evaluation, plot_variances
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware
