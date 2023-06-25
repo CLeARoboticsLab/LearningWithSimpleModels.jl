@@ -1,0 +1,16 @@
+Hardware Training Algorithm
+    Seconds per rollout: 35.481517028778846
+    Skipped beginning segments: 10
+    Use window: true
+    Segments in window: 30
+Training Parameters: 
+    Hidden layer sizes: [64, 64] 
+    Learning rate: 0.0002 
+    Iterations: 10
+    Optimizer: gradient_descent
+    Loss Aggregation: simulation_timestep
+Simulation Parameters: 
+    Initial state: [0.0, 0.0, 0.0, 0.0]
+    Simulation dt: 0.1 
+    Time between model calls: 0.5543987035746694
+    Model scale: [1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0025, 0.25, 0.0025, 0.5]

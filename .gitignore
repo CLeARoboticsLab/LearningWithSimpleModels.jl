@@ -27,7 +27,16 @@ Manifest.toml
 .vscode
 
 # Data from experiments
-.data
+.alldata
 
 # External utils
 .utils
+
+# Windows files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Pictures / Videos
+*.mp4
+*.png
