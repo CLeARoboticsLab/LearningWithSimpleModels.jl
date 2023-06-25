@@ -40,3 +40,6 @@ Desktop.ini
 # Pictures / Videos
 *.mp4
 *.png
+
+# CSV exports
+.csv_files

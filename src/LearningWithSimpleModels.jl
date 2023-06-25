@@ -22,6 +22,8 @@ using LinearAlgebra
 import JSON
 using LaTeXStrings
 using Statistics: mean, std
+using CSV
+using Tables
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
@@ -33,7 +35,7 @@ export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
     QuadraticSpline, CubicSpline, NoSpline,
     UnicycleEvalType, DoublePendulumEvalType,
     ConstantTask, FigEightCircle, Spline,
-    TrainingData
+    RolloutData, TrainingData
 
 include("task.jl")
 export to_velocity_and_heading_angle, wrapped_time, eval_all, end_effector_position
@@ -61,5 +63,8 @@ export plot_hardware_evaluation, multi_training_plot, final_eval_plot,
 
 include("evaluate.jl")
 export evaluate_model, evaluate_on_hardware
+
+include("csv.jl")
+export make_csv
 
 end

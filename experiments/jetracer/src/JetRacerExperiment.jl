@@ -17,5 +17,6 @@ include("experiment.jl")
 include("controller.jl")
 include("run.jl")
 include("plots.jl")
+include("csv_export.jl")
 
 end #module
