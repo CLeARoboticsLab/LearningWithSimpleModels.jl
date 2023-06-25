@@ -1,5 +1,10 @@
 name: tests
 on:
+  pull_request:
+    types: [ready_for_review, assigned]
+  push:
+    branches:
+      - main
 jobs:
   test:
     runs-on: ${{ matrix.os }}
