@@ -519,21 +519,45 @@ function multi_training_plot(runs::Vector{TrainingData}, path, w, h)
     save(path, fig)
 end
 
-function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w, h, start_perc, finish_perc, task_finish_perc)
+function multi_training_plot_reward(runs::Vector{TrainingData}, path, w, h)
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Reward")
+    for (i,run) in enumerate(runs)
+        lines!(ax, -run.losses, label="Trial $(i)", color=(Makie.wong_colors()[i], 1.0))
+        scatter!(ax, -run.losses)
+    end
+    axislegend(ax, position = :rb)
+    display(fig)
+    save(path, fig)
+end
+
+function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w, h, 
+    start_perc, finish_perc, task_finish_perc; plot_setpoints=false
+)
     xs_task, ys_task, _, _ = eval_all(task, r.ts)
     s = Integer(round(start_perc*length(r.ts)))
     f = Integer(round(finish_perc*length(r.ts)))
     f_task = Integer(round(task_finish_perc*length(r.ts)))
     fig = Figure(resolution=(w,h))
-    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)")
+    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)", aspect = DataAspect())
     lines!(ax, xs_task[1:f_task], ys_task[1:f_task], label="Task", 
-            color=:black, linewidth=6, linestyle=:solid)
-
-    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Initial Controller", 
+            color=:black, linewidth=6, linestyle=:dash)
+    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Initial Policy", 
             color=(Makie.wong_colors()[2], .6), linewidth=4)
-            lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Controller", 
+            lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Policy", 
             color=(Makie.wong_colors()[1], .6), linewidth=4)
     
+    if plot_setpoints
+        println("plotting setpoints")
+        s = Integer(ceil(start_perc*length(r.ts)))
+        s_points = Integer(ceil(start_perc*length(r.setpoints[1,:])))
+        f = Integer(ceil(finish_perc*length(r.ts)))
+        f_points = Integer(ceil(finish_perc*length(r.setpoints[1,:])))
+        scatter!(ax, r.setpoints[1,s_points:f_points], r.setpoints[2,s_points:f_points], 
+                marker='x', color=Makie.wong_colors()[1], markersize=16,
+                label="Corrected task points")
+    end
+
     Legend(fig[1,2], ax)
     display(fig)
     save(path, fig)
@@ -601,6 +625,103 @@ function final_model_outputs_plot(
     save(path, fig)
 end
 
+function final_model_outputs_plot_with_untrained_corl(
+    path, r::RolloutData, task::AbstractTask, 
+    ctrl_params::ControllerParameters, gain_order::Vector{<:Integer},
+    w, h, start_perc, finish_perc,
+    r_no_model::RolloutData, task_finish_perc;
+    leg = nothing, gains_color=nothing,
+)
+    # trajectory
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+    s = Integer(ceil(start_perc*length(r.ts)))
+    s_points = Integer(ceil(start_perc*length(r.setpoints[1,:])))
+    f = Integer(ceil(finish_perc*length(r.ts)))
+    f_points = Integer(ceil(finish_perc*length(r.setpoints[1,:])))
+
+    f_task = Integer(round(task_finish_perc*length(r.ts)))
+
+    cm = :thermal
+    clrrng = (-0.2,1.4)
+    f_range = range(0,1,length=f-s+1)
+    f_pts_range = range(0,1,length=f_points-s_points+1)
+
+    if isnothing(gains_color)
+        g_clr = f_pts_range
+    else
+        g_clr = gains_color
+    end
+
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1:3,1:3], xlabel="x (m)", ylabel="y (m)", aspect = DataAspect())
+    lines!(ax, xs_task[1:f_task], ys_task[1:f_task], label="Task", 
+            color=:black, linewidth=5, linestyle=:dash)
+    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Initial Controller", 
+            color=(Makie.wong_colors()[2], .6), linewidth=4)
+    lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Controller", 
+    color=(Makie.wong_colors()[1], .6), linewidth=4)
+    scatter!(ax, r.setpoints[1,s_points:f_points], r.setpoints[2,s_points:f_points], 
+            marker='x', color=Makie.wong_colors()[1], colormap=cm, markersize=16, colorrange=clrrng,
+            label="Corrected task points")
+    # axislegend(ax)
+
+    # gains
+    tsegs = (r.t0_segs .- r.task_t0)[1:f_points]
+    ts = tsegs[s_points:f_points].-tsegs[s_points]
+
+    i = 1
+    if ctrl_params.gains[i] != 0.0
+        Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+    else
+        Ks = r.gain_adjs[i,s_points:f_points] .* 100
+    end
+    ax1 = Axis(fig[1,5], ylabel="ΔKx (%)")
+    lines!(ax1, ts, Ks, color=:black)
+
+    i = 2
+    if ctrl_params.gains[i] != 0.0
+        Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+    else
+        Ks = r.gain_adjs[i,s_points:f_points] .* 100
+    end
+    ax2 = Axis(fig[2,5], ylabel="ΔKy (%)")
+    lines!(ax2, ts, Ks, color=:black)
+
+    i = 3
+    if ctrl_params.gains[i] != 0.0
+        Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+    else
+        Ks = r.gain_adjs[i,s_points:f_points] .* 100
+    end
+    ax3 = Axis(fig[3,5], xlabel="time (s)", ylabel="ΔKv (%)")
+    lines!(ax3, ts, Ks, color=:black)
+
+    i = 4
+    if ctrl_params.gains[i] != 0.0
+        Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+    else
+        Ks = r.gain_adjs[i,s_points:f_points] .* 100
+    end
+    ax4 = Axis(fig[1,4], ylabel="ΔKϕ (%)")
+    lines!(ax4, ts, Ks, color=:black)
+
+    i = 6
+    if ctrl_params.gains[i] != 0.0
+        Ks = r.gain_adjs[i,s_points:f_points] ./ ctrl_params.gains[i] .* 100
+    else
+        Ks = r.gain_adjs[i,s_points:f_points] .* 100
+    end
+    ax5 = Axis(fig[2,4], xlabel="time (s)", ylabel="ΔKω (%)")
+    lines!(ax5, ts, Ks, color=:black)
+
+
+    Legend(fig[3,4], ax, rowgap=1, valign=:top, tellwidth=false, halign=:right)
+
+
+    display(fig)
+    save(path, fig)
+end
+
 function loss_statistics(training_datas::Vector{TrainingData}, num_iters::Integer)
     N = min(num_iters, length(training_datas[1].losses))
     mean_losses = zeros(N)
@@ -613,18 +734,20 @@ function loss_statistics(training_datas::Vector{TrainingData}, num_iters::Intege
     return mean_losses, std_losses
 end
 
-function plot_variances(path, training_datas1::Vector{TrainingData}, training_datas2::Vector{TrainingData}, num_iters::Integer)
+function plot_variances(path, training_datas1::Vector{TrainingData}, 
+    training_datas2::Vector{TrainingData}, num_iters::Integer, ymin, title
+)
     mean_losses1, std_losses1 = loss_statistics(training_datas1, num_iters)
     mean_losses2, std_losses2 = loss_statistics(training_datas2, num_iters)
     
-    fig = Figure(resolution=(800,600))
-    ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Reward", title="Mean Reward" #=,yscale=Makie.pseudolog10=#)
+    fig = Figure(resolution=(650,350))
+    ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Reward", title=title #=,yscale=Makie.pseudolog10=#)
     lines!(ax, 1:num_iters, -mean_losses1, label="With low-level feedback", color=color=(Makie.wong_colors()[1], 1.0))
     band!(ax, 1:num_iters, -mean_losses1-std_losses1, -mean_losses1+std_losses1, color=(Makie.wong_colors()[1], 0.2))
 
     lines!(ax, 1:num_iters, -mean_losses2, label="Without low-level feedback", color=color=(Makie.wong_colors()[2], 1.0))
     band!(ax, 1:num_iters, -mean_losses2-std_losses2, -mean_losses2+std_losses2, color=(Makie.wong_colors()[2], 0.2))
-    ylims!(ax, -310, 0)
+    ylims!(ax, ymin, 0)
     xlims!(ax, 0, num_iters)
     axislegend(ax; position=:rb)
 

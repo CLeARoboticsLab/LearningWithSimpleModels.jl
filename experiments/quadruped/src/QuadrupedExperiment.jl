@@ -11,6 +11,7 @@ module QuadrupedExperiment
 
 using LearningWithSimpleModels
 using BSON
+using CairoMakie
 
 include("experiment.jl")
 include("controller.jl")

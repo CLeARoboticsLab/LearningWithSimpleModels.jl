@@ -10,12 +10,12 @@ act_m1() = 0.1
 act_m2() = 0.1
 act_l1() = 1.0
 act_l2() = 1.0
-act_g() = 0.1
+act_g() = 1.0
 
 dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
 dp_simple_dynamics_params() = DoublePendulumDynamicsParameters(
-    1.0*act_m1(), 
-    1.0*act_m2(), 
+    0.5*act_m1(), 
+    0.5*act_m2(), 
     1.0*act_l1(), 
     1.0*act_l2(), 
     act_g()
@@ -144,7 +144,7 @@ dp_training_parameters() = TrainingParameters(; # TODO
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
     learning_rate = .25e-4, #.8e-5,
-    iters = 250,
+    iters = 100,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
     save_model = true,
