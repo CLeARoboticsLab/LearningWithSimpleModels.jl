@@ -1,4 +1,8 @@
 function plot_losses(training_params::TrainingParameters, losses)
+    if !training_params.plot
+        return
+    end
+    
     fig = Figure()
     ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Loss")
     lines!(ax, losses)
