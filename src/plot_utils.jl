@@ -759,3 +759,24 @@ function plot_variances(path, training_datas1::Vector{TrainingData},
     save(path, fig)
 end
 
+function plot_variances(path, scales::Vector{<:Real}, losses::Array{Float64,3})
+    
+    num_iters = size(losses,3)
+
+    fig = Figure(resolution=(650,350))
+    ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Reward")
+    
+    for (i, scale) in enumerate(scales)
+        mean_losses = mean(losses[i,:,:], dims=1)
+        std_losses = std(losses[i,:,:], dims=1)
+        lines!(ax, 1:num_iters, -mean_losses[1,:,1], label="Scale: $scale", color=(Makie.wong_colors()[i], 1.0))
+        band!(ax, 1:num_iters, -mean_losses[1,:,1]-std_losses[1,:,1], -mean_losses[1,:,1]+std_losses[1,:,1], color=(Makie.wong_colors()[i], 0.2))
+    end
+
+    # ylims!(ax, ymin, 0)
+    xlims!(ax, 0, num_iters)
+    axislegend(ax; position=:rb)
+
+    display(fig)
+    # save(path, fig)
+end

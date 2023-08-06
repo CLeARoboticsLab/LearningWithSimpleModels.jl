@@ -1,10 +1,15 @@
+import BSON
+
+mismatch_scales() = [1.0, 0.75, 0.5, 0.25]
+
 function mismatch_study()
 
-    scales = [0.25, 0.5, 0.75, 1.0]
-    num_episodes = 2
-    iters = 3
+    scales = mismatch_scales()
+    num_episodes = 10
+    iters = 25
 
     losses = zeros(length(scales), num_episodes, iters)
+    K = length(scales) * num_episodes
 
     training_params = TrainingParameters(;
         name = "unicycle",
@@ -21,6 +26,7 @@ function mismatch_study()
         save_all_data = false
     )
 
+    k = 1
     for (i, scale) in enumerate(scales)
         for j in 1:num_episodes
             _, losses[i, j, :] = train(
@@ -33,9 +39,16 @@ function mismatch_study()
                 training_params = training_params,
                 sim_params = unicycle_simulation_parameters()
             )
+            println("Finished training $k / $K")
+            k += 1
         end
     end
 
-    display(losses)
+    BSON.@save ".data/mismatch_study.bson" losses
+end
 
+function plot_mismatch_study()
+    scales = mismatch_scales()
+    BSON.@load ".data/mismatch_study.bson" losses
+    plot_variances("", scales, losses)
 end
