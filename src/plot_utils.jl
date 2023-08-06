@@ -567,6 +567,31 @@ function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w,
     save(path, fig)
 end
 
+function final_eval_plot(path, rs::Vector{RolloutData}, r_no_model::RolloutData,
+    scales, task, w, h, start_perc, finish_perc, task_finish_perc
+)
+    
+    xs_task, ys_task, _, _ = eval_all(task, r_no_model.ts)
+    s = Integer(round(start_perc*length(r_no_model.ts)))
+    f = Integer(round(finish_perc*length(r_no_model.ts)))
+    f_task = Integer(round(task_finish_perc*length(r_no_model.ts)))
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)", aspect = DataAspect())
+    lines!(ax, xs_task[1:f_task], ys_task[1:f_task], label="Task", 
+            color=:black, linewidth=6, linestyle=:dash)
+    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Untrained", 
+            color=(Makie.wong_colors()[2], .8), linewidth=2)
+    
+    for (i,r) in enumerate(rs)
+        lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label=L"\gamma = %$(scales[i])", 
+                color=(Makie.wong_colors()[i+2], .8), linewidth=2)
+    end
+    
+    Legend(fig[1,2], ax)
+    display(fig)
+    save(path, fig)
+end
+
 function final_model_outputs_plot(
     path, r::RolloutData, task::AbstractTask, 
     ctrl_params::ControllerParameters, gain_order::Vector{<:Integer},
@@ -759,7 +784,7 @@ function plot_variances(path, training_datas1::Vector{TrainingData},
     save(path, fig)
 end
 
-function plot_variances(path, scales::Vector{<:Real}, losses::Array{Float64,3})
+function plot_variances(path, scales::Vector{<:Real}, losses::Array{Float64,3}; xlim=nothing)
     
     num_iters = size(losses,3)
 
@@ -769,14 +794,17 @@ function plot_variances(path, scales::Vector{<:Real}, losses::Array{Float64,3})
     for (i, scale) in enumerate(scales)
         mean_losses = mean(losses[i,:,:], dims=1)
         std_losses = std(losses[i,:,:], dims=1)
-        lines!(ax, 1:num_iters, -mean_losses[1,:,1], label="Scale: $scale", color=(Makie.wong_colors()[i], 1.0))
-        band!(ax, 1:num_iters, -mean_losses[1,:,1]-std_losses[1,:,1], -mean_losses[1,:,1]+std_losses[1,:,1], color=(Makie.wong_colors()[i], 0.2))
+        lines!(ax, 0:num_iters-1, -mean_losses[1,:,1], label=L"\gamma = %$scale", color=(Makie.wong_colors()[i], 1.0))
+        band!(ax, 0:num_iters-1, -mean_losses[1,:,1]-std_losses[1,:,1], -mean_losses[1,:,1]+std_losses[1,:,1], color=(Makie.wong_colors()[i], 0.2))
     end
 
-    # ylims!(ax, ymin, 0)
-    xlims!(ax, 0, num_iters)
+    if isnothing(num_iters)
+        xlim = num_iters-1
+    end
+
+    xlims!(ax, 0, xlim)
     axislegend(ax; position=:rb)
 
     display(fig)
-    # save(path, fig)
+    save(path, fig)
 end
