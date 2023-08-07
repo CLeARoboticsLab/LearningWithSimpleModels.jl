@@ -86,6 +86,7 @@ Base.@kwdef struct TrainingParameters
     iters::Integer = 50
     optim::Optim = adam
     loss_aggregation::LossAgg = simulation_timestep
+    plot::Bool = true
     save_model::Bool = true
     save_plot::Bool = true
     save_animation::Bool = false

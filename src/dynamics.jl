@@ -17,8 +17,7 @@ function rollout_actual_dynamics(
     task_time, _ = properties(task, sim_params)
     n_segments = eval_params.n_task_executions * Integer(round(task_time/sim_params.model_dt))
     t0 = 0.0
-    # x0 = sim_params.x0
-    x0 = [π/2, 0.0, 0.0, 0.0] # TODO: make this an input into eval params
+    x0 = sim_params.x0
 
     return rollout_actual_dynamics(
         task, model, actual_dynamics, controller, cost, algo, sim_params, t0, x0, n_segments

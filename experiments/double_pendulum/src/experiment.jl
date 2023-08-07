@@ -13,9 +13,9 @@ act_l2() = 1.0
 act_g() = 1.0
 
 dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
-dp_simple_dynamics_params() = DoublePendulumDynamicsParameters(
-    0.5*act_m1(), 
-    0.5*act_m2(), 
+dp_simple_dynamics_params(; mass_mismatch=0.5) = DoublePendulumDynamicsParameters(
+    mass_mismatch*act_m1(), 
+    mass_mismatch*act_m2(), 
     1.0*act_l1(), 
     1.0*act_l2(), 
     act_g()
@@ -66,8 +66,8 @@ end
 dp_simple_dynamics_f(dyn::Dynamics, t::Float64, dt::Float64, 
     x::Vector{Float64}, u::Vector{Float64}) = dp_actual_dynamics_f(dyn,t,dt,x,u)
 
-dp_simple_dynamics() = Dynamics(;
-    params = dp_simple_dynamics_params(),
+dp_simple_dynamics(; mass_mismatch=0.5) = Dynamics(;
+    params = dp_simple_dynamics_params(; mass_mismatch=mass_mismatch),
     f = dp_simple_dynamics_f
 )
 
@@ -139,11 +139,11 @@ dp_training_algorithm() = RandomInitialAlgorithm(;
     task_time_est = nothing
 )
 
-dp_training_parameters() = TrainingParameters(; # TODO
+dp_training_parameters(; save_path=".data") = TrainingParameters(; # TODO
     name = "dp_sim",
-    save_path = ".data",
+    save_path = save_path,
     hidden_layer_sizes = [64, 64],
-    learning_rate = .25e-4, #.8e-5,
+    learning_rate = .2e-4, #.8e-5,
     iters = 100,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,

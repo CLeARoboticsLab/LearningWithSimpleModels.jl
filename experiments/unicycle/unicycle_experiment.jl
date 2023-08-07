@@ -2,39 +2,40 @@ using LearningWithSimpleModels
 
 include("unicycle_controller.jl")
 
-unicycle_simple_dynamics() = Dynamics(;
-    f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
-        return [
-            x[1] + x[3]*cos(x[4])*dt,
-            x[2] + x[3]*sin(x[4])*dt,
-            x[3] + (u[1] - .4*x[3]^2)*dt,
-            x[4] + x[3]*u[2]*dt
-        ]
-    end
-)
-
 Base.@kwdef struct UnicycleActualParameters <: DyanmicsParameters 
     vel_drag::Float64
-    turn_drag::Float64
     accel_scale::Float64
     turn_rate_scale::Float64
     turn_rate_bias::Float64
 end
 
+actual_params() = UnicycleActualParameters(;
+    vel_drag = 0.55,
+    accel_scale = 11.25,
+    turn_rate_scale = 6.50,
+    turn_rate_bias = -0.1,
+)
+
 unicycle_actual_dynamics() = Dynamics(;
-    params = UnicycleActualParameters(;
-        vel_drag = 0.55,
-        turn_drag = 0.0,
-        accel_scale = 11.25,
-        turn_rate_scale = 6.50,
-        turn_rate_bias = -0.1,
-    ),
+    params = actual_params(),
     f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
         return [
             x[1] + x[3]*cos(x[4])*dt,
             x[2] + x[3]*sin(x[4])*dt,
             x[3] + (dyn.params.accel_scale*u[1] - dyn.params.vel_drag*x[3]^2)*dt,
             x[4] + (dyn.params.turn_rate_scale*u[2] - dyn.params.turn_rate_bias)*x[3]*dt
+        ]
+    end
+)
+
+unicycle_simple_dynamics(; scale::Real = 1.0) = Dynamics(;
+    params = actual_params(),
+    f = (dyn::Dynamics, t::Float64, dt::Float64, x::Vector{Float64}, u::Vector{Float64}) -> begin
+        return [
+            x[1] + x[3]*cos(x[4])*dt,
+            x[2] + x[3]*sin(x[4])*dt,
+            x[3] + (scale*dyn.params.accel_scale*u[1] - scale*dyn.params.vel_drag*x[3]^2)*dt,
+            x[4] + (scale*dyn.params.turn_rate_scale*u[2] - scale*dyn.params.turn_rate_bias)*x[3]*dt
         ]
     end
 )
@@ -174,11 +175,11 @@ unicycle_figure_eight_task() = FigEightCircle(; r=1.5, time = 5.5)
 # )
 
 unicycle_training_algorithm() = RandomInitialAlgorithm(;
-    variances = [.010^2, .010^2, 0.001^2, .002^2],
+    variances = [.10^2, .10^2, 0.01^2, .02^2],
     n_rollouts_per_update = 1,
     n_beginning_segs_to_truncate = 20*2,
     segs_per_rollout = 156,
-    segs_in_window = 15*2,
+    segs_in_window = 156 - 20*2,
     to_state = (task_point) -> to_velocity_and_heading_angle(task_point),
     task_time_est = unicycle_fig_eight_task_time_estimate
 )
@@ -187,7 +188,7 @@ unicycle_training_parameters() = TrainingParameters(;
     name = "unicycle",
     save_path = ".data",
     hidden_layer_sizes = [64, 64],
-    learning_rate = 3.00e-3,
+    learning_rate = 6.00e-3,
     iters = 15,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,
@@ -214,7 +215,7 @@ unicycle_evaluation_parameters() = EvaluationParameters(;
 
 function train_unicycle_experiment()
     model, losses = train(
-        unicycle_simple_dynamics(), 
+        unicycle_simple_dynamics(scale=0.5), 
         unicycle_actual_dynamics();
         controller = unicycle_controller(), 
         cost = unicycle_cost(),

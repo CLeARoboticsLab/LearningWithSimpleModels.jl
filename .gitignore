@@ -43,3 +43,5 @@ Desktop.ini
 
 # CSV exports
 .csv_files
+
+.data/*.*
