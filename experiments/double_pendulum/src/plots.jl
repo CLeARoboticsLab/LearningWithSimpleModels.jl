@@ -28,7 +28,7 @@ function final_variances_plot()
         push!(runs2, run[:data])
     end
 
-    plot_variances(save_path, runs1, runs2, 100, -310, "")
+    plot_variances(save_path, runs1, runs2, 100, -1000, "")
 end
 
 function final_variances_plot_mismatch()
@@ -61,5 +61,5 @@ function final_variances_plot_mismatch()
         push!(runs2, run[:data])
     end
 
-    plot_variances(save_path, runs1, runs2, 100, -7500, "")
+    plot_variances(save_path, runs1, runs2, 100, -1000, "")
 end
