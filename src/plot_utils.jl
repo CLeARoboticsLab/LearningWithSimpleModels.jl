@@ -548,7 +548,7 @@ function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w,
             color=:black, linewidth=6, linestyle=:dash)
     lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Initial Policy", 
             color=(Makie.wong_colors()[2], .6), linewidth=4)
-            lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Policy", 
+    lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Policy", 
             color=(Makie.wong_colors()[1], .6), linewidth=4)
     
     if plot_setpoints
@@ -561,6 +561,39 @@ function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, task, w,
                 marker='x', color=Makie.wong_colors()[1], markersize=16,
                 label="Corrected task points")
     end
+
+    Legend(fig[1,2], ax)
+    display(fig)
+    save(path, fig)
+end
+
+function final_eval_plot(path, r::RolloutData, r_no_model::RolloutData, 
+    r_no_mismatch::RolloutData, task, w, h, 
+    start_perc, finish_perc, task_finish_perc,
+    start_perc_no_mismatch, finish_perc_no_mismatch
+)
+    xs_task, ys_task, _, _ = eval_all(task, r.ts)
+    s = Integer(round(start_perc*length(r.ts)))
+    f = Integer(round(finish_perc*length(r.ts)))
+    f_task = Integer(round(task_finish_perc*length(r.ts)))
+    fig = Figure(resolution=(w,h))
+    ax = Axis(fig[1,1], xlabel="x (m)", ylabel="y (m)", aspect = DataAspect())
+    lines!(ax, xs_task[1:f_task], ys_task[1:f_task], label="Task", 
+            color=:black, linewidth=6, linestyle=:dash)
+    lines!(ax, r_no_model.xs[1,s:f], r_no_model.xs[2,s:f], label="Initial Policy", 
+            color=(Makie.wong_colors()[2], .8), linewidth=3)
+    lines!(ax, r.xs[1,s:f], r.xs[2,s:f], label="Learned Policy", 
+            color=(Makie.wong_colors()[1], .8), linewidth=3)
+
+
+    s_no_mismatch = Integer(round(start_perc_no_mismatch*length(r_no_mismatch.ts)))
+    f_no_mismatch = Integer(round(finish_perc_no_mismatch*length(r_no_mismatch.ts)))
+    lines!(ax, r_no_mismatch.xs[1,s_no_mismatch:f_no_mismatch],
+            r_no_mismatch.xs[2,s_no_mismatch:f_no_mismatch],
+            label="Learned Policy
+(exact model)", 
+            color=(Makie.wong_colors()[4], .8), linewidth=3)
+    
 
     Legend(fig[1,2], ax)
     display(fig)

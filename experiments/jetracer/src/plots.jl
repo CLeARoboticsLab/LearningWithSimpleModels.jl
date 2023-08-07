@@ -60,6 +60,21 @@ function make_final_eval_plot()
     final_eval_plot(path, r, r_no_model, task,  800, 350, .42, .99, 1/6.42)
 end
 
+function make_final_eval_plot_corl_fig_1()
+    base_path = ".data/results/JetRacer/runs/2_1.0lr"
+    r = BSON.load(joinpath(base_path,"jetracer_rollout_using_model.bson"))[:r]
+    r_no_model = BSON.load(joinpath(base_path,"jetracer_rollout_no_model.bson"))[:r_no_model]
+
+    base_path = ".data/results/JetRacer_simulation/no_mismatch"
+    r_no_mismatch = BSON.load(joinpath(base_path,"unicycle_rollout_using_model.bson"))[:r]
+    println("r_no_mismatch")
+
+    task = jetracer_figure_eight_task()
+    path = ".data/results/JetRacer/trajectory_with_exact.png"
+    final_eval_plot(path, r, r_no_model, r_no_mismatch, task,
+                    800, 350, .42, .99, 1/6.42, .35, .99)
+end
+
 function make_model_outputs_plot()
     base_path = ".data/results/JetRacer/runs/2_1.0lr"
     r = BSON.load(joinpath(base_path,"jetracer_rollout_using_model.bson"))[:r]
