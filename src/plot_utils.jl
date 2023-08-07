@@ -771,10 +771,18 @@ function plot_variances(path, training_datas1::Vector{TrainingData},
     
     fig = Figure(resolution=(650,350))
     ax = Axis(fig[1,1], xlabel="Iteration", ylabel="Reward", title=title #=,yscale=Makie.pseudolog10=#)
-    lines!(ax, 1:num_iters, -mean_losses1, label="With low-level feedback", color=color=(Makie.wong_colors()[1], 1.0))
+    lines!(
+        ax, 1:num_iters, -mean_losses1, 
+        label="With low-level feedback; converged reward: $(@sprintf("%.1f",-mean_losses1[end]))",
+        color=color=(Makie.wong_colors()[1], 1.0)
+    )
     band!(ax, 1:num_iters, -mean_losses1-std_losses1, -mean_losses1+std_losses1, color=(Makie.wong_colors()[1], 0.2))
 
-    lines!(ax, 1:num_iters, -mean_losses2, label="Without low-level feedback", color=color=(Makie.wong_colors()[2], 1.0))
+    lines!(
+        ax, 1:num_iters, -mean_losses2,
+        label="Without low-level feedback; converged reward: $(@sprintf("%.1f",-mean_losses2[end]))",
+        color=color=(Makie.wong_colors()[2], 1.0)
+    )
     band!(ax, 1:num_iters, -mean_losses2-std_losses2, -mean_losses2+std_losses2, color=(Makie.wong_colors()[2], 0.2))
     ylims!(ax, ymin, 0)
     xlims!(ax, 0, num_iters)

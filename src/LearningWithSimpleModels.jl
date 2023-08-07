@@ -24,6 +24,7 @@ using LaTeXStrings
 using Statistics: mean, std
 using CSV
 using Tables
+using Printf: @sprintf
 
 include("types.jl")
 export DyanmicsParameters, NoDyanmicsParameters, Dynamics,
