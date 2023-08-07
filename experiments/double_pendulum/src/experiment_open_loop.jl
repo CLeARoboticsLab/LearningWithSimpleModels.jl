@@ -1,15 +1,15 @@
 dp_actual_dynamics_params_open_loop() = DoublePendulumDynamicsParameters(
     act_m1(), act_m2(), act_l1(), act_l2(), act_g()
 )
-dp_simple_dynamics_params_open_loop(; mass_mismatch=0.5) = DoublePendulumDynamicsParameters(
-    mass_mismatch*act_m1(), mass_mismatch*act_m2(), act_l1(), act_l2(), act_g()
+dp_simple_dynamics_params_open_loop(; mass_mismatch=0.5, length_mismatch=1.0) = DoublePendulumDynamicsParameters(
+    mass_mismatch*act_m1(), mass_mismatch*act_m2(), length_mismatch*act_l1(), length_mismatch*act_l2(), act_g()
 )
 
 m_dt_open_loop() = 0.01
 sim_dt_open_loop() = 0.01
 
-dp_simple_dynamics_open_loop(; mass_mismatch=0.5) = Dynamics(;
-    params = dp_simple_dynamics_params_open_loop(; mass_mismatch=mass_mismatch),
+dp_simple_dynamics_open_loop(; mass_mismatch=0.5, length_mismatch=1.0) = Dynamics(;
+    params = dp_simple_dynamics_params_open_loop(; mass_mismatch=mass_mismatch, length_mismatch=length_mismatch),
     f = dp_simple_dynamics_f
 )
 
@@ -50,7 +50,7 @@ dp_training_parameters_open_loop(; save_path=".data") = TrainingParameters(; # T
     name = "dp_sim_open_loop",
     save_path = save_path,
     hidden_layer_sizes = [64, 64],
-    learning_rate = 4.75e-6,
+    learning_rate = 4.0e-7,
     iters = 100,
     optim = gradient_descent,
     loss_aggregation = simulation_timestep,

@@ -13,11 +13,11 @@ act_l2() = 1.0
 act_g() = 1.0
 
 dp_actual_dynamics_params() = DoublePendulumDynamicsParameters(act_m1(), act_m2(), act_l1(), act_l2(), act_g())
-dp_simple_dynamics_params(; mass_mismatch=0.5) = DoublePendulumDynamicsParameters(
+dp_simple_dynamics_params(; mass_mismatch=0.5, length_mismatch=1.0) = DoublePendulumDynamicsParameters(
     mass_mismatch*act_m1(), 
     mass_mismatch*act_m2(), 
-    1.0*act_l1(), 
-    1.0*act_l2(), 
+    length_mismatch*act_l1(), 
+    length_mismatch*act_l2(), 
     act_g()
 )
 
@@ -66,8 +66,8 @@ end
 dp_simple_dynamics_f(dyn::Dynamics, t::Float64, dt::Float64, 
     x::Vector{Float64}, u::Vector{Float64}) = dp_actual_dynamics_f(dyn,t,dt,x,u)
 
-dp_simple_dynamics(; mass_mismatch=0.5) = Dynamics(;
-    params = dp_simple_dynamics_params(; mass_mismatch=mass_mismatch),
+dp_simple_dynamics(; mass_mismatch=0.5, length_mismatch=1.0) = Dynamics(;
+    params = dp_simple_dynamics_params(; mass_mismatch=mass_mismatch, length_mismatch=length_mismatch),
     f = dp_simple_dynamics_f
 )
 

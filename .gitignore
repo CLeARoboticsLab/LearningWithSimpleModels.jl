@@ -45,3 +45,5 @@ Desktop.ini
 .csv_files
 
 .data/*.*
+
+.data/results_pend/
