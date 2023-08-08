@@ -1,5 +1,5 @@
 function final_variances_plot()
-    episodes = 3
+    episodes = 64
     
     base_path = ".data/results_pend/no_mismatch"
     save_path = joinpath(base_path, "variances.png")
@@ -18,11 +18,11 @@ function final_variances_plot()
         push!(runs2, run[:data])
     end
 
-    plot_variances(save_path, runs1, runs2, 100, -5000, "")
+    plot_variances(save_path, runs1, runs2, 50, -1500, "")
 end
 
 function final_variances_plot_mismatch()
-    episodes = 3
+    episodes = 64
 
     base_path = ".data/results_pend/mismatch"
     save_path = joinpath(base_path, "variances_mismatch.png")
@@ -41,5 +41,5 @@ function final_variances_plot_mismatch()
         push!(runs2, run[:data])
     end
 
-    plot_variances(save_path, runs1, runs2, 100, -5000, "")
+    plot_variances(save_path, runs1, runs2, 50, -1500, "")
 end
